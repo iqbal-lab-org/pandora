@@ -87,6 +87,7 @@ public:
 class ZipFileReader {
 private:
     struct zip *archive;
+
     std::string read_full_text_file_as_single_string(const std::string &zip_path);
     inline std::vector<std::string> read_full_text_file(const std::string &zip_path) {
         return split(read_full_text_file_as_single_string(zip_path), "\n");
@@ -94,6 +95,14 @@ private:
 
     static std::pair<zip_file*, struct zip_stat> open_file_inside_zip(
         struct zip *archive, const std::string &zip_path);
+
+    /**
+     * Extract a file from the zip archive into a temp file
+     * @param zip_path : The file to be extracted
+     * @return A path to the temp file extracted. The caller is responsible for deleting this file.
+     */
+    fs::path extract_text_file(const std::string &zip_path);
+
 public:
     // Note: this constructor is not explicit as we want to build from everything we can convert to a path
     ZipFileReader(const fs::path &path) {
@@ -128,6 +137,9 @@ public:
                        [](const std::string &str) { return std::stoi(str); }
         );
         return prg_min_path_lengths;
+    }
+    inline fs::path extract_prgs() {
+        return extract_text_file("_prgs");
     }
     ////////////////////////////////////////////////////////////////////////////////////
 
@@ -186,6 +198,12 @@ public:
     ZipIfstream& operator>>(T& data) {
         zip_ifs >> data;
         return *this;
+    }
+
+    std::string getline() {
+        std::string line;
+        std::getline(zip_ifs, line);
+        return line;
     }
 };
 

@@ -19,7 +19,7 @@ std::pair<zip_file*, struct zip_stat> ZipFileReader::open_file_inside_zip(
     struct zip *archive, const std::string &zip_path) {
     zip_int64_t zip_file_location = zip_name_locate(archive, zip_path.c_str(), 0);
     zip_file* zipsub_file;
-    if ((zipsub_file =zip_fopen_index(archive, zip_file_location, 0)) == nullptr) {
+    if ((zipsub_file = zip_fopen_index(archive, zip_file_location, 0)) == nullptr) {
         fatal_error("Unable to open file ", zip_path, " inside zip file for reading");
     }
 
@@ -50,4 +50,21 @@ std::string ZipFileReader::read_full_text_file_as_single_string(
     }
 
     return std::string(buffer);
+}
+
+fs::path ZipFileReader::extract_text_file(const std::string &zip_path) {
+    fs::path temp_file = fs::unique_path();
+    ZipIfstream prgs_in(this->archive, zip_path);
+
+    std::ofstream extracted_text_file;
+    open_file_for_writing(temp_file.string(), extracted_text_file);
+
+    while (prgs_in.good()) {
+        std::string line = prgs_in.getline();
+        extracted_text_file << line << '\n';
+    }
+
+    extracted_text_file.close();
+
+    return temp_file;
 }
