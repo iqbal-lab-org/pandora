@@ -14,8 +14,8 @@ std::vector<std::string> get_prg_names(
     const fs::path &prg_filepath, uintmax_t estimated_index_size) {
     std::vector<std::string> prg_names;
 
-    // we estimate the number of PRGs thinking each PRG has the size of ~1000 chars/bytes
-    // not the best but not the worst estimation
+    // Note: we estimate the number of PRGs thinking each PRG has the size of ~1000 chars/bytes.
+    // Not the best but not the worst estimation
     prg_names.reserve(estimated_index_size/1000);
 
     std::ifstream prg_ifstream;
@@ -43,16 +43,25 @@ void Index::build_index_on_disk(const uint32_t w, const uint32_t k, const fs::pa
     const uint32_t threads) {
     ZipFileWriter index_archive(out_filepath);
 
+    // Note: originally this was the sum of PRG lengths. The number of bytes in a file
+    // is a fast and good approximation
     uintmax_t estimated_index_size = get_number_of_bytes_in_file(prg_filepath);
     std::vector<std::string> prg_names = get_prg_names(prg_filepath, estimated_index_size);
-
-    Index index(w, k, std::move(prg_names));
 
     // load PRGs from file lazily (using generators)
     LocalPRGGeneratorAndIterator prg_generator_and_it = LocalPRGReader::read_prg_file_as_generator(prg_filepath);
 
+    // index the prgs
+    Index index(w, k, std::move(prg_names));
     index.index_prgs(index_archive, prg_generator_and_it.second,
         estimated_index_size, indexing_upper_bound, threads);
+
+    // saves the prg file in the index to make it a self-contained index
+    std::ifstream prg_ifstream;
+    open_file_for_reading(prg_filepath.string(), prg_ifstream);
+    index_archive.prepare_new_entry("_prgs");
+    index_archive.write_from_text_stream(prg_ifstream);
+    prg_ifstream.close();
 }
 
 /**
@@ -126,8 +135,7 @@ void Index::load_minhash(ZipFileReader &zip_file) {
     MiniRecord mr;
     bool first = true;
 
-    ZipInstreamBuffer zip_buffer(zip_file.archive, "_minhash");
-    std::istream zip_in(&zip_buffer);
+    ZipIfstream zip_in(zip_file.archive, "_minhash");
 
     while (zip_in.good()) {
         c = zip_in.peek();
