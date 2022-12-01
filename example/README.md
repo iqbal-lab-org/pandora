@@ -4,11 +4,8 @@ Here we present a walkthrough of running `pandora` on a toy example. We run:
 1) `pandora` without de novo discovery;
 2) `pandora` with de novo discovery (see Figure 2 of [our paper][pandora_2020_paper]).
 
-## Dependencies
 * **There is no need to have `pandora` or `make_prg` installed. The running script will automatically download
-  and run the precompiled binary for `pandora` and a container through `singularity` for `make_prg`**;
-* `wget`;
-* `singularity 3.0+`;
+  and run the precompiled binaries for `pandora` and `make_prg`**;
 
 ## Input data description
 
