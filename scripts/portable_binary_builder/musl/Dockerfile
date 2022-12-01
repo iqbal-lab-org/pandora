@@ -2,7 +2,7 @@
 # If you want to use this container, it is simpler to just pull it:
 #   docker pull leandroishilima/pandora_static_binary_toolchain_musl:0.0.2
 
-# This container has the C++ toolchain to build a static binary for pandora
+# This container has the C++ toolchain to build a static binary for pandora using musl
 # to build: docker build . -t leandroishilima/pandora_static_binary_toolchain_musl:0.0.2
 FROM alpine:3.15
 
