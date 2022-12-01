@@ -9,6 +9,7 @@ jobs:
       run:
         shell: bash -el {0}
     steps:
+      - uses: actions/checkout@v2
       - name: Build and test release
         env:
           CMAKE_BUILD_TYPE: RELEASE
