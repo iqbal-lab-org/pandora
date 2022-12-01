@@ -16,10 +16,27 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: recursive
-      - name: Build and test
+
+      # TODO: add format step back (last PR before release)
+#      - name: "Format"
+#        run: |
+#          find src/ include/ test/ -type f \( -iname \*.h -o -iname \*.cpp \) | xargs -I _ clang-format -style=file -output-replacements-xml _ | grep -c "<replacement " >/dev/null
+#          if [ $? -ne 1 ]; then echo "Not all source and header files are formatted with clang-format"; exit 1; fi
+
+      - name: Build and test release build
         run: |
-          mkdir build && cd build
+          mkdir build_release && cd build_release
           cmake -DCMAKE_BUILD_TYPE=Release -DHUNTER_JOBS_NUMBER=4 ..
           make -j4
           ctest -V
           ./pandora --help
+          cd ..
+
+      - name: Build and test debug build
+        run: |
+          mkdir build_debug && cd build_debug
+          cmake -DCMAKE_BUILD_TYPE=Debug -DHUNTER_JOBS_NUMBER=4 ..
+          make -j4
+          ctest -V
+          ./pandora --help
+          cd ..
