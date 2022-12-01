@@ -8,8 +8,8 @@ jobs:
     defaults:
       run:
         shell: bash -el {0}
+
     steps:
       - name: Build and test release
-        env:
-          CMAKE_BUILD_TYPE: RELEASE
+        env:  CMAKE_BUILD_TYPE=RELEASE
         run:  bash ci/script.sh
