@@ -12,4 +12,7 @@ jobs:
       - name: Build and test release
         env:
           CMAKE_BUILD_TYPE: RELEASE
-        run:  bash ci/script.sh
+        run:
+          ls
+          pwd
+          bash ci/script.sh
