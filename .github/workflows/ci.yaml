@@ -9,11 +9,17 @@ jobs:
       run:
         shell: bash -el {0}
     steps:
-      - uses: actions/checkout@v2
-      - name: Build and test release
-        env:
-          CMAKE_BUILD_TYPE: RELEASE
-        run:
-          ls
-          pwd
-          bash ci/script.sh
+      - name: Install dependencies
+        run: |
+          sudo apt-get install cmake
+      - name: Check out code for the build
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Build and test
+        run: |
+          mkdir build && cd build
+          cmake -DCMAKE_BUILD_TYPE=Release -DHUNTER_JOBS_NUMBER=4 ..
+          make -j4
+          ctest -vv
+          ./pandora --help
