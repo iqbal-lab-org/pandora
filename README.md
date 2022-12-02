@@ -1,7 +1,7 @@
 | Branch             | Status                                                                           |
 |:-------------------|:---------------------------------------------------------------------------------|
-| [`master`][master] | ![Travis (.com) branch](https://img.shields.io/travis/com/rmcolq/pandora/master) |
-| [`dev`][dev]       | ![Travis (.com) branch](https://img.shields.io/travis/com/rmcolq/pandora/dev)    |
+| [`master`][master] | ![master branch badge](https://github.com/rmcolq/pandora/actions/workflows/ci.yaml/badge.svg)|
+| [`dev`][dev]       | ![dev branch badge](https://github.com/rmcolq/pandora/actions/workflows/ci.yaml/badge.svg?branch=)|
 
 [master]: https://github.com/rmcolq/pandora/tree/master
 [dev]: https://github.com/rmcolq/pandora/tree/dev
@@ -31,7 +31,7 @@ Pandora is a tool for bacterial genome analysis using a pangenome reference grap
 The PanRG is a collection of 'floating'
 local graphs (PRGs), each representing some orthologous region of interest
 (e.g. genes, mobile elements or intergenic regions). See
-https://github.com/leoisl/make_prg for a tool which can construct
+[make_prg][make_prg] for a tool which can construct
 these PanRGs from a set of aligned sequence files.
 
 Pandora can do the following for a single sample (read dataset):
@@ -81,13 +81,13 @@ In this binary, all libraries are linked statically.
 
 * **Download**:
   ```
-  wget https://github.com/rmcolq/pandora/releases/download/0.9.2/pandora-linux-precompiled-v0.9.2
+  wget https://github.com/rmcolq/pandora/releases/download/0.10.0-alpha.0/pandora-linux-precompiled-v0.10.0-alpha.0
   ```
 
 * **Running**:
 ```
-chmod +x pandora-linux-precompiled-v0.9.2
-./pandora-linux-precompiled-v0.9.2 -h
+chmod +x pandora-linux-precompiled-v0.10.0-alpha.0
+./pandora-linux-precompiled-v0.10.0-alpha.0 -h
 ```
 
 * **Notes**:
@@ -150,3 +150,4 @@ See [Usage](https://github.com/rmcolq/pandora/wiki/Usage).
 
 <!--Link References-->
 [pandora_2020_paper]: https://doi.org/10.1186/s13059-021-02473-1
+[make_prg]: https://github.com/iqbal-lab-org/make_prg/
