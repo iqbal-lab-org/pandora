@@ -13,8 +13,9 @@ jobs:
         run: |
           sudo apt update && sudo apt install cmake
 
-      - name: Cleanup submodules
-        run: git reset --hard HEAD && git submodule sync && git submodule deinit -f . || true
+      - name: Clear repository
+        run: |
+          rm -rfv _work && mkdir _work    
 
       - name: Check out code for the build
         uses: actions/checkout@v2
