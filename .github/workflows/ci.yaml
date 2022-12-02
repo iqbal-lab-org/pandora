@@ -13,9 +13,9 @@ jobs:
         run: |
           sudo apt update && sudo apt install cmake
 
-      - name: Clear repository
-        run: |
-          rm -rfv /home/runner/work/ && mkdir /home/runner/work/    
+#      - name: Clear repository
+#        run: |
+#          rm -rfv /home/runner/work/ && mkdir /home/runner/work/
 
       - name: Check out code for the build
         uses: actions/checkout@v2
