@@ -14,6 +14,7 @@
 #include "seq.h"
 #include "kmernode.h"
 #include <stdint.h>
+#include "test_helpers_containers.h"
 #include "test_helpers.h"
 
 using namespace std;
@@ -635,26 +636,26 @@ TEST(LocalPRGTest, minimizer_sketch)
     LocalPRG l6(2, "too short for w and k", "A 5 GC 6 G 5 T");
 
     auto index = std::make_shared<Index>();
-    KmerHash hash;
+    pandora::KmerHash hash;
 
-    l0.minimizer_sketch(index, 1, 3);
+    l0.minimizer_sketch(index.get(), 1, 3);
     uint32_t j = 0;
     EXPECT_EQ(j, index->minhash.size());
 
-    l1.minimizer_sketch(index, 2, 3);
+    l1.minimizer_sketch(index.get(), 2, 3);
     j = 1;
     EXPECT_EQ(j, index->minhash.size());
-    l1.minimizer_sketch(index, 1, 3);
+    l1.minimizer_sketch(index.get(), 1, 3);
     EXPECT_EQ(j, index->minhash.size());
     j = 2;
     pair<uint64_t, uint64_t> kh = hash.kmerhash("AGC", 3);
     EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
 
     index->clear();
-    l2.minimizer_sketch(index, 2, 3);
+    l2.minimizer_sketch(index.get(), 2, 3);
     j = 1;
     EXPECT_EQ(j, index->minhash.size());
-    l2.minimizer_sketch(index, 1, 3);
+    l2.minimizer_sketch(index.get(), 1, 3);
     j = 2;
     EXPECT_EQ(j, index->minhash.size());
     EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
@@ -663,10 +664,10 @@ TEST(LocalPRGTest, minimizer_sketch)
     EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
 
     index->clear();
-    l3.minimizer_sketch(index, 2, 3);
+    l3.minimizer_sketch(index.get(), 2, 3);
     j = 2;
     EXPECT_EQ(j, index->minhash.size());
-    l3.minimizer_sketch(index, 1, 3);
+    l3.minimizer_sketch(index.get(), 1, 3);
     j = 3;
     EXPECT_EQ(j, index->minhash.size());
     j = 2;
@@ -679,7 +680,7 @@ TEST(LocalPRGTest, minimizer_sketch)
     EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
 
     index->clear();
-    l4.minimizer_sketch(index, 1, 3);
+    l4.minimizer_sketch(index.get(), 1, 3);
     j = 16;
     EXPECT_EQ(j, index->minhash.size());
     j = 5;
@@ -721,7 +722,7 @@ TEST(LocalPRGTest, minimizer_sketch)
     EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
 
     index->clear();
-    l4.minimizer_sketch(index, 3, 3);
+    l4.minimizer_sketch(index.get(), 3, 3);
     j = 10;
     EXPECT_EQ(j, index->minhash.size());
     j = 4;
@@ -750,11 +751,11 @@ TEST(LocalPRGTest, minimizer_sketch)
     EXPECT_EQ(j, index->minhash[min(kh.first, kh.second)]->size());
 
     index->clear();
-    l5.minimizer_sketch(index, 4, 5);
+    l5.minimizer_sketch(index.get(), 4, 5);
     EXPECT_EQ((index->minhash.size() > 2), true);
 
     index->clear();
-    l6.minimizer_sketch(index, 2, 4);
+    l6.minimizer_sketch(index.get(), 2, 4);
     EXPECT_EQ((uint)0, index->minhash.size());
 
     index->clear();
@@ -784,7 +785,7 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw1)
 
     auto index = std::make_shared<Index>();
     LocalPRG l(0, "prg", st);
-    l.minimizer_sketch(index, 1, 15);
+    l.minimizer_sketch(index.get(), 1, 15);
 
     Seq s = Seq(0, "read", st, 1, 15);
 
@@ -817,7 +818,7 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw5)
 
     auto index = std::make_shared<Index>();
     LocalPRG l(0, "prg", st);
-    l.minimizer_sketch(index, 5, 15);
+    l.minimizer_sketch(index.get(), 5, 15);
 
     Seq s = Seq(0, "read", st, 5, 15);
 
@@ -850,7 +851,7 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw10)
 
     auto index = std::make_shared<Index>();
     LocalPRG l(0, "prg", st);
-    l.minimizer_sketch(index, 10, 15);
+    l.minimizer_sketch(index.get(), 10, 15);
 
     Seq s = Seq(0, "read", st, 10, 15);
 
@@ -883,7 +884,7 @@ TEST(LocalPRGTest, minimizer_sketch_SameAsSeqw15)
 
     auto index = std::make_shared<Index>();
     LocalPRG l(0, "prg", st);
-    l.minimizer_sketch(index, 15, 15);
+    l.minimizer_sketch(index.get(), 15, 15);
 
     Seq s = Seq(0, "read", st, 15, 15);
 
@@ -906,9 +907,9 @@ TEST(LocalPRGTest, localnode_path_from_kmernode_path)
 
     auto index = std::make_shared<Index>();
 
-    KmerHash hash;
+    pandora::KmerHash hash;
 
-    l3.minimizer_sketch(index, 2, 3);
+    l3.minimizer_sketch(index.get(), 2, 3);
     // vector<KmerNodePtr> kmp = {l3.kmer_prg.nodes[0], l3.kmer_prg.nodes[1],
     // l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4]};
     vector<KmerNodePtr> kmp = { l3.kmer_prg.nodes[2], l3.kmer_prg.nodes[4] };
@@ -920,7 +921,7 @@ TEST(LocalPRGTest, localnode_path_from_kmernode_path)
     EXPECT_ITERABLE_EQ(vector<LocalNodePtr>, lmp_exp, lmp);
 
     index->clear();
-    l4.minimizer_sketch(index, 3, 3);
+    l4.minimizer_sketch(index.get(), 3, 3);
     // kmp = {l4.kmer_prg.nodes[0], l4.kmer_prg.nodes[1], l4.kmer_prg.nodes[3],
     // l4.kmer_prg.nodes[7], l4.kmer_prg.nodes[9], l4.kmer_prg.nodes[11],
     // l4.kmer_prg.nodes[13]};
@@ -940,9 +941,9 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path)
     LocalPRG l5(5, "nested varsite", "A 5 G 7 C 8 T 7 T 9 CCG 10 CGG 9  6 G 5 TAT");
 
     auto index = std::make_shared<Index>();
-    KmerHash hash;
+    pandora::KmerHash hash;
 
-    l3.minimizer_sketch(index, 2, 3);
+    l3.minimizer_sketch(index.get(), 2, 3);
     vector<LocalNodePtr> lmp = { l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[2],
         l3.prg.nodes[4], l3.prg.nodes[6] };
 
@@ -955,7 +956,7 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path)
     EXPECT_ITERABLE_EQ(vector<KmerNodePtr>, kmp_exp, kmp);
 
     index->clear();
-    l4.minimizer_sketch(index, 3, 3);
+    l4.minimizer_sketch(index.get(), 3, 3);
     lmp = { l4.prg.nodes[0], l4.prg.nodes[1], l4.prg.nodes[3], l4.prg.nodes[4],
         l4.prg.nodes[6] };
 
@@ -971,7 +972,7 @@ TEST(LocalPRGTest, kmernode_path_from_localnode_path)
     // case where we don't have start and end point in localpath, so need to consider
     // whether kmer overlaps
     index->clear();
-    l5.minimizer_sketch(index, 2, 3);
+    l5.minimizer_sketch(index.get(), 2, 3);
     lmp = { l5.prg.nodes[1], l5.prg.nodes[2], l5.prg.nodes[4], l5.prg.nodes[6],
         l5.prg.nodes[7] };
 
@@ -993,7 +994,7 @@ TEST(GetCovgsAlongLocalnodePathTest, emptyPanNodeReturnsEmpty)
     const std::vector<LocalNodePtr> local_node_max_likelihood_path;
     const std::vector<KmerNodePtr> kmer_node_max_likelihood_path;
 
-    PanNodePtr pangraph_node { std::make_shared<pangenome::Node>(local_prg_ptr) };
+    pangenome::NodePtr pangraph_node { std::make_shared<pangenome::Node>(local_prg_ptr) };
 
     const auto actual { get_covgs_along_localnode_path(pangraph_node,
         local_node_max_likelihood_path, kmer_node_max_likelihood_path, 0) };
@@ -1010,12 +1011,12 @@ TEST(GetCovgsAlongLocalnodePathTest, get_covgs_along_localnode_path)
         4, "much more complex", "TC 5 ACTC 7 TAGTCA 8 TTGTGA 7  6 AACTAG 5 AG") };
 
     auto index = std::make_shared<Index>();
-    KmerHash hash;
+    pandora::KmerHash hash;
 
-    l3->minimizer_sketch(index, 2, 3);
+    l3->minimizer_sketch(index.get(), 2, 3);
     vector<KmerNodePtr> kmp = { l3->kmer_prg.nodes[2], l3->kmer_prg.nodes[4] };
     vector<LocalNodePtr> lmp = l3->localnode_path_from_kmernode_path(kmp, 2);
-    shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(l3));
+    shared_ptr<pangenome::Node> pn3(std::make_shared<pangenome::Node>(l3));
     for (const auto& n : pn3->kmer_prg_with_coverage.kmer_prg->nodes) {
         pn3->kmer_prg_with_coverage.increment_forward_covg(n->id, 0);
     }
@@ -1024,7 +1025,7 @@ TEST(GetCovgsAlongLocalnodePathTest, get_covgs_along_localnode_path)
     EXPECT_ITERABLE_EQ(vector<uint>, covgs_exp, covgs);
 
     index->clear();
-    l4->minimizer_sketch(index, 1, 3);
+    l4->minimizer_sketch(index.get(), 1, 3);
     kmp = { l4->kmer_prg.nodes[0], l4->kmer_prg.nodes[1], l4->kmer_prg.nodes[3],
         l4->kmer_prg.nodes[5], l4->kmer_prg.nodes[7], l4->kmer_prg.nodes[9],
         l4->kmer_prg.nodes[12], l4->kmer_prg.nodes[15], l4->kmer_prg.nodes[18],
@@ -1058,9 +1059,9 @@ TEST(LocalPRGTest, write_covgs_to_file)
         3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 T") };
 
     auto index = std::make_shared<Index>();
-    KmerHash hash;
+    pandora::KmerHash hash;
 
-    l3->minimizer_sketch(index, 2, 3);
+    l3->minimizer_sketch(index.get(), 2, 3);
     vector<KmerNodePtr> kmp = { l3->kmer_prg.nodes[2], l3->kmer_prg.nodes[4] };
     vector<LocalNodePtr> lmp = l3->localnode_path_from_kmernode_path(kmp, 2);
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(l3));
@@ -1079,7 +1080,7 @@ TEST(LocalPRGTest, write_path_to_fasta)
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
 
     auto index = std::make_shared<Index>();
-    l3.minimizer_sketch(index, 1, 3);
+    l3.minimizer_sketch(index.get(), 1, 3);
 
     vector<LocalNodePtr> lmp3 = { l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3],
         l3.prg.nodes[4], l3.prg.nodes[6] };
@@ -1091,7 +1092,7 @@ TEST(LocalPRGTest, append_path_to_fasta)
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
 
     auto index = std::make_shared<Index>();
-    l3.minimizer_sketch(index, 1, 3);
+    l3.minimizer_sketch(index.get(), 1, 3);
 
     vector<LocalNodePtr> lmp3 = { l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3],
         l3.prg.nodes[4], l3.prg.nodes[6] };
@@ -1103,7 +1104,7 @@ TEST(LocalPRGTest, write_aligned_path_to_fasta)
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
 
     auto index = std::make_shared<Index>();
-    l3.minimizer_sketch(index, 1, 3);
+    l3.minimizer_sketch(index.get(), 1, 3);
 
     vector<LocalNodePtr> lmp3 = { l3.prg.nodes[0], l3.prg.nodes[1], l3.prg.nodes[3],
         l3.prg.nodes[4], l3.prg.nodes[6] };
@@ -1920,7 +1921,7 @@ TEST(LocalPRGTest, get_forward_and_reverse_kmer_coverages_in_range)
 {
     auto index = std::make_shared<Index>();
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
-    l3.minimizer_sketch(index, 1, 3);
+    l3.minimizer_sketch(index.get(), 1, 3);
     KmerGraphWithCoverage kg(&l3.kmer_prg);
 
     kg.set_forward_covg(2, 4, 0);
@@ -1976,7 +1977,7 @@ TEST(LocalPRGTest, add_sample_covgs_to_vcf)
 {
     auto index = std::make_shared<Index>();
     LocalPRG l3(3, "nested varsite", "A 5 G 7 C 8 T 7  6 G 5 TAT");
-    l3.minimizer_sketch(index, 1, 3);
+    l3.minimizer_sketch(index.get(), 1, 3);
 
     VCF vcf = create_VCF_with_default_parameters(0);
 
@@ -2102,7 +2103,7 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_bin)
     auto index = std::make_shared<Index>();
 
     auto l3 { std::make_shared<LocalPRG>(3, "three", "A 5 G 7 C 8 T 7  6 G 5 TAT") };
-    l3->minimizer_sketch(index, 1, 3);
+    l3->minimizer_sketch(index.get(), 1, 3);
 
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(l3));
     pn3->kmer_prg_with_coverage.set_forward_covg(2, 4, 0);
@@ -2144,7 +2145,7 @@ TEST(LocalPRGTest, add_consensus_path_to_fastaq_nbin)
 {
     auto index = std::make_shared<Index>();
     auto l3 { std::make_shared<LocalPRG>(3, "three", "A 5 G 7 C 8 T 7  6 G 5 TAT") };
-    l3->minimizer_sketch(index, 1, 3);
+    l3->minimizer_sketch(index.get(), 1, 3);
 
     shared_ptr<pangenome::Node> pn3(make_shared<pangenome::Node>(l3));
     pn3->kmer_prg_with_coverage.set_forward_covg(2, 4, 0);

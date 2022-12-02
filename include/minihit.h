@@ -16,25 +16,21 @@
  */
 struct MinimizerHit {
 private:
-    uint32_t read_id; // TODO: Possible improvement (memory): this can be made a
-                      // template and change depending on the maximum number of reads
-    uint32_t
-        read_start_position; // TODO: Possible improvement (memory): this can be made a
-                             // template and change depending on the maximum read length
-    bool read_strand;
-    const MiniRecord& minimizer_from_PRG;
-
+    uint32_t read_id;
+    uint32_t read_start_position;
 public:
+    const bool read_strand;
+    const MiniRecord& minimizer_from_PRG;
     inline uint32_t get_read_id() const { return read_id; }
     inline uint32_t get_read_start_position() const { return read_start_position; }
     inline uint32_t get_prg_id() const { return minimizer_from_PRG.prg_id; }
     inline const prg::Path& get_prg_path() const { return minimizer_from_PRG.path; }
     inline uint32_t get_kmer_node_id() const { return minimizer_from_PRG.knode_id; }
-    inline bool is_forward() const
+    inline bool get_prg_kmer_strand() const { return minimizer_from_PRG.strand; }
+    inline bool same_strands() const
     {
-        return read_strand == minimizer_from_PRG.strand;
-    } // TODO: the name of this method is very misleading, should be same_strands() or
-      // sth like this
+        return read_strand == get_prg_kmer_strand();
+    }
 
     MinimizerHit(const uint32_t i, const Minimizer& minimizer_from_read,
         const MiniRecord& minimizer_from_PRG);

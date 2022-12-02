@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <iostream>
 #include "interval.h"
+#include "test_helpers_containers.h"
 #include "test_helpers.h"
 
 TEST(IntervalTest, create)

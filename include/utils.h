@@ -1,6 +1,7 @@
 #ifndef __UTILS_H_INCLUDED__ // if utils.h hasn't been included yet...
 #define __UTILS_H_INCLUDED__
 
+#include "forward_declarations.h"
 #include <vector>
 #include <set>
 #include <memory>
@@ -11,11 +12,12 @@
 #include <utility>
 #include <boost/filesystem/path.hpp>
 #include "minihits.h"
-#include "pangenome/ns.cpp"
 #include <boost/log/trivial.hpp>
 #include <sstream>
 #include "fatal_error.h"
+#include "paf_file.h"
 #include "inthash.h"
+#include "cluster_files.h"
 
 namespace fs = boost::filesystem;
 
@@ -80,27 +82,49 @@ void load_vcf_refs_file(const fs::path& filepath, VCFRefs& vcf_refs);
 
 void add_read_hits(const Seq&, const std::shared_ptr<MinimizerHits>&, const Index&);
 
-void define_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp>&,
-    const std::vector<std::shared_ptr<LocalPRG>>&, std::shared_ptr<MinimizerHits>,
-    const int, const float&, const uint32_t, const uint32_t);
+void define_clusters(
+    const std::string &sample_name,
+    const Seq &seq,
+    MinimizerHitClusters& clusters_of_hits,
+    const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    std::shared_ptr<MinimizerHits> minimizer_hits, const int max_diff,
+    const float& fraction_kmers_required_for_cluster, const uint32_t min_cluster_size,
+    const uint32_t expected_number_kmers_in_read_sketch,
+    ClusterDefFile& cluster_def_file);
 
-void filter_clusters(std::set<std::set<MinimizerHitPtr, pComp>, clusterComp>&);
+void filter_clusters(
+    const std::string &sample_name,
+    const Seq &seq,
+    MinimizerHitClusters& clusters_of_hits,
+    const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    ClusterFilterFile& cluster_filter_file
+);
 
-void filter_clusters2(
-    std::set<std::set<MinimizerHitPtr, pComp>, clusterComp>&, const uint32_t&);
+void add_clusters_to_pangraph(
+    const MinimizerHitClusters& minimizer_hit_clusters,
+    std::shared_ptr<pangenome::Graph> &pangraph,
+    const std::vector<std::shared_ptr<LocalPRG>>& prgs);
 
-void infer_localPRG_order_for_reads(const std::vector<std::shared_ptr<LocalPRG>>& prgs,
-    std::shared_ptr<MinimizerHits> minimizer_hits, std::shared_ptr<pangenome::Graph>,
-    const int, const uint32_t&, const float&, const uint32_t min_cluster_size = 10,
-    const uint32_t expected_number_kmers_in_short_read_sketch
-    = std::numeric_limits<uint32_t>::max());
+MinimizerHitClusters get_minimizer_hit_clusters(
+    const std::string &sample_name,
+    const Seq &seq,
+    const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    std::shared_ptr<MinimizerHits> minimizer_hits,
+    std::shared_ptr<pangenome::Graph> pangraph, const int max_diff,
+    const uint32_t& genome_size, const float& fraction_kmers_required_for_cluster,
+    ClusterDefFile &cluster_def_file,
+    ClusterFilterFile &cluster_filter_file,
+    const uint32_t min_cluster_size,
+    const uint32_t expected_number_kmers_in_read_sketch = std::numeric_limits<uint32_t>::max());
 
-uint32_t pangraph_from_read_file(const std::string&, std::shared_ptr<pangenome::Graph>,
-    std::shared_ptr<Index>, const std::vector<std::shared_ptr<LocalPRG>>&,
-    const uint32_t, const uint32_t, const int, const float&,
-    const uint32_t min_cluster_size = 10, const uint32_t genome_size = 5000000,
-    const bool illumina = false, const bool clean = false,
-    const uint32_t max_covg = 300, uint32_t threads = 1);
+uint32_t pangraph_from_read_file(const SampleData& sample,
+    std::shared_ptr<pangenome::Graph> pangraph, std::shared_ptr<Index> index,
+    const std::vector<std::shared_ptr<LocalPRG>>& prgs, const uint32_t w,
+    const uint32_t k, const int max_diff, const float& e_rate,
+    const fs::path& sample_outdir, const uint32_t min_cluster_size = 10,
+    const uint32_t genome_size = 5000000, const bool illumina = false, const bool clean = false,
+    const uint32_t max_covg = 300, uint32_t threads = 1,
+    const bool keep_extra_debugging_files = false);
 
 void infer_most_likely_prg_path_for_pannode(
     const std::vector<std::shared_ptr<LocalPRG>>&, PanNode*, uint32_t, float);
@@ -124,14 +148,29 @@ std::string transform_cli_gsize(std::string);
 // used to transform paths to absolute paths - designed to be used with CLI11 transform
 std::string make_absolute(std::string);
 
-using SampleIdText = std::string;
-using SampleFpath = std::string;
+std::vector<SampleData> load_read_index(const fs::path& read_index_fpath);
 
-std::vector<std::pair<SampleIdText, SampleFpath>> load_read_index(
-    const fs::path& read_index_fpath);
+// Builds a file in memory
+// Returns filepath
+std::pair<int, std::string> build_memfd(const std::string &data);
 
-std::string remove_spaces_from_string(const std::string& str);
+std::string exec(const char* cmd);
 
+void build_file(const std::string &filepath, const std::string &data);
+
+bool tool_exists(const std::string &command);
+
+void concatenate_text_files(
+    const fs::path& output_filename, const std::vector<fs::path>& input_filenames,
+    const std::string &prepend="");
+
+std::string reverse_complement(const std::string& forward);
+
+inline void to_upper(std::string &str) {
+    std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+}
+
+int random_int();
 std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const std::string& input_string, uint8_t delim = 4);
 
 #endif

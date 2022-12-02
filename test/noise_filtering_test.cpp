@@ -5,6 +5,7 @@
 #include "pangenome/panread.h"
 #include "pangenome/pannode.h"
 #include "minihit.h"
+#include "test_helpers_containers.h"
 #include "test_helpers.h"
 
 using namespace std;
@@ -285,7 +286,7 @@ TEST(NoiseFilteringDbgNodeIdsToIdsAndOrientations,
 
 TEST(NoiseFilteringTest, construct_debruijn_graph)
 {
-    set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
 
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
@@ -410,7 +411,7 @@ TEST(NoiseFilteringTest, construct_debruijn_graph)
 
 TEST(NoiseFilteringRemoveLeaves, OneDBGNode_RemovedFromPanGraph)
 {
-    set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     auto l0 = std::make_shared<LocalPRG>(0, "0", "");
@@ -431,7 +432,7 @@ TEST(NoiseFilteringRemoveLeaves, OneDBGNode_RemovedFromPanGraph)
 
 TEST(NoiseFilteringRemoveLeaves, OneDBGNode_RemovedFromDBGraph)
 {
-    set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     auto l0 = std::make_shared<LocalPRG>(0, "0", "");
@@ -451,7 +452,7 @@ TEST(NoiseFilteringRemoveLeaves, OneDBGNode_RemovedFromDBGraph)
 
 TEST(NoiseFilteringRemoveLeaves, OneLoop_NoLeavesRemoved)
 {
-    set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     auto l0 = std::make_shared<LocalPRG>(0, "0", "");
@@ -488,7 +489,7 @@ TEST(NoiseFilteringRemoveLeaves, OneLoop_NoLeavesRemoved)
 
 TEST(NoiseFilteringRemoveLeaves, OneLoopAndDeviantPath_OneLeafRemoved)
 {
-    set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     auto l0 = std::make_shared<LocalPRG>(0, "0", "");
@@ -535,7 +536,7 @@ TEST(NoiseFilteringRemoveLeaves, OneLoopAndDeviantPath_OneLeafRemoved)
 
 TEST(NoiseFilteringRemoveLeaves, OneLoopAndIncorrectPath_TwoLeavesRemoved)
 {
-    set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     auto l0 = std::make_shared<LocalPRG>(0, "0", "");
@@ -582,7 +583,7 @@ TEST(NoiseFilteringRemoveLeaves, OneLoopAndIncorrectPath_TwoLeavesRemoved)
 
 TEST(NoiseFilteringRemoveLeaves, OneLoopAndDeviatesInMiddle_NoLeavesRemoved)
 {
-    set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     auto l0 = std::make_shared<LocalPRG>(0, "0", "");
@@ -630,7 +631,7 @@ TEST(NoiseFilteringRemoveLeaves, OneLoopAndDeviatesInMiddle_NoLeavesRemoved)
 
 TEST(NoiseFilteringRemoveLeaves, OneLoopAndLongerWrongPath_LeavesRemoved)
 {
-    set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     auto l0 = std::make_shared<LocalPRG>(0, "0", "");
@@ -681,7 +682,7 @@ TEST(NoiseFilteringRemoveLeaves, OneLoopAndLongerWrongPath_LeavesRemoved)
 
 TEST(NoiseFilteringRemoveLeaves, AllTogether_GraphsLookCorrect)
 {
-    set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     auto l0 = std::make_shared<LocalPRG>(0, "0", "");
@@ -833,7 +834,7 @@ TEST(NoiseFilteringRemoveLeaves, AllTogether_GraphsLookCorrect)
 
 TEST(NoiseFilteringFilterUnitigs, SimpleCaseNothingToDo_ReadsUnchanged)
 {
-    set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     auto l0 = std::make_shared<LocalPRG>(0, "0", "");
@@ -907,7 +908,7 @@ TEST(NoiseFilteringFilterUnitigs, SimpleCaseNothingToDo_ReadsUnchanged)
 
 TEST(NoiseFilteringFilterUnitigs, SimpleCaseNothingToDoCycle_ReadsUnchanged)
 {
-    set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     auto l0 = std::make_shared<LocalPRG>(0, "0", "");
@@ -979,7 +980,7 @@ TEST(NoiseFilteringFilterUnitigs, SimpleCaseNothingToDoCycle_ReadsUnchanged)
 
 /*TEST(NoiseFilteringFilterUnitigs,FilterUnitigsReadStartsRightAndDeviates_ReadPruned)
 {
-    set<MinimizerHitPtr, pComp> mhs;
+    MinimizerHits mhs;
     pangenome::Graph *pg;
     pg = new pangenome::Graph();
     pg->add_node(0,"0",0, mhs);
@@ -1058,7 +1059,7 @@ min(pg->reads[2]->get_nodes().size(),pg_exp->reads[2]->get_nodes().size()) ; ++i
 
 TEST(NoiseFilteringFilterUnitigs,FilterUnitigsReadStartsRightAndDeviates_DbgAlsoPruned)
 {
-    set<MinimizerHitPtr, pComp> mhs;
+    MinimizerHits mhs;
     pangenome::Graph *pg;
     pg = new pangenome::Graph();
     pg->add_node(0,"0",0, mhs);
@@ -1097,7 +1098,7 @@ dbg EXPECT_TRUE(result);
 
 /*TEST(NoiseFilteringFilterUnitigs,FilterUnitigsReadWrong_ReadRemoved)
 {
-    set<MinimizerHitPtr, pComp> mhs;
+    MinimizerHits mhs;
     pangenome::Graph *pg;
     pg = new pangenome::Graph();
     pg->add_node(0,"0",0, mhs);
@@ -1134,7 +1135,7 @@ dbg EXPECT_TRUE(result);
 
 TEST(NoiseFilteringFilterUnitigs,FilterUnitigsReadWrong_DbgAlsoPruned)
 {
-    set<MinimizerHitPtr, pComp> mhs;
+    MinimizerHits mhs;
     pangenome::Graph *pg;
     pg = new pangenome::Graph();
     pg->add_node(0,"0",0, mhs);
@@ -1174,7 +1175,7 @@ will be 6th in dbg EXPECT_TRUE(result);
 
 TEST(NoiseFilteringFilterUnitigs, FilterUnitigsReadDeviatesInMiddle_ReadPruned)
 {
-    set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     auto l0 = std::make_shared<LocalPRG>(0, "0", "");
@@ -1250,7 +1251,7 @@ TEST(NoiseFilteringFilterUnitigs, FilterUnitigsReadDeviatesInMiddle_ReadPruned)
 
 /*TEST(NoiseFilteringFilterUnitigs,FilterUnitigsDeviatesInMiddle_DbgAlsoPruned)
 {
-    set<MinimizerHitPtr, pComp> mhs;
+    MinimizerHits mhs;
     pangenome::Graph *pg;
     pg = new pangenome::Graph();
     pg->add_node(0,"0",0, mhs);
@@ -1294,7 +1295,7 @@ will be 6th in dbg EXPECT_TRUE(result); result = dbg.nodes.find(7) == dbg.nodes.
 
 TEST(NoiseFilteringFilterUnitigs, FilterUnitigsReadDeviatesLongerInMiddle_ReadPruned)
 {
-    set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     auto l0 = std::make_shared<LocalPRG>(0, "0", "");
@@ -1377,7 +1378,7 @@ TEST(NoiseFilteringFilterUnitigs, FilterUnitigsReadDeviatesLongerInMiddle_ReadPr
 
 /*TEST(NoiseFilteringFilterUnitigs,FilterUnitigsDeviatesLongerInMiddle_DbgAlsoPruned)
 {
-    set<MinimizerHitPtr, pComp> mhs;
+    MinimizerHits mhs;
     pangenome::Graph *pg;
     pg = new pangenome::Graph();
     pg->add_node(0,"0",0, mhs);
@@ -1426,7 +1427,7 @@ dbg.nodes.find(9) == dbg.nodes.end(); // node <11,3,4> will be 9th in dbg
 
 TEST(NoiseFilteringFilterUnitigs, AllTogether_PanGraphIsAsExpected)
 {
-    set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     auto l0 = std::make_shared<LocalPRG>(0, "0", "");
@@ -1526,7 +1527,7 @@ TEST(NoiseFilteringFilterUnitigs, AllTogether_PanGraphIsAsExpected)
 
 /*TEST(NoiseFilteringFilterUnitigs,AllTogether_DbgIsAsExpected)
 {
-    set<MinimizerHitPtr, pComp> mhs;
+    MinimizerHits mhs;
     pangenome::Graph *pg;
     pg = new pangenome::Graph();
     pg->add_node(0,"0",0, mhs);
@@ -1633,7 +1634,7 @@ TEST(NoiseFilteringFilterUnitigs, AllTogether_PanGraphIsAsExpected)
 
 TEST(NoiseFilteringTest, detangle_pangraph_with_debruijn_graph)
 {
-    set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     auto l0 = std::make_shared<LocalPRG>(0, "0", "");
@@ -1767,7 +1768,7 @@ TEST(NoiseFilteringTest, detangle_pangraph_with_debruijn_graph)
 
 TEST(NoiseFilteringTest, clean_pangraph_with_debruijn_graph)
 {
-    set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     auto l0 = std::make_shared<LocalPRG>(0, "0", "");
@@ -1835,7 +1836,7 @@ TEST(NoiseFilteringTest, clean_pangraph_with_debruijn_graph)
 
 TEST(NoiseFilteringTest, write_pangraph_gfa)
 {
-    set<MinimizerHitPtr, pComp> dummy_cluster;
+    MinimizerHits dummy_cluster;
     auto pangraph = std::make_shared<pangenome::Graph>(pangenome::Graph());
 
     auto l0 = std::make_shared<LocalPRG>(0, "0", "");

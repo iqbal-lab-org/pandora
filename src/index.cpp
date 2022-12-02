@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
+#include <atomic>
 
 #include <boost/log/trivial.hpp>
 
@@ -174,9 +175,9 @@ bool Index::operator==(const Index& other) const
 
 bool Index::operator!=(const Index& other) const { return !(*this == other); }
 
-void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
-    std::shared_ptr<Index>& index, const uint32_t w, const uint32_t k,
-    const fs::path& outdir, uint32_t threads)
+void Index::index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    const uint32_t w, const uint32_t k, const fs::path& outdir,
+    const uint32_t indexing_upper_bound, uint32_t threads)
 {
     BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
     if (prgs.empty())
@@ -187,7 +188,7 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
     for (uint32_t i = 0; i != prgs.size(); ++i) {
         r += prgs[i]->seq.length();
     }
-    index->minhash.reserve(r);
+    this->minhash.reserve(r);
 
     // create the dirs for the index
     const int nbOfGFAsPerDir = 4000;
@@ -196,18 +197,29 @@ void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
 
     // now fill index
     std::atomic_uint32_t nbOfPRGsDone { 0 };
-#pragma omp parallel for num_threads(threads) schedule(dynamic, 1)
+#pragma omp parallel for num_threads(threads) schedule(dynamic, 1) default(shared)
     for (uint32_t i = 0; i < prgs.size(); ++i) { // for each prg
         uint32_t dir = i / nbOfGFAsPerDir + 1;
-        prgs[i]->minimizer_sketch(
-            index, w, k, (((double)(nbOfPRGsDone.load())) / prgs.size()) * 100);
         const auto gfa_file { outdir / int_to_string(dir)
             / (prgs[i]->name + ".k" + std::to_string(k) + ".w" + std::to_string(w)
                 + ".gfa") };
-        prgs[i]->kmer_prg.save(gfa_file);
 
+        try {
+            prgs[i]->minimizer_sketch(this, w, k, indexing_upper_bound,
+                (((double)(nbOfPRGsDone.load())) / prgs.size()) * 100);
+            prgs[i]->kmer_prg.save(gfa_file);
+        }catch (const IndexingLimitReached &error) {
+            BOOST_LOG_TRIVIAL(warning) << error.what();
+
+            // create an empty gfa file
+            // TODO: change this when we refactor pandora index output to a single file?
+            std::ofstream empty_gfa_fh;
+            open_file_for_writing(gfa_file.string(), empty_gfa_fh);
+            empty_gfa_fh.close();
+        }
+        prgs[i]->kmer_prg.clear();  // saves some RAM
         ++nbOfPRGsDone;
     }
     BOOST_LOG_TRIVIAL(debug) << "Finished adding " << prgs.size() << " LocalPRGs";
-    BOOST_LOG_TRIVIAL(debug) << "Number of keys in Index: " << index->minhash.size();
+    BOOST_LOG_TRIVIAL(debug) << "Number of keys in Index: " << this->minhash.size();
 }

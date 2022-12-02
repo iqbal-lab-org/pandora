@@ -75,7 +75,7 @@ void update_node_info_with_this_read(const NodePtr& node_ptr, const ReadPtr& rea
 
 // Checks that all hits in the cluster are from the given prg and read
 void check_correct_hits(const uint32_t prg_id, const uint32_t read_id,
-    const std::set<MinimizerHitPtr, pComp>& cluster)
+    const MinimizerHits& cluster)
 {
     for (const auto& hit_ptr : cluster) {
         const bool hits_correspond_to_correct_read = read_id == hit_ptr->get_read_id();
@@ -98,7 +98,7 @@ void check_correct_hits(const uint32_t prg_id, const uint32_t read_id,
 // the read was the same node and orientation)
 // Store the hits on the read
 void update_read_info_with_node_and_cluster(ReadPtr& read_ptr, const NodePtr& node_ptr,
-    const std::set<MinimizerHitPtr, pComp>& cluster)
+    const MinimizerHits& cluster)
 {
     read_ptr->add_hits(node_ptr, cluster);
 }
@@ -108,7 +108,7 @@ void pangenome::Graph::add_hits_between_PRG_and_read(
         prg, // the prg from where this cluster of hits come
     const uint32_t read_id, // the read id from where this cluster of reads come - TODO:
                             // this can be derived from the cluster
-    std::set<MinimizerHitPtr, pComp>& cluster // the cluster itself
+    const MinimizerHits& cluster
 )
 {
     check_correct_hits(prg->id, read_id,
@@ -312,7 +312,7 @@ void pangenome::Graph::add_hits_to_kmergraphs(const uint32_t& sample_id)
                                 "kmer node is invalid");
                 }
 
-                if (minimizer_hit.is_forward()) {
+                if (minimizer_hit.same_strands()) {
                     pangraph_node.kmer_prg_with_coverage.increment_forward_covg(
                         minimizer_hit.get_kmer_node_id(), sample_id);
                 } else {
@@ -320,7 +320,7 @@ void pangenome::Graph::add_hits_to_kmergraphs(const uint32_t& sample_id)
                         minimizer_hit.get_kmer_node_id(), sample_id);
                 }
 
-                const auto covg { minimizer_hit.is_forward()
+                const auto covg { minimizer_hit.same_strands()
                         ? pangraph_node.kmer_prg_with_coverage.get_forward_covg(
                             minimizer_hit.get_kmer_node_id(), sample_id)
                         : pangraph_node.kmer_prg_with_coverage.get_reverse_covg(
@@ -332,7 +332,7 @@ void pangenome::Graph::add_hits_to_kmergraphs(const uint32_t& sample_id)
                         << *pangraph_node.kmer_prg_with_coverage.kmer_prg
                                 ->nodes[minimizer_hit.get_kmer_node_id()];
                 }
-                num_hits[minimizer_hit.is_forward()] += 1;
+                num_hits[minimizer_hit.same_strands()] += 1;
             }
         }
 
@@ -515,55 +515,6 @@ void pangenome::Graph::save_matrix(
         }
         handle << std::endl;
     }
-}
-
-void pangenome::Graph::save_mapped_read_strings(
-    const fs::path& readfilepath, const fs::path& outdir, const int32_t buff)
-{
-    BOOST_LOG_TRIVIAL(debug) << "Save mapped read strings and coordinates";
-    fs::ofstream outhandle;
-    FastaqHandler readfile(readfilepath.string());
-    uint32_t start, end;
-
-    // for each node in pangraph, find overlaps and write to a file
-    std::vector<std::vector<uint32_t>> read_overlap_coordinates;
-    for (const auto& node_ptr : nodes) {
-        BOOST_LOG_TRIVIAL(debug)
-            << "Find coordinates for node " << node_ptr.second->name;
-        node_ptr.second->get_read_overlap_coordinates(read_overlap_coordinates);
-
-        const auto node_outpath { outdir / node_ptr.second->get_name()
-            / (node_ptr.second->get_name() + ".reads.fa") };
-        fs::create_directories(node_outpath.parent_path());
-        outhandle.open(node_outpath);
-
-        for (const auto& coord : read_overlap_coordinates) {
-            readfile.get_nth_read(coord[0]);
-            start = (uint32_t)std::max((int32_t)coord[1] - buff, 0);
-            end = std::min(coord[2] + (uint32_t)buff, (uint32_t)readfile.read.length());
-
-            const bool read_coordinates_are_valid = (coord[1] < coord[2])
-                && (start <= coord[1]) && (start <= readfile.read.length())
-                && (coord[2] <= readfile.read.length()) && (end >= coord[2])
-                && (start < end);
-            if (!read_coordinates_are_valid) {
-                fatal_error("When saving mapped reads, read coordinates are not valid");
-            }
-
-            outhandle << ">" << readfile.name << " pandora: " << coord[0] << " "
-                      << start << ":" << end;
-            if (coord[3]) {
-                outhandle << " + " << std::endl;
-            } else {
-                outhandle << " - " << std::endl;
-            }
-            outhandle << readfile.read.substr(start, end - start) << std::endl;
-        }
-        outhandle.close();
-        read_overlap_coordinates.clear();
-    }
-
-    readfile.close();
 }
 
 std::ostream& pangenome::operator<<(std::ostream& out, const pangenome::Graph& m)

@@ -1,3 +1,4 @@
+#include "test_helpers_containers.h"
 #include "test_helpers.h"
 
 GenotypingOptions default_genotyping_options(

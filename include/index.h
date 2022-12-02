@@ -10,8 +10,20 @@
 #include "minirecord.h"
 #include "prg/path.h"
 #include "utils.h"
+#include "globals.h"
 
 namespace fs = boost::filesystem;
+
+struct AddRecordToIndexParams {
+    const uint64_t kmer;
+    const uint32_t prg_id;
+    const prg::Path path;
+    const uint32_t knode_id;
+    const bool strand;
+    AddRecordToIndexParams(const uint64_t kmer, const uint32_t prg_id,
+        const prg::Path& path, const uint32_t knode_id, const bool strand) :
+        kmer(kmer), prg_id(prg_id), path(path), knode_id(knode_id), strand(strand){ }
+};
 
 class Index {
 public:
@@ -28,6 +40,10 @@ public:
     Index& operator=(Index&& other) = default; // move assignment operator
     virtual ~Index() = default; // destructor
 
+    void add_record(const AddRecordToIndexParams &params) {
+        add_record(params.kmer, params.prg_id, params.path, params.knode_id,
+            params.strand);
+    }
     void add_record(
         const uint64_t, const uint32_t, const prg::Path&, const uint32_t, const bool);
 
@@ -44,9 +60,11 @@ public:
     bool operator==(const Index& other) const;
 
     bool operator!=(const Index& other) const;
+
+    void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
+        const uint32_t w, const uint32_t k, const fs::path& outdir,
+        const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
+        uint32_t threads = 1);
 };
 
-void index_prgs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
-    std::shared_ptr<Index>& index, uint32_t w, uint32_t k, const fs::path& outdir,
-    uint32_t threads = 1);
 #endif

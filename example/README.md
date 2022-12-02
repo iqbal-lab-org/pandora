@@ -4,21 +4,14 @@ Here we present a walkthrough of running `pandora` on a toy example. We run:
 1) `pandora` without de novo discovery;
 2) `pandora` with de novo discovery (see Figure 2 of [our paper][pandora_2020_paper]).
 
-## Dependencies
 * **There is no need to have `pandora` or `make_prg` installed. The running script will automatically download
-  and run the precompiled binaries**;
-* `MAFFT` has to be in your `PATH` in order to run `make_prg update`. It can be installed:
-  1. from source: https://mafft.cbrc.jp/alignment/software/;
-  2. using conda: `conda install -c bioconda mafft`;
-* `wget`;
-* `make_prg` requirements: `GLIBC >= 2.17` (present on `Ubuntu >= 13.04`, `Debian >= 8.0`, `CentOS >= 7`, `RHEL >= 7.9`,
-  `Fedora >= 19`, etc);
-
+  and run the precompiled binaries for `pandora` and `make_prg`**;
 
 ## Input data description
 
 * `msas/` : contains the MSAs of the two genes we are using as toy example here, GC00006032 and GC00010897;
-* `reads/` : contains 100x of perfect simulated reads from two toy samples. We simulated perfect reads, where one sample genotypes to one allele of the variant sites, while the other sample genotypes towards the other allele;
+* `reads/` : contains 100x of perfect simulated reads from two toy samples. We simulated perfect reads,
+where one sample genotypes to one allele of the variant sites, while the other sample genotypes towards the other allele;
 
 ## Running
 
@@ -28,7 +21,8 @@ Here we present a walkthrough of running `pandora` on a toy example. We run:
 
 ### Quick look at the output
 
-The output is already present in dir `out_truth`. If all went fine, the last line of the execution of the script above should be:
+The output is already present in dir `out_truth`. If all went fine, the last line of the execution of the script above
+should be:
 
 ```
 Example run produced the expected result
@@ -39,13 +33,13 @@ and thus the dirs `out` and `out_truth` have the same contents.
 `out/prgs`: contains output of `make_prg from_msa` and `pandora index`. Main files:
   * `pangenome.prg.fa`: the PRG itself;
   * `pangenome.prg.fa.k15.w14.idx` and `kmer_prgs`: the PRG index;
-  * `pangenome.update_DS`: update data structures that make the PRG updateable;
+  * `pangenome.update_DS.zip`: update data structures that make the PRG updatable;
 
 `out/pandora_discover_out`: contains the output of `pandora discover`. Main files:
   * `denovo_paths.txt`: describes the denovo paths found in all samples;
 
 `out/updated_prgs`: contains the output of `make_prg update` and `pandora index` (on the updated PRG).
-The files are similar to the ones in the `prgs` folder;
+The files are similar to the ones in the `out/prgs` folder;
 
 `out/output_toy_example_no_denovo` and `out/output_toy_example_with_denovo`: contains the output of
 `pandora compare` without denovo discovery and with denovo discovery, respectively. Main files:
@@ -82,6 +76,8 @@ GC00010897	422	.	A	T	.	.	VC=SNP;GRAPHTYPE=SIMPLE	GT:MEAN_FWD_COVG:MEAN_REV_COVG:
 ```
 
 ## Extra
+
+# TODO: fix conda installation once make_prg 1.0.0 is conda installable
 
 ### Running with conda
 

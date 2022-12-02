@@ -1,7 +1,7 @@
 # PANDORA
 # Pan-genome inference and genotyping with long noisy or short accurate reads
 
-FROM ubuntu:focal
+FROM ubuntu:22.04
 
 ENV LC_ALL C.UTF-8
 ENV LANG C.UTF-8
@@ -10,7 +10,7 @@ RUN apt update \
     && apt install -y software-properties-common \
     && apt-add-repository universe \
     && apt update \
-    && apt install --no-install-recommends -y build-essential git cmake wget \
+    && apt install --no-install-recommends -y build-essential git cmake wget gdb \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 

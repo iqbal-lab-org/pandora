@@ -10,7 +10,6 @@ class LocalPRG;
 #include "prg/path.h"
 #include "kmernode.h"
 #include "kmergraph.h"
-#include "pangenome/ns.cpp"
 #include "utils.h"
 #include "fatal_error.h"
 

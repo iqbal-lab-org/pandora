@@ -21,6 +21,14 @@ void setup_index_subcommand(CLI::App& app)
         ->type_name("INT")
         ->capture_default_str();
 
+    index_subcmd->add_option("-m", opt->indexing_upper_bound,
+                    "Maximum number of minimising kmers or starting walks or nodes to explore per locus "
+                    "during indexing. If exceeded, the locus is assessed as too complex and is ignored, which might flag an "
+                    "issue with that specific locus. This is used as an upper bound to ignore overly complex PRGs, which "
+                    "very likely does not represent the real biological complexity and should be revisited.")
+        ->type_name("INT")
+        ->capture_default_str();
+
     index_subcmd
         ->add_option("-t,--threads", opt->threads, "Maximum number of threads to use")
         ->type_name("INT")
@@ -69,8 +77,9 @@ int pandora_index(IndexOptions const& opt)
 
     BOOST_LOG_TRIVIAL(info) << "Indexing PRG...";
     auto index = std::make_shared<Index>();
-    index_prgs(
-        prgs, index, opt.window_size, opt.kmer_size, kmer_prgs_outdir, opt.threads);
+    index->index_prgs(
+        prgs, opt.window_size, opt.kmer_size, kmer_prgs_outdir,
+        opt.indexing_upper_bound, opt.threads);
 
     // save index
     BOOST_LOG_TRIVIAL(info) << "Saving index...";
@@ -83,6 +92,8 @@ int pandora_index(IndexOptions const& opt)
     } else {
         index->save(opt.prgfile, opt.window_size, opt.kmer_size);
     }
+
+    index->clear();
 
     BOOST_LOG_TRIVIAL(info) << "All done!";
     return 0;

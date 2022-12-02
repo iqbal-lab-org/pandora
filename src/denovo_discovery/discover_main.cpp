@@ -3,6 +3,8 @@
 //
 
 #include "denovo_discovery/discover_main.h"
+#include "denovo_discovery/racon.h"
+#include "denovo_discovery/denovo_record.h"
 
 void setup_discover_subcommand(CLI::App& app)
 {
@@ -81,11 +83,6 @@ void setup_discover_subcommand(CLI::App& app)
         ->group("Input/Output");
 
     discover_subcmd
-        ->add_flag("-M,--mapped-reads", opt->output_mapped_read_fa,
-            "Save a fasta file for each loci containing read parts which overlapped it")
-        ->group("Input/Output");
-
-    discover_subcmd
         ->add_flag("-I,--illumina", opt->illumina,
             "Reads are from Illumina. Alters error rate used and adjusts for shorter "
             "reads")
@@ -94,11 +91,6 @@ void setup_discover_subcommand(CLI::App& app)
     discover_subcmd
         ->add_flag(
             "--clean", opt->clean, "Add a step to clean and detangle the pangraph")
-        ->group("Filtering");
-
-    discover_subcmd
-        ->add_flag(
-            "--clean-dbg", opt->clean_dbg, "Clean the local assembly de Bruijn graph")
         ->group("Filtering");
 
     discover_subcmd
@@ -111,57 +103,6 @@ void setup_discover_subcommand(CLI::App& app)
         ->capture_default_str()
         ->type_name("INT")
         ->group("Filtering");
-
-    discover_subcmd
-        ->add_option("--discover-k", opt->denovo_kmer_size,
-            "K-mer size to use when discovering novel variants")
-        ->capture_default_str()
-        ->check(CLI::Range(0, MAX_DENOVO_K)
-                    .description("[0-" + std::to_string(MAX_DENOVO_K) + ")"))
-        ->type_name("INT");
-
-    description = "Max. insertion size for novel variants. Warning: "
-                  "setting too long may impair performance";
-    discover_subcmd->add_option("--max-ins", opt->max_insertion_size, description)
-        ->capture_default_str()
-        ->type_name("INT");
-
-    description
-        = "Positions with coverage less than this will be tagged for variant discovery";
-    discover_subcmd
-        ->add_option("--covg-threshold", opt->min_candidate_covg, description)
-        ->capture_default_str()
-        ->type_name("INT");
-
-    description = "Min. length of consecutive positions below coverage threshold to "
-                  "trigger variant discovery";
-    discover_subcmd->add_option("-l", opt->min_candidate_len, description)
-        ->capture_default_str()
-        ->type_name("INT");
-
-    description = "Max. length of consecutive positions below coverage threshold to "
-                  "trigger variant discovery";
-    discover_subcmd->add_option("-L", opt->max_candidate_len, description)
-        ->capture_default_str()
-        ->type_name("INT");
-
-    description = "Merge candidate variant intervals within distance";
-    discover_subcmd->add_option("-d,--merge", opt->merge_dist, description)
-        ->capture_default_str()
-        ->type_name("INT");
-
-    description = "Maximum number of candidate variants allowed for a candidate region";
-    discover_subcmd->add_option("-N", opt->max_num_candidate_paths, description)
-        ->capture_default_str()
-        ->type_name("INT");
-
-    description = "Minimum node/kmer depth in the de Bruijn graph used for discovering "
-                  "variants";
-    discover_subcmd
-        ->add_option(
-            "--min-dbg-dp", opt->min_covg_for_node_in_assembly_graph, description)
-        ->capture_default_str()
-        ->type_name("INT");
 
     description
         = "Minimum size of a cluster of hits between a read and a loci to consider "
@@ -179,6 +120,12 @@ void setup_discover_subcommand(CLI::App& app)
         ->type_name("INT")
         ->group("Consensus/Variant Calling");
 
+    discover_subcmd
+        ->add_flag("-K,--debugging-files", opt->keep_extra_debugging_files,
+            "Keep extra debugging files. Warning: this might "
+            "create thousands of files.")
+        ->group("Debugging");
+
     discover_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
 
@@ -186,133 +133,7 @@ void setup_discover_subcommand(CLI::App& app)
     discover_subcmd->callback([opt]() { pandora_discover(*opt); });
 }
 
-void concatenate_denovo_files(
-    const fs::path& output_filename, const std::vector<fs::path>& input_filenames)
-{
-    ofstream output_filehandler;
-    open_file_for_writing(output_filename.string(), output_filehandler);
-
-    output_filehandler << input_filenames.size() << " samples" << std::endl;
-
-    for (const fs::path& input_filename : input_filenames) {
-        ifstream input_filehandler;
-        open_file_for_reading(input_filename.string(), input_filehandler);
-        output_filehandler << input_filehandler.rdbuf();
-        input_filehandler.close();
-    }
-
-    output_filehandler.close();
-}
-
-void find_denovo_variants_core(std::vector<CandidateRegion*>& candidate_regions,
-    const SampleIdText& sample_name, const fs::path& sample_outdir,
-    const DenovoDiscovery& denovo, uint32_t child_id, uint32_t threads)
-{
-    // create temp dir
-    const auto temp_dir { sample_outdir / ("temp_child_" + int_to_string(child_id)) };
-    fs::create_directories(temp_dir);
-
-    CandidateRegionWriteBuffer buffer(sample_name);
-    for (uint32_t candidate_region_index = child_id;
-         candidate_region_index < candidate_regions.size();
-         candidate_region_index += threads) {
-        CandidateRegion& candidate_region { *(
-            candidate_regions[candidate_region_index]) };
-        denovo.find_paths_through_candidate_region(candidate_region, temp_dir);
-        candidate_region.write_denovo_paths_to_buffer(buffer);
-    }
-
-    // serialise the buffer
-    {
-        const auto buffer_binary_filename
-            = temp_dir / "candidate_regions_write_buffer.bin";
-        std::ofstream buffer_binary_filehandler(buffer_binary_filename.string());
-        boost::archive::text_oarchive buffer_binary_archive(buffer_binary_filehandler);
-        // write class instance to archive
-        buffer_binary_archive << buffer;
-        // archive and stream closed when destructors are called
-    }
-}
-
-void find_denovo_variants_multiprocess(CandidateRegions& candidate_regions,
-    const SampleIdText& sample_name, const fs::path& sample_outdir,
-    const DenovoDiscovery& denovo, uint32_t threads)
-{
-    // transforms CandidateRegions into a vector of pointers to CandidateRegion so that
-    // it is easier to multithread/multiprocess on it
-    std::vector<CandidateRegion*> candidate_regions_as_vector;
-    candidate_regions_as_vector.reserve(candidate_regions.size());
-    for (auto& element : candidate_regions) {
-        CandidateRegion* candidate_region_pointer = &(element.second);
-        candidate_regions_as_vector.push_back(candidate_region_pointer);
-    }
-
-    // forking due to GATB
-    size_t child_id;
-    bool on_child;
-    for (child_id = 0; child_id < threads; ++child_id) {
-        int child_process_id = fork();
-        bool error_creating_child_process = child_process_id == -1;
-        on_child = child_process_id == 0;
-
-        if (error_creating_child_process) {
-            fatal_error("Error creating child process.");
-        } else if (on_child) {
-            break;
-        } else {
-            BOOST_LOG_TRIVIAL(info) << "Child process id " << child_process_id
-                                    << " (child #" << child_id << ") created...";
-        }
-    }
-
-    if (on_child) {
-        find_denovo_variants_core(candidate_regions_as_vector, sample_name,
-            sample_outdir, denovo, child_id, threads);
-        std::exit(0);
-    } else {
-        // wait for all children to finish
-        for (child_id = 0; child_id < threads; ++child_id) {
-            int child_pid = wait(NULL);
-            bool error_on_waiting_for_child = child_pid == -1;
-            if (error_on_waiting_for_child) {
-                fatal_error("Error waiting for child process.");
-            } else {
-                BOOST_LOG_TRIVIAL(info)
-                    << "Child process " << child_pid << " finished!";
-            }
-        }
-    }
-
-    // add all candidate region write buffers to a central one
-    CandidateRegionWriteBuffer buffer(sample_name);
-    std::vector<fs::path> buffer_binary_filenames;
-    for (child_id = 0; child_id < threads; child_id++) {
-        CandidateRegionWriteBuffer child_buffer;
-        {
-            const auto child_temp_dir { sample_outdir
-                / ("temp_child_" + int_to_string(child_id)) };
-            const auto child_buffer_binary_filename
-                = child_temp_dir / "candidate_regions_write_buffer.bin";
-            // create and open an archive for input
-            std::ifstream child_buffer_binary_filehandler(
-                child_buffer_binary_filename.string());
-            boost::archive::text_iarchive child_buffer_binary_archive(
-                child_buffer_binary_filehandler);
-            // read class state from archive
-            child_buffer_binary_archive >> child_buffer;
-            // archive and stream closed when destructors are called
-        }
-        buffer.merge(child_buffer);
-    }
-
-    auto denovo_output_file = sample_outdir / "denovo_paths.txt";
-    buffer.write_to_file(denovo_output_file);
-    BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
-                            << "De novo variant paths written to "
-                            << denovo_output_file.string();
-}
-
-void pandora_discover_core(const std::pair<SampleIdText, SampleFpath>& sample,
+void pandora_discover_core(const SampleData& sample,
     const std::shared_ptr<Index>& index,
     const std::vector<std::shared_ptr<LocalPRG>>& prgs, const DiscoverOptions& opt)
 {
@@ -334,9 +155,10 @@ void pandora_discover_core(const std::pair<SampleIdText, SampleFpath>& sample,
                             << sample_fpath << " (this will take a while)";
     auto pangraph = std::make_shared<pangenome::Graph>();
     uint32_t covg
-        = pangraph_from_read_file(sample_fpath, pangraph, index, prgs, opt.window_size,
-            opt.kmer_size, opt.max_diff, opt.error_rate, opt.min_cluster_size,
-            opt.genome_size, opt.illumina, opt.clean, opt.max_covg, opt.threads);
+        = pangraph_from_read_file(sample, pangraph, index, prgs,
+        opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate, sample_outdir,
+        opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean, opt.max_covg,
+        opt.threads, opt.keep_extra_debugging_files);
 
     const auto pangraph_gfa { sample_outdir / "pandora.pangraph.gfa" };
     BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
@@ -354,24 +176,16 @@ void pandora_discover_core(const std::pair<SampleIdText, SampleFpath>& sample,
     pangraph->add_hits_to_kmergraphs();
 
     BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
-                            << "Find PRG paths and write to files...";
+                            << "Find PRG paths and discover novel alleles...";
 
     // paralell region!
     // shared variable - synced with critical(consensus_fq)
     Fastaq consensus_fq(true, true);
 
-    // shared variable - synced with critical(candidate_regions)
-    CandidateRegions candidate_regions;
-
     // shared variable - will denote which nodes we have to remove after the
     // parallel loop. synced with critical(nodes_to_remove)
     std::vector<pangenome::NodePtr> nodes_to_remove;
     nodes_to_remove.reserve(pangraph->nodes.size());
-
-    const uint16_t candidate_padding { static_cast<uint16_t>(
-        2 * opt.denovo_kmer_size) };
-    Discover discover { opt.min_candidate_covg, opt.min_candidate_len,
-        opt.max_candidate_len, candidate_padding, opt.merge_dist };
 
     // transforms the pangraph->nodes from map to vector so that we can run it in
     // parallel
@@ -383,7 +197,22 @@ void pandora_discover_core(const std::pair<SampleIdText, SampleFpath>& sample,
         pangraphNodesAsVector.push_back(pan_id_to_node_mapping->second);
     }
 
-#pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 10)
+    std::map<std::string, std::string> locus_to_reads = get_locus_to_reads(
+        sample_outdir, sample_name);
+
+    std::vector<std::string> all_denovo_sequences;
+    all_denovo_sequences.reserve(pangraph->nodes.size()*2 + 500);
+
+    // find denovo paths
+    const fs::path denovo_outdir { sample_outdir / "denovo" };
+    fs::create_directories(denovo_outdir);
+
+    std::ofstream denovo_paths_out_core_file;
+    open_file_for_writing((denovo_outdir / "denovo_paths_core.txt").string(),
+        denovo_paths_out_core_file);
+
+    uint32_t number_of_loci_with_denovo_variants = 0;
+#pragma omp parallel for num_threads(opt.threads) schedule(dynamic, 1) default(shared)
     for (uint32_t i = 0; i < pangraphNodesAsVector.size(); ++i) {
         // add some progress
         if (i && i % 100 == 0) {
@@ -394,6 +223,7 @@ void pandora_discover_core(const std::pair<SampleIdText, SampleFpath>& sample,
 
         // get the node
         const auto& pangraph_node = pangraphNodesAsVector[i];
+        const std::string& locus = pangraph_node->name;
 
         // add consensus path to fastaq
         std::vector<KmerNodePtr> kmp;
@@ -411,43 +241,107 @@ void pandora_discover_core(const std::pair<SampleIdText, SampleFpath>& sample,
             continue;
         }
 
+        const bool no_reads_mapped = locus_to_reads[locus].empty();
+        if (no_reads_mapped) {
+#pragma omp critical(nodes_to_remove)
+            {
+                nodes_to_remove.push_back(pangraph_node);
+            }
+            continue;
+        }
+
         if (opt.output_kg) {
             pangraph_node->kmer_prg_with_coverage.save(
                 kmer_graph_dir / (pangraph_node->get_name() + ".kg.gfa"),
                 prgs[pangraph_node->prg_id]);
         }
 
-        BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
-                                << "Searching for regions with evidence of novel "
-                                   "variants...";
-        const string lmp_seq = prgs[pangraph_node->prg_id]->string_along_path(lmp);
-        const TmpPanNode pangraph_node_components { pangraph_node,
-            prgs[pangraph_node->prg_id], kmp, lmp, lmp_seq };
-        auto candidate_regions_for_pan_node {
-            discover.find_candidate_regions_for_pan_node(pangraph_node_components)
-        };
+        // builds a mem_fd with the locus reads
+        const std::pair<int, std::string> locus_reads_fd_and_filepath = build_memfd(locus_to_reads[locus]);
 
-#pragma omp critical(candidate_regions)
+        if (opt.keep_extra_debugging_files) {
+            // build the reads file on disk
+            build_file((denovo_outdir / (locus + ".reads.fa")).string(),
+                locus_to_reads[locus]);
+        }
+
+        const std::string lmp_seq = prgs[pangraph_node->prg_id]->string_along_path(lmp);
+        Racon racon(opt.illumina, opt.kmer_size, locus, lmp_seq,
+            denovo_outdir, locus_reads_fd_and_filepath.second, 10, opt.keep_extra_debugging_files);
+        const std::string &polished_sequence = racon.get_polished_sequence();
+
+        close(locus_reads_fd_and_filepath.first);
+
+        std::string denovo_sequence;
+        denovo_sequence.reserve(polished_sequence.size() + 1024);
+        denovo_sequence
+                .append(">")
+                .append(locus)
+                .append(" sample=")
+                .append(sample_name)
+                .append(" denovo_sequence\n")
+                .append(polished_sequence);
+
+#pragma omp critical(all_denovo_sequences)
         {
-            candidate_regions.insert(candidate_regions_for_pan_node.begin(),
-                candidate_regions_for_pan_node.end());
+            all_denovo_sequences.push_back(denovo_sequence);
+        }
+
+        const std::vector<DenovoVariantRecord> denovo_variants =
+            DenovoVariantRecord::get_variants_from_pair_of_sequences(lmp_seq, polished_sequence);
+
+        const bool we_have_denovo_variants = denovo_variants.size() > 0;
+        if (we_have_denovo_variants) {
+            std::string denovo_paths_description;
+            {
+                std::stringstream denovo_paths_out_core_file_ss;
+                denovo_paths_out_core_file_ss << locus << std::endl;
+                const std::string lmp_as_string = LocalNode::to_string_vector(lmp);
+                denovo_paths_out_core_file_ss << lmp_as_string << std::endl;
+                denovo_paths_out_core_file_ss << denovo_variants.size()
+                                              << " denovo variants for this locus" << std::endl;
+                for (const DenovoVariantRecord &denovo_variant : denovo_variants) {
+                    denovo_paths_out_core_file_ss << denovo_variant.to_string() << std::endl;
+                }
+
+                denovo_paths_description = denovo_paths_out_core_file_ss.str();
+            }
+
+#pragma omp critical(denovo_paths_out_core_file)
+            {
+                ++number_of_loci_with_denovo_variants;
+                denovo_paths_out_core_file << denovo_paths_description;
+            }
         }
     }
+    denovo_paths_out_core_file.close();
 
-    BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
-                            << "Building read pileups for " << candidate_regions.size()
-                            << " candidate de novo regions...";
-    // the pileup_construction_map function is intentionally left
-    // single threaded since it would require too much synchronization
-    const auto pileup_construction_map
-        = discover.pileup_construction_map(candidate_regions);
+    write_denovo_header_file(sample_name, denovo_outdir,
+        number_of_loci_with_denovo_variants);
 
-    discover.load_candidate_region_pileups(
-        sample_fpath, candidate_regions, pileup_construction_map, opt.threads);
-
+    fs::path denovo_paths_out_file(sample_outdir / "denovo_paths.txt");
+    std::vector<fs::path> denovo_paths_intermediary_files{
+        denovo_outdir / "denovo_paths_header.txt",
+        denovo_outdir / "denovo_paths_core.txt"
+    };
+    concatenate_text_files(denovo_paths_out_file, denovo_paths_intermediary_files);
+    
     // remove the nodes marked as to be removed
     for (const auto& node_to_remove : nodes_to_remove) {
         pangraph->remove_node(node_to_remove);
+    }
+
+    // write denovo file
+    fs::path denovo_filepath = sample_outdir / "denovo_sequences.fa";
+    std::ofstream denovo_filehandler;
+    open_file_for_writing(denovo_filepath.string(), denovo_filehandler);
+    for (const std::string &line : all_denovo_sequences) {
+        denovo_filehandler << line << std::endl;
+    }
+    denovo_filehandler.close();
+
+    if (!opt.keep_extra_debugging_files) {
+        fs::remove_all(denovo_outdir);
     }
 
     consensus_fq.save(sample_outdir / "pandora.consensus.fq.gz");
@@ -459,20 +353,6 @@ void pandora_discover_core(const std::pair<SampleIdText, SampleFpath>& sample,
                "your genome_size accurate?"
             << " Genome size is assumed to be " << opt.genome_size
             << " and can be updated with --genome_size";
-    }
-
-    DenovoDiscovery denovo { opt.denovo_kmer_size, opt.error_rate,
-        opt.max_num_candidate_paths, opt.max_insertion_size,
-        opt.min_covg_for_node_in_assembly_graph, opt.clean_dbg };
-
-    BOOST_LOG_TRIVIAL(info)
-        << "[Sample " << sample_name << "] "
-        << "Generating de novo variants as paths through their local graph...";
-    find_denovo_variants_multiprocess(
-        candidate_regions, sample_name, sample_outdir, denovo, opt.threads);
-
-    if (opt.output_mapped_read_fa) {
-        pangraph->save_mapped_read_strings(sample_fpath, sample_outdir);
     }
 
     BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
@@ -487,12 +367,6 @@ int pandora_discover(DiscoverOptions& opt)
     } else if (opt.verbosity > 1) {
         log_level = boost::log::trivial::trace;
     }
-
-    // this is done so that everytime we write a log message, we flush the log
-    // if we don't do this, child processes will have messages buffered in their log
-    // object when forked and will output repeated log messages
-    boost::log::add_console_log(std::cout, boost::log::keywords::auto_flush = true);
-
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
 
     // =========
@@ -529,26 +403,15 @@ int pandora_discover(DiscoverOptions& opt)
     load_PRG_kmergraphs(prgs, opt.window_size, opt.kmer_size, opt.prgfile);
 
     BOOST_LOG_TRIVIAL(info) << "Loading read index file...";
-    std::vector<std::pair<SampleIdText, SampleFpath>> samples
+    std::vector<SampleData> samples
         = load_read_index(opt.reads_idx_file);
 
     // for each sample, run pandora discover
-    for (const std::pair<SampleIdText, SampleFpath>& sample : samples) {
+    for (const SampleData& sample : samples) {
         pandora_discover_core(sample, index, prgs, opt);
     }
 
-    // concatenate all denovo files
-    std::vector<fs::path> denovo_paths_files;
-    for (uint32_t sample_id = 0; sample_id < samples.size(); sample_id++) {
-        const auto& sample = samples[sample_id];
-        const auto& sample_name = sample.first;
-        fs::path denovo_output_file = opt.outdir / sample_name / "denovo_paths.txt";
-        denovo_paths_files.push_back(denovo_output_file);
-    }
-    fs::path denovo_output_file = opt.outdir / "denovo_paths.txt";
-    concatenate_denovo_files(denovo_output_file, denovo_paths_files);
-    BOOST_LOG_TRIVIAL(info) << "De novo variant paths written to "
-                            << denovo_output_file.string();
+    concatenate_all_denovo_files(samples, opt.outdir);
     BOOST_LOG_TRIVIAL(info) << "All done!";
 
     return 0;

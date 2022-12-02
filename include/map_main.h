@@ -8,7 +8,10 @@
 #include <algorithm>
 #include <map>
 #include <boost/filesystem.hpp>
-
+#include <boost/log/core.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/utility/setup/console.hpp>
 #include "utils.h"
 #include "localPRG.h"
 #include "localgraph.h"
@@ -18,8 +21,6 @@
 #include "estimate_parameters.h"
 #include "noise_filtering.h"
 
-#include "denovo_discovery/denovo_utils.h"
-#include "denovo_discovery/denovo_discovery.h"
 #include "CLI11.hpp"
 
 using std::set;
@@ -42,8 +43,6 @@ struct MapOptions {
     uint32_t max_diff { 250 };
     bool output_kg { false };
     bool output_vcf { false };
-    bool output_comparison_paths { false };
-    bool output_mapped_read_fa { false };
     bool illumina { false };
     bool clean { false };
     bool binomial { false };
@@ -59,6 +58,7 @@ struct MapOptions {
     float min_allele_fraction_covg_gt { 0 };
     float genotyping_error_rate { 0.01 };
     uint16_t confidence_threshold { 1 };
+    bool keep_extra_debugging_files { false };
 };
 
 void setup_map_subcommand(CLI::App& app);

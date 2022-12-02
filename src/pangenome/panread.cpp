@@ -33,7 +33,7 @@ std::vector<WeakNodePtr>::iterator Read::find_node_by_id(uint32_t node_id)
 }
 
 void Read::add_hits(
-    const NodePtr& node_ptr, const std::set<MinimizerHitPtr, pComp>& cluster)
+    const NodePtr& node_ptr, const MinimizerHits& cluster)
 {
     // TODO: review this method...
     auto before_size = hits.size();
@@ -58,7 +58,7 @@ void Read::add_hits(
     }
 
     // add the orientation/node accordingly
-    const bool orientation = !cluster.empty() and (*cluster.begin())->is_forward();
+    const bool orientation = !cluster.empty() and (*cluster.begin())->same_strands();
     if (get_nodes().empty() or node_ptr != get_nodes().back().lock()
         or orientation != node_orientations.back()
         // or we think there really are 2 copies of gene

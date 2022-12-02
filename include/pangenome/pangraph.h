@@ -1,12 +1,7 @@
 #ifndef __PANGRAPH_H_INCLUDED__ // if pangraph.h hasn't been included yet...
 #define __PANGRAPH_H_INCLUDED__
 
-struct MinimizerHit;
-
-class LocalPRG;
-
-class KmerNode;
-
+#include "forward_declarations.h"
 #include <string>
 #include <cstdint>
 #include <unordered_map>
@@ -16,7 +11,6 @@ class KmerNode;
 
 #include "minihits.h"
 #include "localPRG.h"
-#include "pangenome/ns.cpp"
 
 namespace fs = boost::filesystem;
 
@@ -91,7 +85,7 @@ public:
         const std::shared_ptr<LocalPRG>&
             prg, // the prg from where this cluster of hits come
         const uint32_t read_id, // the read id from where this cluster of reads come
-        std::set<MinimizerHitPtr, pComp>& cluster // the cluster itself
+        const MinimizerHits & cluster
     );
 
     /**
@@ -152,8 +146,6 @@ public:
     // graph read/write
     void save_matrix(
         const fs::path& filepath, const std::vector<std::string>& sample_names);
-    void save_mapped_read_strings(
-        const fs::path& readfilepath, const fs::path& outdir, int32_t buff = 0);
     friend std::ostream& operator<<(std::ostream& out, const Graph& m);
 };
 

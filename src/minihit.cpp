@@ -34,7 +34,7 @@ bool MinimizerHit::operator==(const MinimizerHit& y) const
     if (!(get_prg_path() == y.get_prg_path())) {
         return false;
     }
-    if (is_forward() != y.is_forward()) {
+    if (same_strands() != y.same_strands()) {
         return false;
     }
     return true;
@@ -59,10 +59,10 @@ bool MinimizerHit::operator<(const MinimizerHit& y) const
     }
 
     // then by direction NB this bias is in favour of the forward direction
-    if (is_forward() < y.is_forward()) {
+    if (same_strands() < y.same_strands()) {
         return false;
     }
-    if (y.is_forward() < is_forward()) {
+    if (y.same_strands() < same_strands()) {
         return true;
     }
 
@@ -88,7 +88,7 @@ bool MinimizerHit::operator<(const MinimizerHit& y) const
 std::ostream& operator<<(std::ostream& out, MinimizerHit const& m)
 {
     out << "(" << m.get_read_id() << ", " << m.get_read_start_position() << ", "
-        << m.get_prg_id() << ", " << m.get_prg_path() << ", " << m.is_forward() << ", "
+        << m.get_prg_id() << ", " << m.get_prg_path() << ", " << m.same_strands() << ", "
         << m.get_kmer_node_id() << ")";
     return out;
 }

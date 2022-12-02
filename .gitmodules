@@ -1,9 +1,12 @@
-[submodule "thirdparty/gatb-core"]
-	path = thirdparty/gatb-core
-	url = https://github.com/leoisl/gatb-core
 [submodule "thirdparty/cgranges"]
 	path = thirdparty/cgranges
 	url = https://github.com/lh3/cgranges
 [submodule "thirdparty/seqan"]
 	path = thirdparty/seqan
 	url = https://github.com/seqan/seqan.git
+[submodule "thirdparty/minimap2"]
+	path = thirdparty/minimap2
+	url = https://github.com/lh3/minimap2
+[submodule "thirdparty/racon"]
+	path = thirdparty/racon
+	url = https://github.com/leoisl/racon
