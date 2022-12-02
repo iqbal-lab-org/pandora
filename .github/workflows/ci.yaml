@@ -12,6 +12,11 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update && sudo apt install cmake
+
+      - name: Clear repository
+        run: |
+          rm -rfv $GITHUB_WORKSPACE && mkdir $GITHUB_WORKSPACE    
+
       - name: Check out code for the build
         uses: actions/checkout@v2
         with:
