@@ -7,6 +7,21 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.10.0-alpha.0]
+
+### Changed
+
+- Denovo discovery is now done by repeatedly polishing the loci's maximum likelihood sequences using the regions of the
+reads that mapped to the loci through [Racon](Racon);
+- Pandora `discover` CLI heavily changed: parameters `-M,--mapped-reads`, `--clean-dbg`, `--discover-k`, `--max-ins`,
+`--covg-threshold`, `-l`, `-L`, `-d,--merge`, `-N`, `--min-dbg-dp` removed;
+
+### Added
+- Pandora `map`, `compare` and `discover` commands now produce [SAM](SAM) files;
+- Parameter `-K`/`--debugging-files` to pandora `map`, `compare` and `discover` commands to create extra
+debugging files, which are able to describe completely the mapping process of `pandora`.
+
+
 ## [0.9.2]
 
 ### Changed
@@ -123,7 +138,7 @@ their changes meticulously documented here.
 
 - k-mer coverage underflow bug in `LocalPRG` [[#183][183]]
 
-[Unreleased]: https://github.com/rmcolq/pandora/compare/0.9.1...HEAD
+[Unreleased]: https://github.com/rmcolq/pandora/compare/0.10.0-alpha.0...HEAD
 [0.9.2]: https://github.com/rmcolq/pandora/compare/0.9.2...0.9.1
 [0.9.1]: https://github.com/rmcolq/pandora/releases/tag/0.9.1
 [0.9.0]: https://github.com/rmcolq/pandora/releases/tag/0.9.0
@@ -140,4 +155,5 @@ their changes meticulously documented here.
 [265]: https://github.com/rmcolq/pandora/pull/265
 [294]: https://github.com/rmcolq/pandora/issues/294
 [v0.7.0]: https://github.com/rmcolq/pandora/releases/tag/v0.7.0
-
+[Racon]: https://github.com/lbcb-sci/racon
+[SAM]: https://samtools.github.io/hts-specs/SAMv1.pdf

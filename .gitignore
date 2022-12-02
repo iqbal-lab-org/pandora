@@ -103,6 +103,6 @@ pandora-linux-precompiled*
 /archives/
 /example/out/
 
-example/make_prg.sif
+example/make_prg*
 /scripts/measure_performance_from_log/.ipynb_checkpoints/
 /build_test/
