@@ -15,7 +15,7 @@ jobs:
 
       - name: Clear repository
         run: |
-          rm -rfv /home/runner/work/_temp    
+          find / -name ".git"    
 
       - name: Check out code for the build
         uses: actions/checkout@v2
