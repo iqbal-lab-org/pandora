@@ -3,12 +3,10 @@ set -eu
 
 ########################################################################################################################
 # configs
-pandora_version="0.10.0"
-# TODO: change for pandora release URL
-pandora_URL="https://www.dropbox.com/s/sjmgj3a1dkhj2ik/pandora-linux-precompiled-glibc?dl=1"
+pandora_version="0.10.0-alpha.0"
+pandora_URL="https://github.com/rmcolq/pandora/releases/download/${pandora_version}/pandora_${pandora_version}"
 make_prg_version="0.4.0"
-# TODO: change for make_prg release URL
-make_prg_URL="https://www.dropbox.com/s/jfzuxjkjd5ke15x/make_prg_0.4.0?dl=1"
+make_prg_URL="https://github.com/iqbal-lab-org/make_prg/releases/download/${make_prg_version}/make_prg_${make_prg_version}"
 ########################################################################################################################
 
 ########################################################################################################################
