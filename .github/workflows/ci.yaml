@@ -15,7 +15,7 @@ jobs:
 
       - name: Clear repository
         run: |
-          rm -rfv _work && mkdir _work    
+          rm -rfv /home/runner/work/ && mkdir /home/runner/work/    
 
       - name: Check out code for the build
         uses: actions/checkout@v2
