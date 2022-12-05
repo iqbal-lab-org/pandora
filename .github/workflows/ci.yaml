@@ -1,0 +1,47 @@
+name: Pandora CI
+
+on: [ push, pull_request ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt update && sudo apt install cmake
+
+      - name: Clear repository
+        run: |
+          find / -name ".git"    
+
+      - name: Check out code for the build
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      # TODO: add format step back (last PR before release)
+#      - name: "Format"
+#        run: |
+#          find src/ include/ test/ -type f \( -iname \*.h -o -iname \*.cpp \) | xargs -I _ clang-format -style=file -output-replacements-xml _ | grep -c "<replacement " >/dev/null
+#          if [ $? -ne 1 ]; then echo "Not all source and header files are formatted with clang-format"; exit 1; fi
+
+      - name: Build and test release build
+        run: |
+          mkdir build_release && cd build_release
+          cmake -DCMAKE_BUILD_TYPE=Release -DHUNTER_JOBS_NUMBER=4 ..
+          make -j4
+          ctest -V
+          ./pandora --help
+          cd ..
+
+      - name: Build and test debug build
+        run: |
+          mkdir build_debug && cd build_debug
+          cmake -DCMAKE_BUILD_TYPE=Debug -DHUNTER_JOBS_NUMBER=4 ..
+          make -j4
+          ctest -V
+          ./pandora --help
+          cd ..

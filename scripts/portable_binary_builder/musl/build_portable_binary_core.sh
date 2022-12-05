@@ -11,4 +11,4 @@ make VERBOSE=1 -j 4
 ctest -VV
 
 # copy binary to host filesystem
-cp pandora /pandora/pandora-linux-precompiled
+cp pandora /pandora/pandora-linux-precompiled-musl
