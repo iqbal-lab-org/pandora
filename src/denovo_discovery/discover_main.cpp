@@ -5,19 +5,21 @@
 #include "denovo_discovery/discover_main.h"
 #include "denovo_discovery/racon.h"
 #include "denovo_discovery/denovo_record.h"
+#include "cli_helpers.h"
 
 void setup_discover_subcommand(CLI::App& app)
 {
     auto opt = std::make_shared<DiscoverOptions>();
     auto* discover_subcmd = app.add_subcommand("discover",
-        "Quasi-map reads to an indexed PRG, infer the "
+        "Quasi-map reads from multiple samples to a pandora index, infer the "
         "sequence of present loci in the sample and discover novel variants.");
 
     discover_subcmd
-        ->add_option("<TARGET>", opt->prgfile, "An indexed PRG file (in fasta format)")
+        ->add_option("<TARGET>", opt->pandora_index_file, "A pandora index (.panidx.zip) file")
         ->required()
+        ->check(CLI::ExistingFile)
+        ->check(PandoraIndexValidator())
         ->transform(make_absolute)
-        ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
 
     std::string description
@@ -28,18 +30,6 @@ void setup_discover_subcommand(CLI::App& app)
         ->transform(make_absolute)
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
-
-    discover_subcmd
-        ->add_option(
-            "-w", opt->window_size, "Window size for (w,k)-minimizers (must be <=k)")
-        ->type_name("INT")
-        ->capture_default_str()
-        ->group("Indexing");
-
-    discover_subcmd->add_option("-k", opt->kmer_size, "K-mer size for (w,k)-minimizers")
-        ->type_name("INT")
-        ->capture_default_str()
-        ->group("Indexing");
 
     discover_subcmd
         ->add_option("-o,--outdir", opt->outdir, "Directory to write output files to")
@@ -133,9 +123,7 @@ void setup_discover_subcommand(CLI::App& app)
     discover_subcmd->callback([opt]() { pandora_discover(*opt); });
 }
 
-void pandora_discover_core(const SampleData& sample,
-    const std::shared_ptr<Index>& index,
-    const std::vector<std::shared_ptr<LocalPRG>>& prgs, const DiscoverOptions& opt)
+void pandora_discover_core(const SampleData& sample, const Index &index, const DiscoverOptions& opt)
 {
     const auto& sample_name = sample.first;
     const auto& sample_fpath = sample.second;
@@ -155,8 +143,7 @@ void pandora_discover_core(const SampleData& sample,
                             << sample_fpath << " (this will take a while)";
     auto pangraph = std::make_shared<pangenome::Graph>();
     uint32_t covg
-        = pangraph_from_read_file(sample, pangraph, index, prgs,
-        opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate, sample_outdir,
+        = pangraph_from_read_file(sample, pangraph, index, opt.max_diff, opt.error_rate, sample_outdir,
         opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean, opt.max_covg,
         opt.threads, opt.keep_extra_debugging_files);
 
@@ -197,6 +184,7 @@ void pandora_discover_core(const SampleData& sample,
         pangraphNodesAsVector.push_back(pan_id_to_node_mapping->second);
     }
 
+    // TODO: this can be memory heavy, fix
     std::map<std::string, std::string> locus_to_reads = get_locus_to_reads(
         sample_outdir, sample_name);
 
@@ -228,9 +216,10 @@ void pandora_discover_core(const SampleData& sample,
         // add consensus path to fastaq
         std::vector<KmerNodePtr> kmp;
         std::vector<LocalNodePtr> lmp;
-        prgs[pangraph_node->prg_id]->add_consensus_path_to_fastaq(consensus_fq,
-            pangraph_node, kmp, lmp, opt.window_size, opt.binomial, covg,
-            opt.max_num_kmers_to_avg, 0);
+        const auto &prg = index.get_prg_given_id(pangraph_node->prg_id);
+        prg->add_consensus_path_to_fastaq(consensus_fq,
+             pangraph_node, kmp, lmp, index.get_window_size(), opt.binomial, covg,
+             opt.max_num_kmers_to_avg, 0);
 
         if (kmp.empty()) {
             // mark the node as to remove
@@ -252,8 +241,7 @@ void pandora_discover_core(const SampleData& sample,
 
         if (opt.output_kg) {
             pangraph_node->kmer_prg_with_coverage.save(
-                kmer_graph_dir / (pangraph_node->get_name() + ".kg.gfa"),
-                prgs[pangraph_node->prg_id]);
+                kmer_graph_dir / (pangraph_node->get_name() + ".kg.gfa"), prg.get());
         }
 
         // builds a mem_fd with the locus reads
@@ -265,8 +253,8 @@ void pandora_discover_core(const SampleData& sample,
                 locus_to_reads[locus]);
         }
 
-        const std::string lmp_seq = prgs[pangraph_node->prg_id]->string_along_path(lmp);
-        Racon racon(opt.illumina, opt.kmer_size, locus, lmp_seq,
+        const std::string lmp_seq = prg->string_along_path(lmp);
+        Racon racon(opt.illumina, index.get_kmer_size(), locus, lmp_seq,
             denovo_outdir, locus_reads_fd_and_filepath.second, 10, opt.keep_extra_debugging_files);
         const std::string &polished_sequence = racon.get_polished_sequence();
 
@@ -380,39 +368,24 @@ int pandora_discover(DiscoverOptions& opt)
     if (opt.illumina and opt.error_rate > 0.1) {
         opt.error_rate = 0.001;
     }
-    if (opt.illumina and opt.max_diff > 200) {
-        opt.max_diff = 2 * opt.kmer_size + 1;
-    }
     // ==========
 
-    if (opt.window_size > opt.kmer_size) {
-        throw std::logic_error("W must NOT be greater than K");
-    }
-    if (opt.window_size <= 0) {
-        throw std::logic_error("W must be a positive integer");
-    }
-    if (opt.kmer_size <= 0) {
-        throw std::logic_error("K must be a positive integer");
+    BOOST_LOG_TRIVIAL(info) << "Loading Index...";
+    Index index = Index::load(opt.pandora_index_file.string());
+    BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
+
+    if (opt.illumina and opt.max_diff > 200) {
+        opt.max_diff = 2 * index.get_kmer_size() + 1;
     }
 
-    BOOST_LOG_TRIVIAL(info) << "Loading Index and LocalPRGs from file...";
-    auto index = std::make_shared<Index>();
-    index->load(opt.prgfile, opt.window_size, opt.kmer_size);
-    std::vector<std::shared_ptr<LocalPRG>> prgs;
-    read_prg_file(prgs, opt.prgfile);
-    load_PRG_kmergraphs(prgs, opt.window_size, opt.kmer_size, opt.prgfile);
-
-    BOOST_LOG_TRIVIAL(info) << "Loading read index file...";
-    std::vector<SampleData> samples
-        = load_read_index(opt.reads_idx_file);
+    auto samples = load_read_index(opt.reads_idx_file);
 
     // for each sample, run pandora discover
     for (const SampleData& sample : samples) {
-        pandora_discover_core(sample, index, prgs, opt);
+        pandora_discover_core(sample, index, opt);
     }
 
     concatenate_all_denovo_files(samples, opt.outdir);
     BOOST_LOG_TRIVIAL(info) << "All done!";
-
     return 0;
 }
