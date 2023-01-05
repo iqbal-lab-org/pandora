@@ -12,7 +12,7 @@ void setup_compare_subcommand(CLI::App& app)
     compare_subcmd
         ->add_option("<TARGET>", opt->pandora_index_file, "A pandora index (.panidx.zip) file")
         ->required()
-        ->check(CLI::ExistingFile)
+        ->check(CLI::ExistingFile.description(""))
         ->check(PandoraIndexValidator())
         ->transform(make_absolute)
         ->type_name("FILE");

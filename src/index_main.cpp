@@ -36,10 +36,10 @@ void setup_index_subcommand(CLI::App& app)
         ->type_name("INT")
         ->capture_default_str();
 
-    index_subcmd->add_option("-o,--outfile", opt->outfile, "Filename for the index. Must end in .zip")
+    index_subcmd->add_option("-o,--outfile", opt->outfile, "Filename for the index. Must end in .panidx.zip")
         ->type_name("FILE")
         ->transform(make_absolute)
-        ->check(CLI::NonexistentPath)
+        ->check(CLI::NonexistentPath.description(""))
         ->check(PandoraIndexValidator())
         ->default_str("<PRG>.panidx.zip");
 

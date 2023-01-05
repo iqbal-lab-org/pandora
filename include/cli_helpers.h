@@ -5,7 +5,7 @@
 
 class PandoraIndexValidator : public CLI::Validator {
 public:
-    PandoraIndexValidator() : Validator("PandoraIndexValidator") {
+    PandoraIndexValidator() : Validator("") {
         func_ = [](std::string &filename) {
             const bool index_has_the_correct_extension =
                 filename.rfind(".panidx.zip") == filename.size()-11;
