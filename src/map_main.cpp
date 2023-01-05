@@ -11,8 +11,9 @@ void setup_map_subcommand(CLI::App& app)
     map_subcmd
         ->add_option("<TARGET>", opt->pandora_index_file, "A pandora index (.panidx.zip) file")
         ->required()
-        ->transform(make_absolute)
+        ->check(CLI::ExistingFile)
         ->check(PandoraIndexValidator())
+        ->transform(make_absolute)
         ->type_name("FILE");
 
     map_subcmd

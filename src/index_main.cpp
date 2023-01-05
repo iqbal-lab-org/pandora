@@ -1,5 +1,6 @@
 #include "index_main.h"
 #include "localPRG_reader.h"
+#include "cli_helpers.h"
 
 void setup_index_subcommand(CLI::App& app)
 {
@@ -37,10 +38,10 @@ void setup_index_subcommand(CLI::App& app)
 
     index_subcmd->add_option("-o,--outfile", opt->outfile, "Filename for the index. Must end in .zip")
         ->type_name("FILE")
-        ->check(CLI::NonexistentPath)
-        ->check(check_if_is_zip_file)
         ->transform(make_absolute)
-        ->default_str("<PRG>.zip");
+        ->check(CLI::NonexistentPath)
+        ->check(PandoraIndexValidator())
+        ->default_str("<PRG>.panidx.zip");
 
     index_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");

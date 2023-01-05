@@ -13,7 +13,9 @@ public:
                 return std::string();
             }
             else {
-                return std::string("Index file has the wrong extension (expected *.panidx.zip)");
+                return std::string("Index file has the wrong extension, value: ") +
+                       filename +
+                       " (expected *.panidx.zip)";
             }
         };
     }

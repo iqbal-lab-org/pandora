@@ -717,16 +717,6 @@ std::string transform_cli_gsize(std::string str)
 
 std::string make_absolute(std::string str) { return fs::absolute(str).string(); }
 
-std::string check_if_is_zip_file(const std::string &filename) {
-    const fs::path filepath(filename);
-    const bool is_zip_file = filepath.extension() == ".zip";
-    if (is_zip_file) {
-        return std::string();
-    } else {
-        return std::string("Not a zip file");
-    }
-}
-
 std::vector<SampleData> load_read_index(
     const fs::path& read_index_fpath)
 {

@@ -140,8 +140,6 @@ std::string transform_cli_gsize(std::string);
 // used to transform paths to absolute paths - designed to be used with CLI11 transform
 std::string make_absolute(std::string);
 
-std::string check_if_is_zip_file(const std::string &filename);
-
 std::vector<SampleData> load_read_index(const fs::path& read_index_fpath);
 
 // Builds a file in memory
