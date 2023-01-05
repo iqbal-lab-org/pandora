@@ -485,16 +485,17 @@ MinimizerHitClusters get_minimizer_hit_clusters(
 // TODO: this should be in a constructor of pangenome::Graph or in a factory class
 uint32_t pangraph_from_read_file(const SampleData& sample,
     std::shared_ptr<pangenome::Graph> pangraph, const Index &index,
-    const uint32_t w, const uint32_t k, const int max_diff, const float& e_rate,
+    const int max_diff, const float& e_rate,
     const fs::path& sample_outdir, const uint32_t min_cluster_size,
     const uint32_t genome_size, const bool illumina, const bool clean,
     const uint32_t max_covg, uint32_t threads, const bool keep_extra_debugging_files)
 {
+    // constant variables
     const SampleIdText sample_name = sample.first;
     const SampleFpath sample_filepath = sample.second;
     const std::string tag = "[Sample " + sample_name + "]: ";
-
-    // constant variables
+    const uint32_t w = index.get_window_size();
+    const uint32_t k = index.get_kmer_size();
     const double fraction_kmers_required_for_cluster = 0.5 / exp(e_rate * k);
     const uint32_t nb_reads_to_map_in_a_batch = 1000;
 

@@ -1,17 +1,18 @@
 #include "map_main.h"
+#include "cli_helpers.h"
 
 void setup_map_subcommand(CLI::App& app)
 {
     auto opt = std::make_shared<MapOptions>();
     auto* map_subcmd = app.add_subcommand("map",
-        "Quasi-map reads to an indexed PRG, infer the sequence of present loci in the "
+        "Quasi-map reads to a pandora index, infer the sequence of present loci in the "
         "sample, and optionally genotype variants.");
 
     map_subcmd
-        ->add_option("<TARGET>", opt->prgfile, "An indexed PRG file (in fasta format)")
+        ->add_option("<TARGET>", opt->pandora_index_file, "A pandora index (.panidx.zip) file")
         ->required()
         ->transform(make_absolute)
-        ->check(CLI::ExistingFile.description(""))
+        ->check(PandoraIndexValidator())
         ->type_name("FILE");
 
     map_subcmd
@@ -21,18 +22,6 @@ void setup_map_subcommand(CLI::App& app)
         ->transform(make_absolute)
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
-
-    map_subcmd
-        ->add_option(
-            "-w", opt->window_size, "Window size for (w,k)-minimizers (must be <=k)")
-        ->type_name("INT")
-        ->capture_default_str()
-        ->group("Indexing");
-
-    map_subcmd->add_option("-k", opt->kmer_size, "K-mer size for (w,k)-minimizers")
-        ->type_name("INT")
-        ->capture_default_str()
-        ->group("Indexing");
 
     map_subcmd
         ->add_option("-o,--outdir", opt->outdir, "Directory to write output files to")
@@ -213,21 +202,7 @@ int pandora_map(MapOptions& opt)
     if (opt.illumina and opt.error_rate > 0.1) {
         opt.error_rate = 0.001;
     }
-    if (opt.illumina and opt.max_diff > 200) {
-        opt.max_diff = 2 * opt.kmer_size + 1;
-    }
     // ==========
-
-    if (opt.window_size > opt.kmer_size) {
-        throw std::logic_error("W must NOT be greater than K");
-    }
-    if (opt.window_size <= 0) {
-        throw std::logic_error("W must be a positive integer");
-    }
-    if (opt.kmer_size <= 0) {
-        throw std::logic_error("K must be a positive integer");
-    }
-
     if (opt.genotype) {
         opt.output_vcf = true;
     }
@@ -238,8 +213,12 @@ int pandora_map(MapOptions& opt)
         false);
 
     BOOST_LOG_TRIVIAL(info) << "Loading Index...";
-    Index index = Index::load(opt.prgfile.string() + ".panidx.zip");
+    Index index = Index::load(opt.pandora_index_file.string());
     BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
+
+    if (opt.illumina and opt.max_diff > 200) {
+        opt.max_diff = 2 * index.get_kmer_size() + 1;
+    }
 
     fs::create_directories(opt.outdir);
     const auto kmer_graphs_dir { opt.outdir / "kmer_graphs" };
@@ -252,9 +231,8 @@ int pandora_map(MapOptions& opt)
     const SampleData sample(opt.readsfile.stem().string(), opt.readsfile.string());
     auto pangraph = std::make_shared<pangenome::Graph>();
     uint32_t covg
-        = pangraph_from_read_file(sample, pangraph, index,
-        opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate, opt.outdir,
-        opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean, opt.max_covg,
+        = pangraph_from_read_file(sample, pangraph, index, opt.max_diff, opt.error_rate,
+            opt.outdir, opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean, opt.max_covg,
         opt.threads, opt.keep_extra_debugging_files);
 
     const auto pangraph_gfa { opt.outdir / "pandora.pangraph.gfa" };
@@ -271,7 +249,7 @@ int pandora_map(MapOptions& opt)
     pangraph->add_hits_to_kmergraphs();
 
     BOOST_LOG_TRIVIAL(info) << "Estimating parameters for kmer graph model...";
-    auto exp_depth_covg = estimate_parameters(pangraph, opt.outdir, opt.kmer_size,
+    auto exp_depth_covg = estimate_parameters(pangraph, opt.outdir, index.get_kmer_size(),
         opt.error_rate, covg, opt.binomial, 0);
     genotyping_options.add_exp_depth_covg(exp_depth_covg);
 
@@ -335,7 +313,7 @@ int pandora_map(MapOptions& opt)
         std::vector<KmerNodePtr> kmp;
         std::vector<LocalNodePtr> lmp;
         prg->add_consensus_path_to_fastaq(consensus_fq, pangraph_node, kmp, lmp,
-            opt.window_size, opt.binomial, covg, opt.max_num_kmers_to_avg, 0);
+            index.get_window_size(), opt.binomial, covg, opt.max_num_kmers_to_avg, 0);
 
         if (kmp.empty()) {
 #pragma omp critical(nodes_to_remove)

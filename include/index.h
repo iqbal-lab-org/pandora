@@ -121,6 +121,16 @@ public:
     static Index load(const fs::path& indexfile);
     ////////////////////////////////////////////////////////////////////////////////////
 
+    ////////////////////////////////////////////////////////////////////////////////////
+    // misc getters
+    inline uint32_t get_window_size() const {
+        return w;
+    }
+
+    inline uint32_t get_kmer_size() const {
+        return k;
+    }
+
     inline size_t get_number_of_prgs() const {
         return prg_names.size();
     }
@@ -136,6 +146,7 @@ public:
     inline const std::vector<std::shared_ptr<LocalPRG>> & get_prgs() const {
         return prgs;
     }
+    ////////////////////////////////////////////////////////////////////////////////////
 
     void clear();
 
