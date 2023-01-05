@@ -309,7 +309,7 @@ int pandora_map(MapOptions& opt)
         }
 
         // add consensus path to fastaq
-        LocalPRG* prg = index.get_prg_given_id(pangraph_node->prg_id);
+        const auto &prg = index.get_prg_given_id(pangraph_node->prg_id);
 
         std::vector<KmerNodePtr> kmp;
         std::vector<LocalNodePtr> lmp;
@@ -325,7 +325,7 @@ int pandora_map(MapOptions& opt)
         }
 
         if (opt.output_kg) {
-            pangraph_node->kmer_prg_with_coverage.save(kmer_graphs_dir / (pangraph_node->get_name() + ".kg.gfa"), prg);
+            pangraph_node->kmer_prg_with_coverage.save(kmer_graphs_dir / (pangraph_node->get_name() + ".kg.gfa"), prg.get());
         }
 
         if (opt.output_vcf) {

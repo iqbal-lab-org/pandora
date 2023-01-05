@@ -139,8 +139,8 @@ public:
         return prg_names[id];
     }
 
-    inline LocalPRG* get_prg_given_id(size_t id) const {
-        return prgs[id].get();
+    inline const std::shared_ptr<LocalPRG>& get_prg_given_id(size_t id) const {
+        return prgs[id];
     }
 
     inline const std::vector<std::shared_ptr<LocalPRG>> & get_prgs() const {
