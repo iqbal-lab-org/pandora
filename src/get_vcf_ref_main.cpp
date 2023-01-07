@@ -33,6 +33,14 @@ void setup_get_vcf_ref_subcommand(CLI::App& app)
 
 int pandora_get_vcf_ref(GetVcfRefOptions const& opt)
 {
+    auto log_level = boost::log::trivial::info;
+    if (opt.verbosity == 1) {
+        log_level = boost::log::trivial::debug;
+    } else if (opt.verbosity > 1) {
+        log_level = boost::log::trivial::trace;
+    }
+    boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
+
     BOOST_LOG_TRIVIAL(info) << "Loading Index...";
     Index index = Index::load(opt.pandora_index_file.string());
     BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
