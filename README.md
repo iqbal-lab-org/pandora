@@ -1,13 +1,8 @@
-| Branch             | Status                                                                                                |
-|:-------------------|:------------------------------------------------------------------------------------------------------|
-| [`master`][master] | ![master branch badge](https://github.com/rmcolq/pandora/actions/workflows/ci.yaml/badge.svg)         |
-| [`dev`][dev]       | ![dev branch badge](https://github.com/rmcolq/pandora/actions/workflows/ci.yaml/badge.svg?branch=dev) |
-
-[master]: https://github.com/rmcolq/pandora/tree/master
-[dev]: https://github.com/rmcolq/pandora/tree/dev
-
-
 # Pandora
+
+![master branch badge](https://github.com/rmcolq/pandora/actions/workflows/ci.yaml/badge.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 
 [TOC]: #
 
