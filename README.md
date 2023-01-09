@@ -57,14 +57,14 @@ Compare first 30X of each Illumina sample to get pangenome matrix and
 VCF
 
 ```
-pandora compare --genotype --illumina --max-covg 30 <panrg.fa> <read_index.tab>
+pandora compare --genotype --illumina --max-covg 30 <panidx.zip> <read_index.tab>
 ```
 
 Map Nanopore reads from a single sample to get approximate sequence for
 genes present
 
 ```
-pandora map <panrg.fa> <reads.fq>
+pandora map <panidx.zip> <reads.fq>
 ```
 
 ## Hands-on toy example
@@ -81,13 +81,13 @@ In this binary, all libraries are linked statically.
 
 * **Download**:
   ```
-  wget https://github.com/rmcolq/pandora/releases/download/0.10.0-alpha.0/pandora-linux-precompiled-v0.10.0-alpha.0
+  wget https://github.com/rmcolq/pandora/releases/download/0.11.0-alpha.0/pandora-linux-precompiled-v0.11.0-alpha.0
   ```
 
 * **Running**:
 ```
-chmod +x pandora-linux-precompiled-v0.10.0-alpha.0
-./pandora-linux-precompiled-v0.10.0-alpha.0 -h
+chmod +x pandora-linux-precompiled-v0.11.0-alpha.0
+./pandora-linux-precompiled-v0.11.0-alpha.0 -h
 ```
 
 * **Notes**:
