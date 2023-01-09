@@ -26,11 +26,8 @@ jobs:
 
       - name: Build and test release build
         run: |
-          cmake --version
-          cmake --help
-          exit 1
           mkdir build_release && cd build_release
-          cmake -v -DCMAKE_BUILD_TYPE=Release -DHUNTER_JOBS_NUMBER=4 ..
+          cmake --trace --trace-format=human -DCMAKE_BUILD_TYPE=Release -DHUNTER_JOBS_NUMBER=4 ..
           make -j4
           ctest -V
           ./pandora --help
@@ -38,11 +35,8 @@ jobs:
 
       - name: Build and test debug build
         run: |
-          cmake --version
-          cmake --help
-          exit 1
           mkdir build_debug && cd build_debug
-          cmake -v -DCMAKE_BUILD_TYPE=Debug -DHUNTER_JOBS_NUMBER=4 ..
+          cmake --trace --trace-format=human -DCMAKE_BUILD_TYPE=Debug -DHUNTER_JOBS_NUMBER=4 ..
           make -j4
           ctest -V
           ./pandora --help
