@@ -64,6 +64,7 @@ SET(ENABLE_XATTR OFF CACHE BOOL "Enable extended attribute support" FORCE)
 SET(ENABLE_ACL OFF CACHE BOOL "Enable ACL support" FORCE)
 SET(ENABLE_ICONV OFF CACHE BOOL "Enable iconv support" FORCE)
 SET(ENABLE_TEST OFF CACHE BOOL "Enable unit and regression tests" FORCE)
+SET(ENABLE_WERROR OFF CACHE BOOL "Treat warnings as errors - default is ON for Debug, OFF otherwise." FORCE)
 add_subdirectory(thirdparty/libarchive)
 set(LIBARCHIVE_LIBRARY archive_static)
 ########################################################################################################################
