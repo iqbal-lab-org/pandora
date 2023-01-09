@@ -1,6 +1,6 @@
 @SQ	SN:GC00006032	LN:312
 @SQ	SN:GC00010897	LN:491
-@PG	ID:pandora	PN:pandora	VN:0.9.2	CL: ../cmake-build-debug-coverage/pandora map --threads 1 --genotype -o out/map_toy_sample_1 out/prgs/pangenome.prg.fa reads/toy_sample_1/toy_sample_1.100x.random.illumina.fastq 
+@PG	ID:pandora	PN:pandora	VN:0.11.0	CL: ./pandora-linux-precompiled-v0.11.0-alpha.0 map --threads 1 --genotype -o out/map_toy_sample_1 out/prgs/pangenome.prg.fa.panidx.zip reads/toy_sample_1/toy_sample_1.100x.random.illumina.fastq 
 @CO	The reference length (in @SQ header lines) and the POS field refer to the string representation of the PRGs
 @CO	LF: left flank sequence, the sequence before the first mapped kmer, soft-clipped, max 30 bps
 @CO	RF: right flank sequence, the sequence after the last mapped kmer, soft-clipped, max 30 bps
