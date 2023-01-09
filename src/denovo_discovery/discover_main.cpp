@@ -241,7 +241,7 @@ void pandora_discover_core(const SampleData& sample, const Index &index, const D
 
         if (opt.output_kg) {
             pangraph_node->kmer_prg_with_coverage.save(
-                kmer_graph_dir / (pangraph_node->get_name() + ".kg.gfa"), prg.get());
+                kmer_graph_dir / (pangraph_node->get_name() + ".kg.gfa"), prg);
         }
 
         // builds a mem_fd with the locus reads

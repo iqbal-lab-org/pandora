@@ -325,7 +325,7 @@ int pandora_map(MapOptions& opt)
         }
 
         if (opt.output_kg) {
-            pangraph_node->kmer_prg_with_coverage.save(kmer_graphs_dir / (pangraph_node->get_name() + ".kg.gfa"), prg.get());
+            pangraph_node->kmer_prg_with_coverage.save(kmer_graphs_dir / (pangraph_node->get_name() + ".kg.gfa"), prg);
         }
 
         if (opt.output_vcf) {

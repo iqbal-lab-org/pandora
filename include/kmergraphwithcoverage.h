@@ -160,7 +160,7 @@ public:
     float prob_paths(const std::vector<std::vector<KmerNodePtr>>&);
 
     void save(
-        const fs::path& filepath, LocalPRG* localprg = nullptr) const;
+        const fs::path& filepath, std::shared_ptr<LocalPRG> localprg = nullptr) const;
     void load(const std::string&);
 
     // test friends
