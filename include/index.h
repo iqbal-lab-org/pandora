@@ -37,6 +37,7 @@ private:
     std::vector<std::string> prg_names;
 
     // required to map to PRGs without actually loading them
+    std::vector<uint32_t> prg_lengths;
     std::vector<uint32_t> prg_min_path_lengths;
 
     // populated when loading an index - just valid for index consumption commands
@@ -44,18 +45,19 @@ private:
     std::vector<std::shared_ptr<LocalPRG>> prgs;
     ///////////////////////////////////////////////////////////////////////////////////
 
-    // explicitly disallowing the index to be built from other classes/modules
-    Index(const uint32_t w, const uint32_t k) : w(w), k(k) {}
-
-    // Note: prg_names is an r-value ref because we take ownership of it when building an index
-    Index(const uint32_t w, const uint32_t k, std::vector<std::string> &&prg_names) :
-        w(w), k(k), prg_names(std::move(prg_names)) {
+    // By making constructors private we are explicitly disallowing the index to be
+    // built from other classes/modules
+    // Note: prg_names and prg_lengths are r-value refs because we take ownership of it when building an index
+    Index(const uint32_t w, const uint32_t k, std::vector<std::string> &&prg_names,
+        std::vector<uint32_t> &&prg_lengths) :
+        w(w), k(k), prg_names(std::move(prg_names)), prg_lengths(std::move(prg_lengths)) {
         prg_min_path_lengths.reserve(get_number_of_prgs());
         prgs.reserve(get_number_of_prgs());
     }
     Index(const uint32_t w, const uint32_t k, std::vector<std::string> &&prg_names,
-        std::vector<uint32_t> &&prg_min_path_lengths) :
-        w(w), k(k), prg_names(std::move(prg_names)), prg_min_path_lengths(std::move(prg_min_path_lengths)) {
+        std::vector<uint32_t> &&prg_lengths, std::vector<uint32_t> &&prg_min_path_lengths) :
+        w(w), k(k), prg_names(std::move(prg_names)), prg_lengths(std::move(prg_lengths)),
+        prg_min_path_lengths(std::move(prg_min_path_lengths)) {
         prgs.reserve(get_number_of_prgs());
     }
 
@@ -63,7 +65,6 @@ private:
 
     void index_prgs(ZipFileWriter &index_archive,
         LocalPRGReaderGeneratorIterator &prg_it,
-        uintmax_t estimated_index_size=ESTIMATED_INDEX_SIZE_DEFAULT,
         const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
         const uint32_t threads=1);
 
@@ -84,6 +85,10 @@ private:
     }
     inline void save_prg_names(ZipFileWriter &index_archive) const {
         save_values(index_archive, "_prg_names", prg_names.begin(), prg_names.end());
+    }
+    inline void save_prg_lengths(ZipFileWriter &index_archive) const {
+        save_values(index_archive, "_prg_lengths",
+            prg_lengths.begin(), prg_lengths.end());
     }
     inline void save_prg_min_path_lengths(ZipFileWriter &index_archive) const {
         save_values(index_archive, "_prg_min_path_lengths",
@@ -118,7 +123,14 @@ public:
         const fs::path &prg_filepath, const fs::path &out_filepath,
         const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
         const uint32_t threads=1);
-    static Index load(const fs::path& indexfile);
+
+    /**
+     * Load the index from a given path
+     * @param indexfile : the path to the index file
+     * @param lazy_load : if true, does not preemptively load all PRGs and kmer PRGs
+     * @return the index
+     */
+    static Index load(const fs::path& indexfile, bool lazy_load = false);
     ////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -135,16 +147,25 @@ public:
         return prg_names.size();
     }
 
+    inline const std::vector<std::string>& get_prg_names() const {
+        return prg_names;
+    }
     inline const std::string & get_prg_name_given_id(size_t id) const {
         return prg_names[id];
     }
 
-    inline const std::shared_ptr<LocalPRG>& get_prg_given_id(size_t id) const {
-        return prgs[id];
+    inline const std::vector<uint32_t>& get_prg_lengths() const {
+        return prg_lengths;
+    }
+    inline uint32_t get_prg_length_given_id(size_t id) const {
+        return prg_lengths[id];
     }
 
     inline const std::vector<std::shared_ptr<LocalPRG>> & get_prgs() const {
         return prgs;
+    }
+    inline const std::shared_ptr<LocalPRG>& get_prg_given_id(size_t id) const {
+        return prgs[id];
     }
     ////////////////////////////////////////////////////////////////////////////////////
 
