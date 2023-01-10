@@ -128,15 +128,21 @@ public:
     inline std::vector<std::string> read_prg_names() {
         return read_full_text_file("_prg_names");
     }
-    inline std::vector<uint32_t> read_prg_min_path_lengths() {
-        std::vector<std::string> prg_min_path_lengths_as_strs = read_full_text_file("_prg_min_path_lengths");
-        std::vector<uint32_t> prg_min_path_lengths(prg_min_path_lengths_as_strs.size());
-        std::transform(prg_min_path_lengths_as_strs.begin(),
-                       prg_min_path_lengths_as_strs.end(),
-                       prg_min_path_lengths.begin(),
-                       [](const std::string &str) { return std::stoi(str); }
+    inline std::vector<uint32_t> read_int_values(const std::string &zip_path) {
+        std::vector<std::string> values_as_strs = read_full_text_file(zip_path);
+        std::vector<uint32_t> values(values_as_strs.size());
+        std::transform(values_as_strs.begin(),
+            values_as_strs.end(),
+            values.begin(),
+            [](const std::string &str) { return std::stoi(str); }
         );
-        return prg_min_path_lengths;
+        return values;
+    }
+    inline std::vector<uint32_t> read_prg_lengths() {
+        return read_int_values("_prg_lengths");
+    }
+    inline std::vector<uint32_t> read_prg_min_path_lengths() {
+        return read_int_values("_prg_min_path_lengths");
     }
     inline fs::path extract_prgs() {
         return extract_text_file("_prgs");
