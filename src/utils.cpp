@@ -512,12 +512,13 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
     uint32_t id { 0 };
 
     SAMFile filtered_mappings(sample_outdir / (sample_name + ".filtered.sam"),
-        index.get_prgs(), k*2);
+        index.get_prg_names(), index.get_prg_lengths(), k*2);
 
     MinimizerMatchFile minimizer_matches(sample_outdir / (sample_name + ".minimatches"),
-        index.get_prgs(), !keep_extra_debugging_files);
+        index.get_prg_names(), !keep_extra_debugging_files);
     PafFile paf_file(sample_outdir / (sample_name + ".minipaf"),
-        index.get_prgs(), !keep_extra_debugging_files);
+        index.get_prg_names(), !keep_extra_debugging_files);
+
     ClusterDefFile cluster_def_file(sample_outdir / (sample_name + ".clusters_def_report"), !keep_extra_debugging_files);
     ClusterFilterFile cluster_filter_file(sample_outdir / (sample_name + ".clusters_filter_report"), !keep_extra_debugging_files);
 
