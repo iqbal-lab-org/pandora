@@ -869,13 +869,3 @@ std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const s
     }
     return std::make_pair(substrs, offsets);
 }
-
-
-uintmax_t get_number_of_bytes_in_file(const fs::path &file) {
-    const uintmax_t filesize = file.size();
-    const bool failed_to_get_filesize = filesize == static_cast<uintmax_t>(-1);
-    if (failed_to_get_filesize) {
-        fatal_error("Failed to get file size of file ", file.string());
-    }
-    return filesize;
-}
