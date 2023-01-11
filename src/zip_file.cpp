@@ -51,20 +51,3 @@ std::string ZipFileReader::read_full_text_file_as_single_string(
 
     return std::string(buffer);
 }
-
-fs::path ZipFileReader::extract_text_file(const std::string &zip_path) {
-    fs::path temp_file = fs::unique_path();
-    ZipIfstream prgs_in(this->archive, zip_path);
-
-    std::ofstream extracted_text_file;
-    open_file_for_writing(temp_file.string(), extracted_text_file);
-
-    while (prgs_in.good()) {
-        std::string line = prgs_in.getline();
-        extracted_text_file << line << '\n';
-    }
-
-    extracted_text_file.close();
-
-    return temp_file;
-}

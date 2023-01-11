@@ -65,19 +65,6 @@ public:
      * before writing. Can be used to write data in chunks.
      */
     void write_data(const std::string &data);
-
-    /**
-     * Writes the lines from the given ifstream to the prepared new entry done with prepare_new_entry() method.
-     * Note that this just works for text files.
-     * Use this to write text files from disk to this zip file.
-     */
-    inline void write_from_text_stream(std::ifstream& data_source) {
-        std::string line;
-        while (std::getline(data_source, line)) {
-            line += "\n";
-            write_data(line);
-        }
-    }
 };
 
 
@@ -95,14 +82,6 @@ private:
 
     static std::pair<zip_file*, struct zip_stat> open_file_inside_zip(
         struct zip *archive, const std::string &zip_path);
-
-    /**
-     * Extract a file from the zip archive into a temp file
-     * @param zip_path : The file to be extracted
-     * @return A path to the temp file extracted. The caller is responsible for deleting this file.
-     */
-    fs::path extract_text_file(const std::string &zip_path);
-
 public:
     // Note: this constructor is not explicit as we want to build from everything we can convert to a path
     ZipFileReader(const fs::path &path) {
@@ -143,9 +122,6 @@ public:
     }
     inline std::vector<uint32_t> read_prg_min_path_lengths() {
         return read_int_values("_prg_min_path_lengths");
-    }
-    inline fs::path extract_prgs() {
-        return extract_text_file("_prgs");
     }
     ////////////////////////////////////////////////////////////////////////////////////
 
@@ -204,12 +180,6 @@ public:
     ZipIfstream& operator>>(T& data) {
         zip_ifs >> data;
         return *this;
-    }
-
-    std::string getline() {
-        std::string line;
-        std::getline(zip_ifs, line);
-        return line;
     }
 };
 
