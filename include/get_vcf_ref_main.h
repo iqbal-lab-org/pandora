@@ -9,7 +9,7 @@
 #include "CLI11.hpp"
 
 struct GetVcfRefOptions {
-    fs::path pandora_index_file;
+    fs::path index_file;
     fs::path seqfile;
     bool compress { false };
     uint8_t verbosity { 0 };

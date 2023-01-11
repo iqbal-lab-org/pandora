@@ -7,7 +7,7 @@ void setup_seq2path_subcommand(CLI::App& app)
     std::string description = "For each sequence, return the path through the PRG";
     auto* seq2path_subcmd = app.add_subcommand("seq2path", description);
 
-    seq2path_subcmd->add_option("<INDEX>", opt->pandora_index_file, "A pandora index (.panidx.zip) file")
+    seq2path_subcmd->add_option("<INDEX>", opt->index_file, "A pandora index (.panidx.zip) file")
         ->required()
         ->check(CLI::ExistingFile.description(""))
         ->check(PandoraIndexValidator())
@@ -55,7 +55,7 @@ int pandora_seq2path(Seq2PathOptions const& opt)
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
 
     BOOST_LOG_TRIVIAL(info) << "Loading Index...";
-    Index index = Index::load(opt.pandora_index_file.string());
+    Index index = Index::load(opt.index_file.string());
     BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
 
     if (index.get_number_of_prgs() == 0) {

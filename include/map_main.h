@@ -30,7 +30,7 @@ namespace fs = boost::filesystem;
 
 /// Collection of all options of map subcommand.
 struct MapOptions {
-    fs::path pandora_index_file;
+    fs::path index_file;
     fs::path readsfile;
     fs::path outdir { "pandora" };
     uint32_t threads { 1 };

@@ -29,7 +29,7 @@ using std::set;
 using std::vector;
 
 struct CompareOptions {
-    fs::path pandora_index_file;
+    fs::path index_file;
     fs::path reads_idx_file;
     fs::path outdir { "pandora" };
     uint32_t threads { 1 };

@@ -9,7 +9,7 @@ void setup_map_subcommand(CLI::App& app)
         "sample, and optionally genotype variants.");
 
     map_subcmd
-        ->add_option("<TARGET>", opt->pandora_index_file, "A pandora index (.panidx.zip) file")
+        ->add_option("<TARGET>", opt->index_file, "A pandora index (.panidx.zip) file")
         ->required()
         ->check(CLI::ExistingFile.description(""))
         ->check(PandoraIndexValidator())
@@ -214,7 +214,7 @@ int pandora_map(MapOptions& opt)
         false);
 
     BOOST_LOG_TRIVIAL(info) << "Loading Index...";
-    Index index = Index::load(opt.pandora_index_file.string());
+    Index index = Index::load(opt.index_file.string());
     BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
 
     if (opt.illumina and opt.max_diff > 200) {

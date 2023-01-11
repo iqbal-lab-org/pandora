@@ -10,7 +10,7 @@
 #include "CLI11.hpp"
 
 struct WalkOptions {
-    fs::path pandora_index_file;
+    fs::path index_file;
     fs::path seqfile;
     bool top { false };
     bool bottom { false };

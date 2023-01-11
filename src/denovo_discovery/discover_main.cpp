@@ -15,7 +15,7 @@ void setup_discover_subcommand(CLI::App& app)
         "sequence of present loci in the sample and discover novel variants.");
 
     discover_subcmd
-        ->add_option("<TARGET>", opt->pandora_index_file, "A pandora index (.panidx.zip) file")
+        ->add_option("<TARGET>", opt->index_file, "A pandora index (.panidx.zip) file")
         ->required()
         ->check(CLI::ExistingFile.description(""))
         ->check(PandoraIndexValidator())
@@ -371,7 +371,7 @@ int pandora_discover(DiscoverOptions& opt)
     // ==========
 
     BOOST_LOG_TRIVIAL(info) << "Loading Index...";
-    Index index = Index::load(opt.pandora_index_file.string());
+    Index index = Index::load(opt.index_file.string());
     BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
 
     if (opt.illumina and opt.max_diff > 200) {

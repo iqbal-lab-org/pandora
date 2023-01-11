@@ -7,7 +7,7 @@ void setup_walk_subcommand(CLI::App& app)
     auto* walk_subcmd = app.add_subcommand("walk",
         "Outputs a path through the nodes in a PRG corresponding to the either an "
         "input sequence (if it exists) or the top/bottom path");
-    walk_subcmd->add_option("<INDEX>", opt->pandora_index_file, "A pandora index (.panidx.zip) file")
+    walk_subcmd->add_option("<INDEX>", opt->index_file, "A pandora index (.panidx.zip) file")
         ->required()
         ->check(CLI::ExistingFile.description(""))
         ->check(PandoraIndexValidator())
@@ -45,7 +45,7 @@ int pandora_walk(WalkOptions const& opt)
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
 
     BOOST_LOG_TRIVIAL(info) << "Loading Index...";
-    Index index = Index::load(opt.pandora_index_file.string());
+    Index index = Index::load(opt.index_file.string());
     BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
 
     std::vector<LocalNodePtr> npath;
