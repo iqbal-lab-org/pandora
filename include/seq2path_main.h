@@ -12,7 +12,7 @@
 #include "CLI11.hpp"
 
 struct Seq2PathOptions {
-    fs::path pandora_index_file;
+    fs::path index_file;
     fs::path seqfile;
     bool top { false };
     bool bottom { false };

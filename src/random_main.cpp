@@ -9,7 +9,7 @@ void setup_random_subcommand(CLI::App& app)
     auto* random_subcmd = app.add_subcommand("random", description);
 
     random_subcmd
-        ->add_option("<INDEX>", opt->pandora_index_file, "A pandora index (.panidx.zip) file")
+        ->add_option("<INDEX>", opt->index_file, "A pandora index (.panidx.zip) file")
         ->required()
         ->check(CLI::ExistingFile.description(""))
         ->check(PandoraIndexValidator())
@@ -40,7 +40,7 @@ int pandora_random_path(RandomOptions const& opt)
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
 
     BOOST_LOG_TRIVIAL(info) << "Loading Index...";
-    Index index = Index::load(opt.pandora_index_file.string());
+    Index index = Index::load(opt.index_file.string());
     BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
 
     Fastaq fa(opt.compress, false);

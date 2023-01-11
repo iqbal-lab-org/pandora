@@ -1,6 +1,6 @@
 @SQ	SN:GC00006032	LN:312
 @SQ	SN:GC00010897	LN:491
-@PG	ID:pandora	PN:pandora	VN:0.11.0	CL: ./pandora-linux-precompiled-v0.11.0-alpha.0 compare --threads 1 --genotype -o out/output_toy_example_no_denovo out/prgs/pangenome.prg.fa.panidx.zip reads/read_index.tsv 
+@PG	ID:pandora	PN:pandora	VN:0.10.0	CL: ./pandora-linux-precompiled-v0.10.0-alpha.1 compare --threads 1 --genotype -o out/output_toy_example_no_denovo out/prgs/pangenome.prg.fa.panidx.zip reads/read_index.tsv 
 @CO	The reference length (in @SQ header lines) and the POS field refer to the string representation of the PRGs
 @CO	LF: left flank sequence, the sequence before the first mapped kmer, soft-clipped, max 30 bps
 @CO	RF: right flank sequence, the sequence after the last mapped kmer, soft-clipped, max 30 bps

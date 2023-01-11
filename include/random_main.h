@@ -13,7 +13,7 @@
 #include <boost/log/expressions.hpp>
 
 struct RandomOptions {
-    fs::path pandora_index_file;
+    fs::path index_file;
     bool compress { false };
     uint32_t num_paths { 1 };
     uint8_t verbosity { 0 };
