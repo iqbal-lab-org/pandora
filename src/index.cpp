@@ -125,14 +125,14 @@ void Index::save_minhash(ZipFileWriter &index_archive) const
     BOOST_LOG_TRIVIAL(debug) << "Saving minhash - done!";
 }
 
-void Index::load_minhash(ZipFileReader &zip_file) {
+void Index::load_minhash() {
     uint64_t key;
     size_t size;
     int c;
     MiniRecord mr;
     bool first = true;
 
-    ZipIfstream zip_in(zip_file.archive, "_minhash");
+    ZipIfstream zip_in(zip_file->archive, "_minhash");
 
     while (zip_in.good()) {
         c = zip_in.peek();
@@ -173,69 +173,48 @@ void Index::load_minhash(ZipFileReader &zip_file) {
     }
 }
 
-void Index::load_prgs(ZipFileReader &zip_file) {
-    fs::path prg_file = zip_file.extract_prgs();
-    uint32_t id = 0;
-    FastaqHandler fh(prg_file.string());
-    while (!fh.eof()) {
-        try {
-            fh.get_next();
-        } catch (std::out_of_range& err) {
-            break;
-        }
-        if (fh.name.empty() or fh.read.empty())
-            continue;
-        auto s = std::make_shared<LocalPRG>(LocalPRG(id, fh.name,
-            fh.read)); // build a node in the graph, which will represent a LocalPRG
-                       // (the graph is a list of nodes, each representing a LocalPRG)
-        if (s != nullptr) {
-            prgs.push_back(s);
-            id++;
-        } else {
-            fatal_error("Failed to make LocalPRG for ", fh.name);
-        }
+const std::shared_ptr<LocalPRG>& Index::load_prg(const std::string &prg_name) {
+    const uint32_t id = prg_names_to_ids[prg_name];
+    const bool prg_already_loaded = prgs[id] != nullptr;
+    if (not prg_already_loaded) {
+        const std::string prg_fasta_zip_path = prg_name + ".fa";
+        const std::string prg_fasta = zip_file->read_full_text_file_as_single_string(prg_fasta_zip_path);
+        auto local_prg = std::make_shared<LocalPRG>(LocalPRG(id, prg_name, prg_fasta));
+
+        const std::string prg_gfa_zip_path = prg_name + ".gfa";
+        const std::string prg_gfa = zip_file->read_full_text_file_as_single_string(prg_gfa_zip_path);
+        std::stringstream gfa_ss;
+        gfa_ss << prg_gfa;
+        local_prg->kmer_prg.load(gfa_ss);
+
+        prgs[id] = local_prg;
     }
-    fs::remove(prg_file);
+    return prgs[id];
 }
 
-Index Index::load(const fs::path& indexfile, bool lazy_load)
+Index Index::load(const fs::path& indexfile)
 {
     BOOST_LOG_TRIVIAL(debug) << "File is " << indexfile;
 
-    ZipFileReader zip_file(indexfile);
+    auto zip_file = std::make_shared<ZipFileReader>(indexfile);
 
     BOOST_LOG_TRIVIAL(debug) << "Loading metadata";
-    auto w_and_k = zip_file.read_w_and_k();
+    auto w_and_k = zip_file->read_w_and_k();
 
     BOOST_LOG_TRIVIAL(debug) << "Loading prg names";
-    auto prg_names = zip_file.read_prg_names();
+    auto prg_names = zip_file->read_prg_names();
 
     BOOST_LOG_TRIVIAL(debug) << "Loading prg lengths";
-    auto prg_lengths = zip_file.read_prg_lengths();
+    auto prg_lengths = zip_file->read_prg_lengths();
 
     BOOST_LOG_TRIVIAL(debug) << "Loading prg min path lengths";
-    auto prg_min_path_lengths = zip_file.read_prg_min_path_lengths();
+    auto prg_min_path_lengths = zip_file->read_prg_min_path_lengths();
 
     Index index(w_and_k.first, w_and_k.second, std::move(prg_names), std::move(prg_lengths),
-        std::move(prg_min_path_lengths));
+        std::move(prg_min_path_lengths), zip_file);
 
     BOOST_LOG_TRIVIAL(debug) << "Loading minhash";
-    index.load_minhash(zip_file);
-
-    if (not lazy_load) {
-        BOOST_LOG_TRIVIAL(debug) << "Loading prgs";
-        index.load_prgs(zip_file);
-
-        BOOST_LOG_TRIVIAL(debug) << "Loading kmer prgs";
-        for (const auto& prg : index.prgs) {
-            const auto filename { prg->name + ".gfa" };
-            std::string gfa_as_str
-                = zip_file.read_full_text_file_as_single_string(filename);
-            std::stringstream gfa_ss;
-            gfa_ss << gfa_as_str;
-            prg->kmer_prg.load(gfa_ss);
-        }
-    }
+    index.load_minhash();
 
     return index;
 }
