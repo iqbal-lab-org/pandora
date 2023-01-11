@@ -7,7 +7,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
-## [0.11.0-alpha.0]
+## [0.10.0-alpha.1]
 
 ### Changed
 
@@ -26,7 +26,6 @@ reference pangenome collections, with a few million PRGs. This new index breaks 
   * `*.gfa`: the several GFA files describing the minimizing kmer graph for each PRG;
 - Minimum C++ standard upgraded from `C++11` to `C++14`;
 
-
 ### Removed
 - Removed CLI parameters `-w` and `-k` from the following `pandora` subcommands: `compare`, `discover`, `map`,
 `seq2path`;   
@@ -34,7 +33,6 @@ reference pangenome collections, with a few million PRGs. This new index breaks 
 
 ### Fixed
 - Several refactoring to the `pandora` index implementation;
-
 
 ### Added
 - A memory-efficient way to load PRGs when indexing, where we don't need to load all PRGs at once to index them, but 
@@ -171,8 +169,8 @@ their changes meticulously documented here.
 
 - k-mer coverage underflow bug in `LocalPRG` [[#183][183]]
 
-[Unreleased]: https://github.com/rmcolq/pandora/compare/0.11.0-alpha.0...HEAD
-[0.11.0-alpha.0]: https://github.com/rmcolq/pandora/compare/0.11.0-alpha.0...0.10.0-alpha.0
+[Unreleased]: https://github.com/rmcolq/pandora/compare/0.10.0-alpha.1...HEAD
+[0.10.0-alpha.1]: https://github.com/rmcolq/pandora/compare/0.10.0-alpha.1...0.10.0-alpha.0
 [0.10.0-alpha.0]: https://github.com/rmcolq/pandora/compare/0.10.0-alpha.0...0.9.2
 [0.9.2]: https://github.com/rmcolq/pandora/compare/0.9.2...0.9.1
 [0.9.1]: https://github.com/rmcolq/pandora/releases/tag/0.9.1
