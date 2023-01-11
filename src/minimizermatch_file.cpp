@@ -4,9 +4,9 @@
 #include "denovo_discovery/denovo_utils.h"
 
 MinimizerMatchFile::MinimizerMatchFile(const fs::path &filepath,
-                                       const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+                                       const std::vector<std::string> &prg_names,
                                        bool is_fake_file) :
-    GenericFile(filepath, is_fake_file), prgs(prgs) {
+    GenericFile(filepath, is_fake_file), prg_names(prg_names) {
     (*this) << "kmer\tread\tread_start\tread_end\tread_strand\tprg\tprg_path\tprg_strand\n";
 }
 
@@ -21,7 +21,7 @@ void MinimizerMatchFile::write_hits(const Seq &seq, const MinimizerHits &hits) {
         if (hit->read_strand == 0) {
             kmer = reverse_complement(kmer);
         }
-        const std::string prg_name = prgs[hit->get_prg_id()]->name;
+        const std::string prg_name = prg_names[hit->get_prg_id()];
         (*this)  << kmer << "\t"
                  << seq.name << "\t"
                  << read_start_position << "\t"
