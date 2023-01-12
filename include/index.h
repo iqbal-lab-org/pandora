@@ -180,15 +180,13 @@ public:
         }
         return loaded_prgs;
     }
-    inline const std::shared_ptr<LocalPRG>& get_prg_given_id(size_t id) const {
-        if (prgs[id] == nullptr) {
-            throw FatalRuntimeError("Tried to access a not loaded PRG");
-        }
-        return prgs[id];
-    }
     inline const std::shared_ptr<LocalPRG>& get_prg_given_name(const std::string &prg_name) {
         return load_prg(prg_name);
     }
+    inline const std::shared_ptr<LocalPRG>& get_prg_given_id(size_t id) {
+        return get_prg_given_name(prg_names[id]);
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////
 
     void clear();
