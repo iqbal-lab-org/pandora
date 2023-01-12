@@ -177,7 +177,15 @@ public:
         return prg_min_path_lengths[id];
     }
 
-    inline std::vector<std::shared_ptr<LocalPRG>> get_prgs() const {
+    // WARNING: CARE must be taken when using invoking this method, as we lose the
+    // benefits of the lazy loading feature!
+    void load_all_prgs() {
+        for (const std::string &prg_name : prg_names) {
+            load_prg(prg_name);
+        }
+    }
+
+    inline std::vector<std::shared_ptr<LocalPRG>> get_loaded_prgs() const {
         std::vector<std::shared_ptr<LocalPRG>> loaded_prgs;
         loaded_prgs.reserve(prgs.size());
         for (const auto &prg : prgs) {
