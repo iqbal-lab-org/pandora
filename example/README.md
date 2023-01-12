@@ -32,7 +32,7 @@ and thus the dirs `out` and `out_truth` have the same contents.
 
 `out/prgs`: contains output of `make_prg from_msa` and `pandora index`. Main files:
   * `pangenome.prg.fa`: the PRG itself;
-  * `pangenome.prg.fa.k15.w14.idx` and `kmer_prgs`: the PRG index;
+  * `pangenome.prg.fa.panidx.zip`: the PRG index;
   * `pangenome.update_DS.zip`: update data structures that make the PRG updatable;
 
 `out/pandora_discover_out`: contains the output of `pandora discover`. Main files:
@@ -77,12 +77,10 @@ GC00010897	422	.	A	T	.	.	VC=SNP;GRAPHTYPE=SIMPLE	GT:MEAN_FWD_COVG:MEAN_REV_COVG:
 
 ## Extra
 
-# TODO: fix conda installation once make_prg 1.0.0 is conda installable
-
 ### Running with conda
 
-If you install `pandora` via `conda`: `conda install -c bioconda pandora`,
-you can run this sample example by activating the `conda` environment containing `pandora` and running:
+If you install `make_prg` and `pandora` via `conda`: `conda install -c bioconda make_prg pandora`,
+you can run this sample example by activating the `conda` environment containing these tools and running:
 
 ```
 ./run_pandora.sh conda

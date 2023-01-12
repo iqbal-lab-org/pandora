@@ -10,10 +10,11 @@
 #include "CLI11.hpp"
 
 struct WalkOptions {
-    std::string prgfile;
-    std::string seqfile;
+    fs::path index_file;
+    fs::path seqfile;
     bool top { false };
     bool bottom { false };
+    uint8_t verbosity { 0 };
 };
 
 void setup_walk_subcommand(CLI::App& app);

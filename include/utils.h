@@ -71,13 +71,6 @@ std::string rev_complement(std::string);
 
 float lognchoosek2(uint32_t, uint32_t, uint32_t);
 
-// probably should be moved to map_main.cpp
-void read_prg_file(std::vector<std::shared_ptr<LocalPRG>>& prgs,
-    const fs::path& filepath, uint32_t id = 0);
-
-void load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
-    const uint32_t& w, const uint32_t& k, const fs::path& prgfile);
-
 void load_vcf_refs_file(const fs::path& filepath, VCFRefs& vcf_refs);
 
 void add_read_hits(const Seq&, const std::shared_ptr<MinimizerHits>&, const Index&);
@@ -118,9 +111,8 @@ MinimizerHitClusters get_minimizer_hit_clusters(
     const uint32_t expected_number_kmers_in_read_sketch = std::numeric_limits<uint32_t>::max());
 
 uint32_t pangraph_from_read_file(const SampleData& sample,
-    std::shared_ptr<pangenome::Graph> pangraph, std::shared_ptr<Index> index,
-    const std::vector<std::shared_ptr<LocalPRG>>& prgs, const uint32_t w,
-    const uint32_t k, const int max_diff, const float& e_rate,
+    std::shared_ptr<pangenome::Graph> pangraph, const Index &index,
+    const int max_diff, const float& e_rate,
     const fs::path& sample_outdir, const uint32_t min_cluster_size = 10,
     const uint32_t genome_size = 5000000, const bool illumina = false, const bool clean = false,
     const uint32_t max_covg = 300, uint32_t threads = 1,
@@ -172,5 +164,7 @@ inline void to_upper(std::string &str) {
 
 int random_int();
 std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const std::string& input_string, uint8_t delim = 4);
+
+uintmax_t get_number_of_bytes_in_file(const fs::path &file);
 
 #endif

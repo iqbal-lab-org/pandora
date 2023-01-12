@@ -12,6 +12,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update && sudo apt install cmake
+
       - name: Check out code for the build
         uses: actions/checkout@v2
         with:

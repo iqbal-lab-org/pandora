@@ -62,9 +62,9 @@ public:
 
     uint32_t min_path_length();
 
-    void save(
-        const fs::path& filepath, const std::shared_ptr<LocalPRG> localprg = nullptr);
-    void load(const fs::path& filepath);
+    // get the KmerGraph as gfa
+    std::string to_gfa(const std::shared_ptr<LocalPRG> localprg = nullptr) const;
+    void load(std::stringstream &stream);
 
     bool operator==(const KmerGraph& other_graph) const;
 

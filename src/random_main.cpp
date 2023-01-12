@@ -1,4 +1,5 @@
 #include "random_main.h"
+#include "cli_helpers.h"
 
 void setup_random_subcommand(CLI::App& app)
 {
@@ -8,9 +9,11 @@ void setup_random_subcommand(CLI::App& app)
     auto* random_subcmd = app.add_subcommand("random", description);
 
     random_subcmd
-        ->add_option("<PRG>", opt->prgfile, "PRG to generate random paths from")
+        ->add_option("<INDEX>", opt->index_file, "A pandora index (.panidx.zip) file")
         ->required()
         ->check(CLI::ExistingFile.description(""))
+        ->check(PandoraIndexValidator())
+        ->transform(make_absolute)
         ->type_name("FILE");
 
     random_subcmd->add_option("-n", opt->num_paths, "Number of paths to output")
@@ -36,12 +39,13 @@ int pandora_random_path(RandomOptions const& opt)
     }
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
 
-    std::vector<std::shared_ptr<LocalPRG>> prgs;
-    read_prg_file(prgs, opt.prgfile);
+    BOOST_LOG_TRIVIAL(info) << "Loading Index...";
+    Index index = Index::load(opt.index_file.string());
+    BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
 
     Fastaq fa(opt.compress, false);
 
-    for (const auto& prg_ptr : prgs) {
+    for (const auto& prg_ptr : index.get_prgs()) {
         std::unordered_set<std::string> random_paths;
         auto skip = 0;
         while (random_paths.size() < opt.num_paths and skip < 10) {

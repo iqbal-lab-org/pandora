@@ -8,7 +8,6 @@
 #include "seq2path_main.h"
 #include "get_vcf_ref_main.h"
 #include "random_main.h"
-#include "merge_index_main.h"
 #include "globals.h"
 #include "denovo_discovery/discover_main.h"
 
@@ -70,7 +69,6 @@ int main(int argc, char* argv[])
     setup_seq2path_subcommand(app);
     setup_get_vcf_ref_subcommand(app);
     setup_random_subcommand(app);
-    setup_merge_index_subcommand(app);
     app.require_subcommand();
 
     for (int i=0; i<argc; i++) {

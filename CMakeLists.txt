@@ -12,20 +12,17 @@ HunterGate(
 
 # project configuration
 set(PROJECT_NAME_STR pandora)
-project(${PROJECT_NAME_STR} VERSION "0.10.0" LANGUAGES C CXX)
+project(${PROJECT_NAME_STR} VERSION "0.10.0.1" LANGUAGES C CXX)
 set(ADDITIONAL_VERSION_LABELS "")
 configure_file( include/version.h.in ${CMAKE_BINARY_DIR}/include/version.h )
 
-# C++11 required
+# C++14 required
 include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-if (COMPILER_SUPPORTS_CXX11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif (COMPILER_SUPPORTS_CXX0X)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
+if (COMPILER_SUPPORTS_CXX14)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 else ()
-    message(FATAL_ERROR "Compiler ${CMAKE_CXX_COMPILER} has no C++11 support")
+    message(FATAL_ERROR "Compiler ${CMAKE_CXX_COMPILER} has no C++14 support")
 endif ()
 
 # default flags
@@ -56,6 +53,41 @@ endif()
 hunter_add_package(ZLIB)
 find_package(ZLIB 1.2.11 REQUIRED)
 set(ZLIB_LIBRARY ZLIB::ZLIB)
+########################################################################################################################
+
+########################################################################################################################
+# INSTALL libarchive
+SET(ENABLE_TAR OFF CACHE BOOL "Enable tar building" FORCE)
+SET(ENABLE_CPIO OFF CACHE BOOL "Enable cpio building" FORCE)
+SET(ENABLE_CAT OFF CACHE BOOL "Enable cat building" FORCE)
+SET(ENABLE_XATTR OFF CACHE BOOL "Enable extended attribute support" FORCE)
+SET(ENABLE_ACL OFF CACHE BOOL "Enable ACL support" FORCE)
+SET(ENABLE_ICONV OFF CACHE BOOL "Enable iconv support" FORCE)
+SET(ENABLE_TEST OFF CACHE BOOL "Enable unit and regression tests" FORCE)
+SET(ENABLE_WERROR OFF CACHE BOOL "Treat warnings as errors - default is ON for Debug, OFF otherwise." FORCE)
+add_subdirectory(thirdparty/libarchive)
+set(LIBARCHIVE_LIBRARY archive_static)
+########################################################################################################################
+
+########################################################################################################################
+# INSTALL libzip
+SET(ENABLE_COMMONCRYPTO OFF CACHE BOOL "Enable use of CommonCrypto" FORCE)
+SET(ENABLE_GNUTLS OFF CACHE BOOL "Enable use of GnuTLS" FORCE)
+SET(ENABLE_MBEDTLS OFF CACHE BOOL "Enable use of mbed TLS" FORCE)
+SET(ENABLE_OPENSSL OFF CACHE BOOL "Enable use of OpenSSL" FORCE)
+SET(ENABLE_WINDOWS_CRYPTO OFF CACHE BOOL "Enable use of Windows cryptography libraries" FORCE)
+SET(ENABLE_BZIP2 OFF CACHE BOOL "Enable use of BZip2" FORCE)
+SET(ENABLE_LZMA OFF CACHE BOOL "Enable use of LZMA" FORCE)
+SET(ENABLE_ZSTD ON CACHE BOOL "Enable use of Zstandard" FORCE)
+SET(BUILD_TOOLS OFF CACHE BOOL "Build tools in the src directory (zipcmp, zipmerge, ziptool)" FORCE)
+SET(BUILD_REGRESS OFF CACHE BOOL "Build regression tests" FORCE)
+SET(BUILD_EXAMPLES OFF CACHE BOOL "Build examples" FORCE)
+SET(BUILD_DOC OFF CACHE BOOL "Build documentation" FORCE)
+SET(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
+SET(LIBZIP_DO_INSTALL OFF CACHE BOOL "Install libzip and the related files" FORCE)
+SET(SHARED_LIB_VERSIONNING OFF CACHE BOOL "Add SO version in .so build" FORCE)
+add_subdirectory(thirdparty/libzip)
+set(LIBZIP_LIBRARY libzip::zip)
 ########################################################################################################################
 
 ########################################################################################################################
@@ -104,7 +136,9 @@ include_directories(SYSTEM
         ${PROJECT_SOURCE_DIR}/thirdparty/cgranges/cpp
         ${SEQAN_INCLUDE_DIRS}
         ${PROJECT_SOURCE_DIR}/thirdparty/minimap2/
-        )
+        ${PROJECT_SOURCE_DIR}/thirdparty/libzip/lib
+        ${PROJECT_SOURCE_DIR}/thirdparty/libarchive/libarchive
+)
 
 # normal includes: warnings will be reported for these
 include_directories(
@@ -136,6 +170,8 @@ list(REMOVE_ITEM SRC_FILES ${PROJECT_SOURCE_DIR}/thirdparty/minimap2/main.c ${PR
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 target_link_libraries(${PROJECT_NAME}
+        ${LIBARCHIVE_LIBRARY}
+        ${LIBZIP_LIBRARY}
         ${RACON_LIBRARY}
         ${Boost_LIBRARIES}
         ${ZLIB_LIBRARY}
@@ -145,7 +181,7 @@ target_link_libraries(${PROJECT_NAME}
         ${RT_LIBRARY}
         )
 
-enable_testing()
-add_subdirectory(test)
+# enable_testing()
+# add_subdirectory(test)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)

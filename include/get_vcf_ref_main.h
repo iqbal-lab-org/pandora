@@ -9,8 +9,8 @@
 #include "CLI11.hpp"
 
 struct GetVcfRefOptions {
-    std::string prgfile;
-    std::string seqfile;
+    fs::path index_file;
+    fs::path seqfile;
     bool compress { false };
     uint8_t verbosity { 0 };
 };

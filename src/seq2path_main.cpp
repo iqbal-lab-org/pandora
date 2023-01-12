@@ -1,4 +1,5 @@
 #include "seq2path_main.h"
+#include "cli_helpers.h"
 
 void setup_seq2path_subcommand(CLI::App& app)
 {
@@ -6,9 +7,11 @@ void setup_seq2path_subcommand(CLI::App& app)
     std::string description = "For each sequence, return the path through the PRG";
     auto* seq2path_subcmd = app.add_subcommand("seq2path", description);
 
-    seq2path_subcmd->add_option("<PRG>", opt->prgfile, "PRG to index (in fasta format)")
+    seq2path_subcmd->add_option("<INDEX>", opt->index_file, "A pandora index (.panidx.zip) file")
         ->required()
         ->check(CLI::ExistingFile.description(""))
+        ->check(PandoraIndexValidator())
+        ->transform(make_absolute)
         ->type_name("FILE");
 
     auto* input = seq2path_subcmd
@@ -16,16 +19,6 @@ void setup_seq2path_subcommand(CLI::App& app)
                           "Fast{a,q} of sequences to output paths through the PRG for")
                       ->check(CLI::ExistingFile.description(""))
                       ->type_name("FILE");
-
-    seq2path_subcmd
-        ->add_option(
-            "-w", opt->window_size, "Window size for (w,k)-minimizers (must be <=k)")
-        ->type_name("INT")
-        ->capture_default_str();
-
-    seq2path_subcmd->add_option("-k", opt->kmer_size, "K-mer size for (w,k)-minimizers")
-        ->type_name("INT")
-        ->capture_default_str();
 
     auto* top = seq2path_subcmd->add_flag(
         "-T,--top", opt->top, "Output the top path through each local PRG");
@@ -53,7 +46,6 @@ int pandora_seq2path(Seq2PathOptions const& opt)
     // return the path through the prg for each sequence OR can provide a prgfile with
     // multiple sequences in it, and a seq file with the same number, with 1-1
     // correspondance and check seq n in prg n.
-
     auto log_level = boost::log::trivial::info;
     if (opt.verbosity == 1) {
         log_level = boost::log::trivial::debug;
@@ -62,19 +54,18 @@ int pandora_seq2path(Seq2PathOptions const& opt)
     }
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
 
-    // load prg graphs and kmergraphs, for now assume there is only one PRG in this file
-    std::vector<std::shared_ptr<LocalPRG>> prgs;
-    read_prg_file(prgs, opt.prgfile);
-    load_PRG_kmergraphs(prgs, opt.window_size, opt.kmer_size, opt.prgfile);
+    BOOST_LOG_TRIVIAL(info) << "Loading Index...";
+    Index index = Index::load(opt.index_file.string());
+    BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
 
-    if (prgs.empty()) {
+    if (index.get_number_of_prgs() == 0) {
         fatal_error("PRG is empty!");
     }
 
     if (opt.top) {
-        for (uint32_t i = 0; i != prgs.size(); ++i) {
-            std::cout << "Top node path along PRG " << prgs[i]->name << ": ";
-            auto npath = prgs[i]->prg.top_path();
+        for (const auto &prg : index.get_prgs()) {
+            std::cout << "Top node path along PRG " << prg->name << ": ";
+            auto npath = prg->prg.top_path();
             for (uint32_t j = 0; j != npath.size(); ++j) {
                 std::cout << "->" << npath[j]->id;
             }
@@ -82,9 +73,9 @@ int pandora_seq2path(Seq2PathOptions const& opt)
         }
         return 0;
     } else if (opt.bottom) {
-        for (uint32_t i = 0; i != prgs.size(); ++i) {
-            std::cout << "Bottom node path along PRG " << prgs[i]->name << ": ";
-            auto npath = prgs[i]->prg.bottom_path();
+        for (const auto &prg : index.get_prgs()) {
+            std::cout << "Bottom node path along PRG " << prg->name << ": ";
+            auto npath = prg->prg.bottom_path();
             for (uint32_t j = 0; j != npath.size(); ++j) {
                 std::cout << "->" << npath[j]->id;
             }
@@ -95,7 +86,7 @@ int pandora_seq2path(Seq2PathOptions const& opt)
         // for each read in readfile,  infer node path along sequence
         std::vector<LocalNodePtr> npath;
 
-        FastaqHandler seq_handle(opt.seqfile);
+        FastaqHandler seq_handle(opt.seqfile.string());
 
         while (!seq_handle.eof()) {
             try {
@@ -104,23 +95,23 @@ int pandora_seq2path(Seq2PathOptions const& opt)
                 break;
             }
 
-            if (prgs.size() == 1) {
+            if (index.get_number_of_prgs() == 1) {
+                const auto &prg = index.get_prgs()[0];
                 std::cout << "Node path for read " << seq_handle.num_reads_parsed << " "
-                          << seq_handle.name << " along PRG " << prgs[0]->name << ": ";
-                npath = prgs[0]->prg.nodes_along_string(seq_handle.read);
+                          << seq_handle.name << " along PRG " << prg->name << ": ";
+                npath = prg->prg.nodes_along_string(seq_handle.read);
                 if (npath.empty()) {
-                    npath = prgs[0]->prg.nodes_along_string(
+                    npath = prg->prg.nodes_along_string(
                         rev_complement(seq_handle.read));
                 }
-            } else if (seq_handle.num_reads_parsed < prgs.size()) {
+            } else if (seq_handle.num_reads_parsed < index.get_number_of_prgs()) {
+                const auto &prg = index.get_prgs()[seq_handle.num_reads_parsed];
                 std::cout << "Node path for read " << seq_handle.num_reads_parsed << " "
                           << seq_handle.name << " along PRG "
-                          << prgs[seq_handle.num_reads_parsed]->name << ": ";
-                npath = prgs[seq_handle.num_reads_parsed]->prg.nodes_along_string(
-                    seq_handle.read);
+                          << prg->name << ": ";
+                npath = prg->prg.nodes_along_string(seq_handle.read);
                 if (npath.empty()) {
-                    npath = prgs[seq_handle.num_reads_parsed]->prg.nodes_along_string(
-                        rev_complement(seq_handle.read));
+                    npath = prg->prg.nodes_along_string(rev_complement(seq_handle.read));
                 }
             } else {
                 fatal_error("Different numbers of PRGs and reads");

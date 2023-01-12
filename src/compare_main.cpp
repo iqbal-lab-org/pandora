@@ -1,18 +1,20 @@
 #include "compare_main.h"
+#include "cli_helpers.h"
 
 void setup_compare_subcommand(CLI::App& app)
 {
     auto opt = std::make_shared<CompareOptions>();
     auto* compare_subcmd = app.add_subcommand("compare",
-        "Quasi-map reads from multiple samples to an indexed PRG, infer the "
+        "Quasi-map reads from multiple samples to a pandora index, infer the "
         "sequence of present loci in each sample, and call variants between the "
         "samples.");
 
     compare_subcmd
-        ->add_option("<TARGET>", opt->prgfile, "An indexed PRG file (in fasta format)")
+        ->add_option("<TARGET>", opt->index_file, "A pandora index (.panidx.zip) file")
         ->required()
-        ->transform(make_absolute)
         ->check(CLI::ExistingFile.description(""))
+        ->check(PandoraIndexValidator())
+        ->transform(make_absolute)
         ->type_name("FILE");
 
     std::string description
@@ -23,18 +25,6 @@ void setup_compare_subcommand(CLI::App& app)
         ->transform(make_absolute)
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
-
-    compare_subcmd
-        ->add_option(
-            "-w", opt->window_size, "Window size for (w,k)-minimizers (must be <=k)")
-        ->type_name("INT")
-        ->capture_default_str()
-        ->group("Indexing");
-
-    compare_subcmd->add_option("-k", opt->kmer_size, "K-mer size for (w,k)-minimizers")
-        ->type_name("INT")
-        ->capture_default_str()
-        ->group("Indexing");
 
     compare_subcmd
         ->add_option("-o,--outdir", opt->outdir, "Directory to write output files to")
@@ -205,21 +195,7 @@ int pandora_compare(CompareOptions& opt)
     if (opt.illumina and opt.error_rate > 0.1) {
         opt.error_rate = 0.001;
     }
-    if (opt.illumina and opt.max_diff > 200) {
-        opt.max_diff = 2 * opt.kmer_size + 1;
-    }
     // ==========
-
-    if (opt.window_size > opt.kmer_size) {
-        throw std::logic_error("W must NOT be greater than K");
-    }
-    if (opt.window_size <= 0) {
-        throw std::logic_error("W must be a positive integer");
-    }
-    if (opt.kmer_size <= 0) {
-        throw std::logic_error("K must be a positive integer");
-    }
-
     if (opt.genotype) {
         opt.output_vcf = true;
     }
@@ -229,14 +205,14 @@ int pandora_compare(CompareOptions& opt)
         opt.min_allele_fraction_covg_gt, opt.min_total_covg_gt, opt.min_diff_covg_gt, 0,
         false);
 
-    BOOST_LOG_TRIVIAL(info) << "Loading Index and LocalPRGs from file...";
-    auto index = std::make_shared<Index>();
-    index->load(opt.prgfile, opt.window_size, opt.kmer_size);
-    std::vector<std::shared_ptr<LocalPRG>> prgs;
-    read_prg_file(prgs, opt.prgfile);
-    load_PRG_kmergraphs(prgs, opt.window_size, opt.kmer_size, opt.prgfile);
+    BOOST_LOG_TRIVIAL(info) << "Loading Index...";
+    Index index = Index::load(opt.index_file.string());
+    BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
 
-    BOOST_LOG_TRIVIAL(info) << "Loading read index file...";
+    if (opt.illumina and opt.max_diff > 200) {
+        opt.max_diff = 2 * index.get_kmer_size() + 1;
+    }
+
     auto samples = load_read_index(opt.reads_idx_file);
     std::vector<std::string> sample_names;
     for (const auto& sample_pair : samples) {
@@ -245,7 +221,7 @@ int pandora_compare(CompareOptions& opt)
 
     auto pangraph = std::make_shared<pangenome::Graph>(sample_names);
 
-    // for each sample, run pandora to get the sample pangraph
+    // map reads and get the sample pangraph for each sample
     for (uint32_t sample_id = 0; sample_id < samples.size(); ++sample_id) {
         const auto& sample = samples[sample_id];
         auto pangraph_sample = std::make_shared<pangenome::Graph>();
@@ -259,8 +235,8 @@ int pandora_compare(CompareOptions& opt)
 
         BOOST_LOG_TRIVIAL(info) << "Constructing pangenome::Graph from read file "
                                 << sample_fpath << " (this will take a while)";
-        uint32_t covg = pangraph_from_read_file(sample, pangraph_sample, index, prgs,
-            opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate, sample_outdir,
+        uint32_t covg = pangraph_from_read_file(sample, pangraph_sample, index,
+            opt.max_diff, opt.error_rate, sample_outdir,
             opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean,
             opt.max_covg, opt.threads, opt.keep_extra_debugging_files);
 
@@ -278,7 +254,7 @@ int pandora_compare(CompareOptions& opt)
 
         BOOST_LOG_TRIVIAL(info) << "Estimate parameters for kmer graph model";
         auto exp_depth_covg = estimate_parameters(pangraph_sample, sample_outdir,
-            opt.kmer_size, opt.error_rate, covg, opt.binomial, 0);
+            index.get_kmer_size(), opt.error_rate, covg, opt.binomial, 0);
         genotyping_options.add_exp_depth_covg(exp_depth_covg);
 
         if (genotyping_options.get_min_kmer_covg() == 0) {
@@ -290,18 +266,18 @@ int pandora_compare(CompareOptions& opt)
         Fastaq consensus_fq(true, true);
         for (auto c = pangraph_sample->nodes.begin();
              c != pangraph_sample->nodes.end();) {
-            const LocalPRG& local_prg = *prgs[c->second->prg_id];
+            const auto& local_prg = index.get_prg_given_id(c->second->prg_id);
             vector<KmerNodePtr> kmp;
             vector<LocalNodePtr> lmp;
-            local_prg.add_consensus_path_to_fastaq(consensus_fq, c->second, kmp, lmp,
-                opt.window_size, opt.binomial, covg, opt.max_num_kmers_to_avg, 0);
+            local_prg->add_consensus_path_to_fastaq(consensus_fq, c->second, kmp, lmp,
+                index.get_window_size(), opt.binomial, covg, opt.max_num_kmers_to_avg, 0);
 
             if (kmp.empty()) {
                 c = pangraph_sample->remove_node(c->second);
                 continue;
             }
 
-            pangraph->add_node(prgs[c->second->prg_id]);
+            pangraph->add_node(local_prg);
             pangraph->add_hits_between_PRG_and_sample(
                 c->second->prg_id, sample_name, kmp);
 
@@ -337,7 +313,7 @@ int pandora_compare(CompareOptions& opt)
     VCFRefs vcf_refs; // no need to control this variable - read only
     {
         if (!opt.vcf_refs_file.empty()) {
-            vcf_refs.reserve(prgs.size());
+            vcf_refs.reserve(index.get_number_of_prgs());
             load_vcf_refs_file(opt.vcf_refs_file, vcf_refs);
         }
     }
@@ -390,16 +366,16 @@ int pandora_compare(CompareOptions& opt)
 
         const auto& prg_id = pangraph_node.prg_id;
 
-        const bool valid_prg_id = prgs.size() > prg_id;
+        const bool valid_prg_id = index.get_number_of_prgs() >= prg_id;
         if (!valid_prg_id) {
             fatal_error("Error reading PanRG: a PRG has an invalid ID (", prg_id,
-                "), >= than the number of PRGs (", prgs.size(), ") in the PanRG");
+                "), >= than the number of PRGs (", index.get_number_of_prgs(), ") in the PanRG");
         }
-        const auto& prg_ptr = prgs[prg_id];
+        const auto& prg_ptr = index.get_prg_given_id(prg_id);
 
         const auto vcf_reference_path
             = pangraph->infer_node_vcf_reference_path(pangraph_node, prg_ptr,
-                opt.window_size, vcf_refs, opt.max_num_kmers_to_avg);
+                index.get_window_size(), vcf_refs, opt.max_num_kmers_to_avg);
 
 #pragma omp critical(vcf_ref_fa)
         {
@@ -415,7 +391,7 @@ int pandora_compare(CompareOptions& opt)
 
         // build the vcf
         pangraph_node.construct_multisample_vcf(
-            vcf, vcf_reference_path, prg_ptr, opt.window_size);
+            vcf, vcf_reference_path, prg_ptr, index.get_window_size());
 
         // save the vcf to disk
         uint32_t dir = pangraph_node_index / nb_vcfs_per_dir
@@ -467,8 +443,6 @@ int pandora_compare(CompareOptions& opt)
             << "Is your genome_size accurate? Genome size is assumed to be "
             << opt.genome_size << " and can be updated with --genome-size";
     }
-
-    index->clear();
 
     BOOST_LOG_TRIVIAL(info) << "Done!";
     return 0;
