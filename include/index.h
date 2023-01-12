@@ -142,6 +142,14 @@ public:
     static Index load(const fs::path& indexfile);
     ////////////////////////////////////////////////////////////////////////////////////
 
+    // WARNING: CARE must be taken when using invoking this method, as we lose the
+    // benefits of the lazy loading feature!
+    void load_all_prgs() {
+        for (const std::string &prg_name : prg_names) {
+            load_prg(prg_name);
+        }
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////
     // misc getters
     inline uint32_t get_window_size() const {
@@ -175,14 +183,6 @@ public:
     }
     inline uint32_t get_prg_min_path_lengths_given_id (size_t id) const {
         return prg_min_path_lengths[id];
-    }
-
-    // WARNING: CARE must be taken when using invoking this method, as we lose the
-    // benefits of the lazy loading feature!
-    void load_all_prgs() {
-        for (const std::string &prg_name : prg_names) {
-            load_prg(prg_name);
-        }
     }
 
     inline std::vector<std::shared_ptr<LocalPRG>> get_loaded_prgs() const {
