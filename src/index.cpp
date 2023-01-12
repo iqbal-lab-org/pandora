@@ -177,6 +177,7 @@ const std::shared_ptr<LocalPRG>& Index::load_prg(const std::string &prg_name) {
     const uint32_t id = prg_names_to_ids[prg_name];
     const bool prg_already_loaded = prgs[id] != nullptr;
     if (not prg_already_loaded) {
+        BOOST_LOG_TRIVIAL(info) << "Lazy loading PRG " << prg_name << "...";
         const std::string prg_fasta_zip_path = prg_name + ".fa";
         const std::string prg_fasta = zip_file->read_full_text_file_as_single_string(prg_fasta_zip_path);
         auto local_prg = std::make_shared<LocalPRG>(LocalPRG(id, prg_name, prg_fasta));
