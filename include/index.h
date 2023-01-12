@@ -170,6 +170,13 @@ public:
         return prg_lengths[id];
     }
 
+    inline const std::vector<uint32_t> & get_prg_min_path_lengths() const {
+        return prg_min_path_lengths;
+    }
+    inline uint32_t get_prg_min_path_lengths_given_id (size_t id) const {
+        return prg_min_path_lengths[id];
+    }
+
     inline std::vector<std::shared_ptr<LocalPRG>> get_prgs() const {
         std::vector<std::shared_ptr<LocalPRG>> loaded_prgs;
         loaded_prgs.reserve(prgs.size());
