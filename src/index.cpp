@@ -184,9 +184,7 @@ const std::shared_ptr<LocalPRG>& Index::load_prg(const std::string &prg_name) {
 
         const std::string prg_gfa_zip_path = prg_name + ".gfa";
         const std::string prg_gfa = zip_file->read_full_text_file_as_single_string(prg_gfa_zip_path);
-        std::stringstream gfa_ss;
-        gfa_ss << prg_gfa;
-        local_prg->kmer_prg.load(gfa_ss);
+        local_prg->kmer_prg.load(prg_gfa);
 
         prgs[id] = local_prg;
     }
@@ -220,61 +218,6 @@ Index Index::load(const fs::path& indexfile)
     return index;
 }
 
-bool Index::operator==(const Index& other) const
-{
-    if (this->w != other.w) {
-        return false;
-    }
-
-    if (this->k != other.k) {
-        return false;
-    }
-
-    // TODO: check prg_names and prg_min_path_lengths?
-
-    if (this->minhash.size() != other.minhash.size()) {
-        return false;
-    }
-
-    for (const auto& kmer : this->minhash) {
-        const auto it = other.minhash.find(kmer.first);
-        if (it == other.minhash.end()) {
-            return false;
-        }
-        const auto& qvecp = it->second;
-        for (const auto& record : *this->minhash.at(kmer.first)) {
-            if (std::find(qvecp->begin(), qvecp->end(), record) == qvecp->end()) {
-                return false;
-            }
-        }
-    }
-
-    for (const auto& kmer : other.minhash) {
-        const auto it = this->minhash.find(kmer.first);
-        if (it == this->minhash.end()) {
-            return false;
-        }
-        const auto& qvecp = it->second;
-        for (const auto& record : *other.minhash.at(kmer.first)) {
-            if (std::find(qvecp->begin(), qvecp->end(), record) == qvecp->end()) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-bool Index::operator!=(const Index& other) const { return !(*this == other); }
-
-std::unordered_map<std::string, uint32_t> Index::get_prg_names_to_prg_index() const {
-    std::unordered_map<std::string, uint32_t> prg_names_to_prg_index;
-    prg_names_to_prg_index.reserve(prg_names.size() * 2);
-    for (uint32_t prg_index=0; prg_index < prg_names.size(); prg_index++) {
-        prg_names_to_prg_index[prg_names[prg_index]] = prg_index;
-    }
-    return prg_names_to_prg_index;
-}
-
 void Index::index_prgs(ZipFileWriter &index_archive,
     LocalPRGReaderGeneratorIterator &prg_it, const uint32_t indexing_upper_bound,
     const uint32_t threads)
@@ -284,9 +227,6 @@ void Index::index_prgs(ZipFileWriter &index_archive,
     // minhash init
     uint32_t estimated_index_size = std::accumulate(prg_lengths.begin(), prg_lengths.end(), 0);
     this->minhash.reserve(estimated_index_size);
-
-    // builds prg_names_to_prg_index to be used in the main loop
-    const std::unordered_map<std::string, uint32_t> prg_names_to_prg_index = get_prg_names_to_prg_index();
 
     // fill prg_min_path_lengths with 0-ed values that will be set in the main loop
     prg_min_path_lengths.resize(prg_names.size());
@@ -325,7 +265,7 @@ void Index::index_prgs(ZipFileWriter &index_archive,
             }
 
             // prg_min_path_lengths variables
-            uint32_t prg_index = prg_names_to_prg_index.at(local_prg->name);
+            uint32_t prg_index = prg_names_to_ids.at(local_prg->name);
             uint32_t min_path_length = local_prg->kmer_prg.min_path_length();
 #pragma omp critical(Index__index_prgs__prg_min_path_lengths)
             {

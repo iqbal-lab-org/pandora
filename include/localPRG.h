@@ -59,6 +59,14 @@ public:
 
     LocalPRG(uint32_t id, const std::string& name, const std::string& seq);
 
+    bool operator==(const LocalPRG &other) const {
+        if (this->id != other.id) return false;
+        if (this->seq != other.seq) return false;
+        if (this->prg != other.prg) return false;
+        if (this->kmer_prg != other.kmer_prg) return false;
+        return true;
+    }
+
     // functions used to create LocalGraph from PRG string, and to sketch graph
     bool isalpha_string(const std::string&) const;
 

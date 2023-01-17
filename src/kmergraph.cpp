@@ -284,7 +284,7 @@ std::string KmerGraph::to_gfa(const std::shared_ptr<LocalPRG> localprg) const
     return ss.str();
 }
 
-void KmerGraph::load(std::stringstream &stream)
+void KmerGraph::load(std::stringstream &gfa_stream)
 {
     clear();
 
@@ -295,7 +295,7 @@ void KmerGraph::load(std::stringstream &stream)
     prg::Path p;
     uint32_t num_nodes = 0;
 
-    while (getline(stream, line).good()) {
+    while (getline(gfa_stream, line).good()) {
         if (line[0] == 'S') {
             split_line = split(line, "\t");
 
@@ -308,13 +308,13 @@ void KmerGraph::load(std::stringstream &stream)
             num_nodes = std::max(num_nodes, id);
         }
     }
-    stream.clear();
-    stream.seekg(0, stream.beg);
+    gfa_stream.clear();
+    gfa_stream.seekg(0, gfa_stream.beg);
     nodes.reserve(num_nodes);
     std::vector<uint16_t> outnode_counts(num_nodes + 1, 0),
         innode_counts(num_nodes + 1, 0);
 
-    while (getline(stream, line).good()) {
+    while (getline(gfa_stream, line).good()) {
         if (line[0] == 'S') {
             split_line = split(line, "\t");
 
@@ -399,10 +399,10 @@ void KmerGraph::load(std::stringstream &stream)
         n->in_nodes.reserve(innode_counts[n->id]);
     }
 
-    stream.clear();
-    stream.seekg(0, stream.beg);
+    gfa_stream.clear();
+    gfa_stream.seekg(0, gfa_stream.beg);
 
-    while (getline(stream, line).good()) {
+    while (getline(gfa_stream, line).good()) {
         if (line[0] == 'L') {
             split_line = split(line, "\t");
 

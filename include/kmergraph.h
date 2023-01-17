@@ -64,9 +64,18 @@ public:
 
     // get the KmerGraph as gfa
     std::string to_gfa(const std::shared_ptr<LocalPRG> localprg = nullptr) const;
-    void load(std::stringstream &stream);
+
+    void load(std::stringstream &gfa_stream);
+    void load(const std::string &gfa) {
+        std::stringstream ss;
+        ss << gfa;
+        return load(ss);
+    }
 
     bool operator==(const KmerGraph& other_graph) const;
+    bool operator!=(const KmerGraph& other_graph) const {
+        return !(*this==other_graph);
+    }
 
     friend std::ostream& operator<<(std::ostream& out, KmerGraph const& data);
 
