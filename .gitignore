@@ -104,5 +104,6 @@ pandora-linux-precompiled*
 /example/out/
 
 example/make_prg*
-/scripts/measure_performance_from_log/.ipynb_checkpoints/
 /build_test/
+.ipynb_checkpoints
+scripts/compare_pandora_results/pandora_multisample.matrix*
