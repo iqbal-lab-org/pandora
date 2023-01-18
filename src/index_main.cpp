@@ -1,4 +1,6 @@
 #include "index_main.h"
+#include "localPRG_reader.h"
+#include "cli_helpers.h"
 
 void setup_index_subcommand(CLI::App& app)
 {
@@ -34,10 +36,12 @@ void setup_index_subcommand(CLI::App& app)
         ->type_name("INT")
         ->capture_default_str();
 
-    index_subcmd->add_option("-o,--outfile", opt->outfile, "Filename for the index")
+    index_subcmd->add_option("-o,--outfile", opt->outfile, "Filename for the index. Must end in .panidx.zip")
         ->type_name("FILE")
         ->transform(make_absolute)
-        ->default_str("<PRG>.kXX.wXX.idx");
+        ->check(CLI::NonexistentPath.description(""))
+        ->check(PandoraIndexValidator())
+        ->default_str("<PRG>.panidx.zip");
 
     index_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
@@ -66,35 +70,17 @@ int pandora_index(IndexOptions const& opt)
         throw std::logic_error("K must be a positive integer");
     }
 
-    LocalPRG::do_path_memoization_in_nodes_along_path_method = true;
-
-    // load PRGs from file
-    std::vector<std::shared_ptr<LocalPRG>> prgs;
-    read_prg_file(prgs, opt.prgfile, opt.id_offset);
-
-    // get output directory for the gfa
-    const auto kmer_prgs_outdir { opt.prgfile.parent_path() / "kmer_prgs" };
-
-    BOOST_LOG_TRIVIAL(info) << "Indexing PRG...";
-    auto index = std::make_shared<Index>();
-    index->index_prgs(
-        prgs, opt.window_size, opt.kmer_size, kmer_prgs_outdir,
-        opt.indexing_upper_bound, opt.threads);
-
-    // save index
-    BOOST_LOG_TRIVIAL(info) << "Saving index...";
-    if (not opt.outfile.empty()) {
-        index->save(opt.outfile);
-    } else if (opt.id_offset > 0) {
-        const fs::path outfile { opt.prgfile.string() + "."
-            + std::to_string(opt.id_offset) };
-        index->save(outfile, opt.window_size, opt.kmer_size);
-    } else {
-        index->save(opt.prgfile, opt.window_size, opt.kmer_size);
+    fs::path outfile = opt.outfile;
+    if (outfile.empty()) {
+        outfile = fs::path(opt.prgfile.string() + ".panidx.zip");
     }
 
-    index->clear();
+    LocalPRG::do_path_memoization_in_nodes_along_path_method = true;
 
+    BOOST_LOG_TRIVIAL(info) << "Indexing PRG...";
+    Index::build_index_on_disk(opt.window_size, opt.kmer_size, opt.prgfile, outfile,
+        opt.indexing_upper_bound, opt.threads);
     BOOST_LOG_TRIVIAL(info) << "All done!";
+
     return 0;
 }

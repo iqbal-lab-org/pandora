@@ -29,11 +29,9 @@ using std::set;
 using std::vector;
 
 struct CompareOptions {
-    fs::path prgfile;
+    fs::path index_file;
     fs::path reads_idx_file;
     fs::path outdir { "pandora" };
-    uint32_t window_size { 14 };
-    uint32_t kmer_size { 15 };
     uint32_t threads { 1 };
     fs::path vcf_refs_file;
     uint8_t verbosity { 0 };

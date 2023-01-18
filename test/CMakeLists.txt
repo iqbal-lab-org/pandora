@@ -12,6 +12,8 @@ target_include_directories(${PROJECT_NAME}_test PUBLIC
         )
 
 target_link_libraries(${PROJECT_NAME}_test
+        ${LIBARCHIVE_LIBRARY}
+        ${LIBZIP_LIBRARY}
         ${RACON_LIBRARY}
         ${Gtest_LIBRARIES}
         ${GATB_LIBS}

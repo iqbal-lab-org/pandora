@@ -30,11 +30,9 @@ namespace fs = boost::filesystem;
 
 /// Collection of all options of map subcommand.
 struct MapOptions {
-    fs::path prgfile;
+    fs::path index_file;
     fs::path readsfile;
     fs::path outdir { "pandora" };
-    uint32_t window_size { 14 };
-    uint32_t kmer_size { 15 };
     uint32_t threads { 1 };
     fs::path vcf_refs_file;
     uint8_t verbosity { 0 };

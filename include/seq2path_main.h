@@ -12,10 +12,8 @@
 #include "CLI11.hpp"
 
 struct Seq2PathOptions {
-    std::string prgfile;
-    std::string seqfile;
-    uint32_t kmer_size { 15 };
-    uint32_t window_size { 14 };
+    fs::path index_file;
+    fs::path seqfile;
     bool top { false };
     bool bottom { false };
     bool flag { false };

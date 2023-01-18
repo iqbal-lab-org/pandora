@@ -1,17 +1,19 @@
 #include "map_main.h"
+#include "cli_helpers.h"
 
 void setup_map_subcommand(CLI::App& app)
 {
     auto opt = std::make_shared<MapOptions>();
     auto* map_subcmd = app.add_subcommand("map",
-        "Quasi-map reads to an indexed PRG, infer the sequence of present loci in the "
+        "Quasi-map reads to a pandora index, infer the sequence of present loci in the "
         "sample, and optionally genotype variants.");
 
     map_subcmd
-        ->add_option("<TARGET>", opt->prgfile, "An indexed PRG file (in fasta format)")
+        ->add_option("<TARGET>", opt->index_file, "A pandora index (.panidx.zip) file")
         ->required()
-        ->transform(make_absolute)
         ->check(CLI::ExistingFile.description(""))
+        ->check(PandoraIndexValidator())
+        ->transform(make_absolute)
         ->type_name("FILE");
 
     map_subcmd
@@ -21,18 +23,6 @@ void setup_map_subcommand(CLI::App& app)
         ->transform(make_absolute)
         ->check(CLI::ExistingFile.description(""))
         ->type_name("FILE");
-
-    map_subcmd
-        ->add_option(
-            "-w", opt->window_size, "Window size for (w,k)-minimizers (must be <=k)")
-        ->type_name("INT")
-        ->capture_default_str()
-        ->group("Indexing");
-
-    map_subcmd->add_option("-k", opt->kmer_size, "K-mer size for (w,k)-minimizers")
-        ->type_name("INT")
-        ->capture_default_str()
-        ->group("Indexing");
 
     map_subcmd
         ->add_option("-o,--outdir", opt->outdir, "Directory to write output files to")
@@ -213,21 +203,7 @@ int pandora_map(MapOptions& opt)
     if (opt.illumina and opt.error_rate > 0.1) {
         opt.error_rate = 0.001;
     }
-    if (opt.illumina and opt.max_diff > 200) {
-        opt.max_diff = 2 * opt.kmer_size + 1;
-    }
     // ==========
-
-    if (opt.window_size > opt.kmer_size) {
-        throw std::logic_error("W must NOT be greater than K");
-    }
-    if (opt.window_size <= 0) {
-        throw std::logic_error("W must be a positive integer");
-    }
-    if (opt.kmer_size <= 0) {
-        throw std::logic_error("K must be a positive integer");
-    }
-
     if (opt.genotype) {
         opt.output_vcf = true;
     }
@@ -237,12 +213,13 @@ int pandora_map(MapOptions& opt)
         opt.min_allele_fraction_covg_gt, opt.min_total_covg_gt, opt.min_diff_covg_gt, 0,
         false);
 
-    BOOST_LOG_TRIVIAL(info) << "Loading Index and LocalPRGs from file...";
-    auto index = std::make_shared<Index>();
-    index->load(opt.prgfile, opt.window_size, opt.kmer_size);
-    std::vector<std::shared_ptr<LocalPRG>> prgs;
-    read_prg_file(prgs, opt.prgfile);
-    load_PRG_kmergraphs(prgs, opt.window_size, opt.kmer_size, opt.prgfile);
+    BOOST_LOG_TRIVIAL(info) << "Loading Index...";
+    Index index = Index::load(opt.index_file.string());
+    BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
+
+    if (opt.illumina and opt.max_diff > 200) {
+        opt.max_diff = 2 * index.get_kmer_size() + 1;
+    }
 
     fs::create_directories(opt.outdir);
     const auto kmer_graphs_dir { opt.outdir / "kmer_graphs" };
@@ -255,9 +232,8 @@ int pandora_map(MapOptions& opt)
     const SampleData sample(opt.readsfile.stem().string(), opt.readsfile.string());
     auto pangraph = std::make_shared<pangenome::Graph>();
     uint32_t covg
-        = pangraph_from_read_file(sample, pangraph, index, prgs,
-        opt.window_size, opt.kmer_size, opt.max_diff, opt.error_rate, opt.outdir,
-        opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean, opt.max_covg,
+        = pangraph_from_read_file(sample, pangraph, index, opt.max_diff, opt.error_rate,
+            opt.outdir, opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean, opt.max_covg,
         opt.threads, opt.keep_extra_debugging_files);
 
     const auto pangraph_gfa { opt.outdir / "pandora.pangraph.gfa" };
@@ -274,7 +250,7 @@ int pandora_map(MapOptions& opt)
     pangraph->add_hits_to_kmergraphs();
 
     BOOST_LOG_TRIVIAL(info) << "Estimating parameters for kmer graph model...";
-    auto exp_depth_covg = estimate_parameters(pangraph, opt.outdir, opt.kmer_size,
+    auto exp_depth_covg = estimate_parameters(pangraph, opt.outdir, index.get_kmer_size(),
         opt.error_rate, covg, opt.binomial, 0);
     genotyping_options.add_exp_depth_covg(exp_depth_covg);
 
@@ -309,7 +285,7 @@ int pandora_map(MapOptions& opt)
     // this a read-only var, no need for sync
     VCFRefs vcf_refs;
     if (opt.output_vcf and !opt.vcf_refs_file.empty()) {
-        vcf_refs.reserve(prgs.size());
+        vcf_refs.reserve(index.get_number_of_prgs());
         load_vcf_refs_file(opt.vcf_refs_file, vcf_refs);
     }
 
@@ -326,17 +302,19 @@ int pandora_map(MapOptions& opt)
 
         // get the vcf_ref, if applicable
         std::string vcf_ref;
+        const std::string &prg_name = index.get_prg_name_given_id(pangraph_node->prg_id);
         if (opt.output_vcf and !opt.vcf_refs_file.empty()
-            and vcf_refs.find(prgs[pangraph_node->prg_id]->name) != vcf_refs.end()) {
-            vcf_ref = vcf_refs[prgs[pangraph_node->prg_id]->name];
+            and vcf_refs.find(prg_name) != vcf_refs.end()) {
+            vcf_ref = vcf_refs[prg_name];
         }
 
         // add consensus path to fastaq
+        const auto &prg = index.get_prg_given_id(pangraph_node->prg_id);
+
         std::vector<KmerNodePtr> kmp;
         std::vector<LocalNodePtr> lmp;
-        prgs[pangraph_node->prg_id]->add_consensus_path_to_fastaq(consensus_fq,
-            pangraph_node, kmp, lmp, opt.window_size, opt.binomial, covg,
-            opt.max_num_kmers_to_avg, 0);
+        prg->add_consensus_path_to_fastaq(consensus_fq, pangraph_node, kmp, lmp,
+            index.get_window_size(), opt.binomial, covg, opt.max_num_kmers_to_avg, 0);
 
         if (kmp.empty()) {
 #pragma omp critical(nodes_to_remove)
@@ -347,16 +325,13 @@ int pandora_map(MapOptions& opt)
         }
 
         if (opt.output_kg) {
-            pangraph_node->kmer_prg_with_coverage.save(
-                kmer_graphs_dir / (pangraph_node->get_name() + ".kg.gfa"),
-                prgs[pangraph_node->prg_id]);
+            pangraph_node->kmer_prg_with_coverage.save(kmer_graphs_dir / (pangraph_node->get_name() + ".kg.gfa"), prg);
         }
 
         if (opt.output_vcf) {
             // TODO: this takes a lot of time and should be optimized, but it is
             // only called in this part, so maybe this should be low prioritized
-            prgs[pangraph_node->prg_id]->add_variants_to_vcf(
-                master_vcf, pangraph_node, vcf_ref, kmp, lmp);
+            prg->add_variants_to_vcf(master_vcf, pangraph_node, vcf_ref, kmp, lmp);
         }
     }
 

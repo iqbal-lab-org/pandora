@@ -17,17 +17,16 @@ typedef std::shared_ptr<LocalNode>
 
 class prg::Path {
 private:
-    std::vector<Interval>
-        path; // the interval path - we control acess to this variable now
+    std::vector<Interval> path;
 
     // variables for memoization:
-    bool isMemoized; // flag that indicated if the first memoization was already done
     std::vector<LocalNodePtr> memoizedLocalNodePath; // the memoized local node path
-    bool memoizedDirty; // was this path modified and thus memoizedLocalNodePath needs
-                        // to be recomputed?
     uint32_t localPRGIdOfMemoizedLocalNodePath; // just to make sure we don't memoize
                                                 // one interval for one localPRG and
                                                 // return it to a different localPRg
+    bool isMemoized; // flag that indicated if the first memoization was already done
+    bool memoizedDirty; // was this path modified and thus memoizedLocalNodePath needs
+                        // to be recomputed?
 
 public:
     // constructors

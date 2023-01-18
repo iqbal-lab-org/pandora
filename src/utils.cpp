@@ -123,54 +123,6 @@ float lognchoosek2(uint32_t n, uint32_t k1, uint32_t k2)
     return total;
 }
 
-void read_prg_file(
-    std::vector<std::shared_ptr<LocalPRG>>& prgs, const fs::path& filepath, uint32_t id)
-{
-    BOOST_LOG_TRIVIAL(debug) << "Loading PRGs from file " << filepath;
-
-    FastaqHandler fh(filepath.string());
-    while (!fh.eof()) {
-        try {
-            fh.get_next();
-        } catch (std::out_of_range& err) {
-            break;
-        }
-        if (fh.name.empty() or fh.read.empty())
-            continue;
-        auto s = std::make_shared<LocalPRG>(LocalPRG(id, fh.name,
-            fh.read)); // build a node in the graph, which will represent a LocalPRG
-                       // (the graph is a list of nodes, each representing a LocalPRG)
-        if (s != nullptr) {
-            prgs.push_back(s);
-            id++;
-        } else {
-            fatal_error("Failed to make LocalPRG for ", fh.name);
-        }
-    }
-    BOOST_LOG_TRIVIAL(debug) << "Number of LocalPRGs read: " << prgs.size();
-}
-
-void load_PRG_kmergraphs(std::vector<std::shared_ptr<LocalPRG>>& prgs,
-    const uint32_t& w, const uint32_t& k, const fs::path& prgfile)
-{
-    BOOST_LOG_TRIVIAL(debug) << "Loading kmer_prgs from files";
-    const auto kmer_prgs_dir { prgfile.parent_path() / "kmer_prgs" };
-
-    auto dir_num = 0;
-    fs::path dir;
-    for (const auto& prg : prgs) {
-        if (prg->id % 4000 == 0) {
-            dir = kmer_prgs_dir / int_to_string(dir_num + 1);
-            dir_num++;
-            if (not fs::exists(dir))
-                dir = kmer_prgs_dir;
-        }
-        const auto filename { prg->name + ".k" + std::to_string(k) + ".w"
-            + std::to_string(w) + ".gfa" };
-        prg->kmer_prg.load(dir / filename);
-    }
-}
-
 void load_vcf_refs_file(const fs::path& filepath, VCFRefs& vcf_refs)
 {
     BOOST_LOG_TRIVIAL(info) << "Loading VCF refs from file " << filepath;
@@ -221,6 +173,8 @@ void decide_if_add_cluster_or_not(
     ClusterDefFile& cluster_def_file) {
     // keep clusters which cover at least 1/2 the expected number of minihits
     const uint32_t length_based_threshold = std::min(
+        // TODO: to map, we need to know kmer_prg.min_path_length()
+        // TODO: we should do it without knowing loading the kmer_prg
         prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length(),
         expected_number_kmers_in_read_sketch)
                                       * fraction_kmers_required_for_cluster;
@@ -239,6 +193,8 @@ void decide_if_add_cluster_or_not(
     if (!cluster_def_file.is_fake_file) {
 #pragma omp critical(cluster_def_file)
         {
+            // TODO: to create this file, we either need to know the PRG names without loading the PRGs
+            // TODO: or to output the id
             cluster_def_file << seq.name << "\t" << prgs[(*mh_previous)->get_prg_id()]->name << "\t";
             if (cluster_should_be_accepted) {
                 cluster_def_file << "accepted\t";
@@ -380,12 +336,16 @@ void filter_clusters(
                     if (c_previous->size() >= c_current->size()) {
                         cluster_filter_file
                             << seq.name << "\t"
+                            // TODO: to create this file, we either need to know the PRG names without loading the PRGs
+                            // TODO: or to output the id
                             << prgs[(*c_current->begin())->get_prg_id()]->name << "\t"
                             << c_current->size() << "\t"
                             << "filtered_out\n";
                     } else {
                         cluster_filter_file
                             << seq.name << "\t"
+                            // TODO: to create this file, we either need to know the PRG names without loading the PRGs
+                            // TODO: or to output the id
                             << prgs[(*c_previous->begin())->get_prg_id()]->name << "\t"
                             << c_previous->size() << "\t"
                             << "filtered_out\n";
@@ -412,6 +372,8 @@ void filter_clusters(
         {
             for (const auto& cluster : clusters_of_hits) {
                 cluster_filter_file << seq.name << "\t"
+                                    // TODO: to create this file, we either need to know the PRG names without loading the PRGs
+                                    // TODO: or to output the id
                                     << prgs[(*cluster.begin())->get_prg_id()]->name
                                     << "\t" << cluster.size() << "\t"
                                     << "kept\n";
@@ -483,6 +445,7 @@ void add_clusters_to_pangraph(
 
     // to do this consider pairs of clusters in turn
     for (auto cluster : minimizer_hit_clusters) {
+        // TODO: here we know prgs[(*cluster.begin())->get_prg_id()] mapped, so we can keep this PRG in RAM
         pangraph->add_hits_between_PRG_and_read(prgs[(*cluster.begin())->get_prg_id()],
             (*cluster.begin())->get_read_id(), cluster);
     }
@@ -521,18 +484,18 @@ MinimizerHitClusters get_minimizer_hit_clusters(
 
 // TODO: this should be in a constructor of pangenome::Graph or in a factory class
 uint32_t pangraph_from_read_file(const SampleData& sample,
-    std::shared_ptr<pangenome::Graph> pangraph, std::shared_ptr<Index> index,
-    const std::vector<std::shared_ptr<LocalPRG>>& prgs, const uint32_t w,
-    const uint32_t k, const int max_diff, const float& e_rate,
+    std::shared_ptr<pangenome::Graph> pangraph, const Index &index,
+    const int max_diff, const float& e_rate,
     const fs::path& sample_outdir, const uint32_t min_cluster_size,
     const uint32_t genome_size, const bool illumina, const bool clean,
     const uint32_t max_covg, uint32_t threads, const bool keep_extra_debugging_files)
 {
+    // constant variables
     const SampleIdText sample_name = sample.first;
     const SampleFpath sample_filepath = sample.second;
     const std::string tag = "[Sample " + sample_name + "]: ";
-
-    // constant variables
+    const uint32_t w = index.get_window_size();
+    const uint32_t k = index.get_kmer_size();
     const double fraction_kmers_required_for_cluster = 0.5 / exp(e_rate * k);
     const uint32_t nb_reads_to_map_in_a_batch = 1000;
 
@@ -548,10 +511,13 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
     FastaqHandler fh(sample_filepath);
     uint32_t id { 0 };
 
-    SAMFile filtered_mappings(sample_outdir / (sample_name + ".filtered.sam"), prgs, k*2);
+    SAMFile filtered_mappings(sample_outdir / (sample_name + ".filtered.sam"),
+        index.get_prgs(), k*2);
 
-    MinimizerMatchFile minimizer_matches(sample_outdir / (sample_name + ".minimatches"), prgs, !keep_extra_debugging_files);
-    PafFile paf_file(sample_outdir / (sample_name + ".minipaf"), prgs, !keep_extra_debugging_files);
+    MinimizerMatchFile minimizer_matches(sample_outdir / (sample_name + ".minimatches"),
+        index.get_prgs(), !keep_extra_debugging_files);
+    PafFile paf_file(sample_outdir / (sample_name + ".minipaf"),
+        index.get_prgs(), !keep_extra_debugging_files);
     ClusterDefFile cluster_def_file(sample_outdir / (sample_name + ".clusters_def_report"), !keep_extra_debugging_files);
     ClusterFilterFile cluster_filter_file(sample_outdir / (sample_name + ".clusters_filter_report"), !keep_extra_debugging_files);
 
@@ -626,7 +592,7 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
 
                 // get the minimizer hits
                 auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
-                add_read_hits(sequence, minimizer_hits, *index);
+                add_read_hits(sequence, minimizer_hits, index);
 
                 // write unfiltered minimizer hits
                 if (!minimizer_matches.is_fake_file) {
@@ -638,15 +604,16 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
 
                 // infer
                 MinimizerHitClusters clusters_of_hits =
-                    get_minimizer_hit_clusters(sample_name, sequence, prgs, minimizer_hits, pangraph, max_diff,
-                    genome_size, fraction_kmers_required_for_cluster, cluster_def_file,
+                    get_minimizer_hit_clusters(sample_name, sequence, index.get_prgs(),
+                    minimizer_hits, pangraph, max_diff, genome_size,
+                    fraction_kmers_required_for_cluster, cluster_def_file,
                     cluster_filter_file, min_cluster_size, expected_number_kmers_in_read_sketch);
 
                 const std::string sam_record = filtered_mappings.get_sam_record_from_hit_cluster(
                     sequence, clusters_of_hits);
 #pragma omp critical(pangraph)
                 {
-                    add_clusters_to_pangraph(clusters_of_hits, pangraph, prgs);
+                    add_clusters_to_pangraph(clusters_of_hits, pangraph, index.get_prgs());
                     filtered_mappings.write_sam_record(sam_record);
                     if (!paf_file.is_fake_file) {
                         paf_file.write_clusters(sequence, clusters_of_hits);
@@ -901,4 +868,14 @@ std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const s
         offsets.emplace_back(start);
     }
     return std::make_pair(substrs, offsets);
+}
+
+
+uintmax_t get_number_of_bytes_in_file(const fs::path &file) {
+    const uintmax_t filesize = file.size();
+    const bool failed_to_get_filesize = filesize == static_cast<uintmax_t>(-1);
+    if (failed_to_get_filesize) {
+        fatal_error("Failed to get file size of file ", file.string());
+    }
+    return filesize;
 }
