@@ -1141,6 +1141,57 @@ TEST_F(SampleInfoTest___get_genotype_from_coverage___Fixture,
     EXPECT_NEAR(-50.5, actual->second, 0.000001);
 }
 
+TEST_F(SampleInfoTest___get_genotype_from_coverage___Fixture,
+    valid_confidence_and_equal_threshold)
+{
+    EXPECT_CALL(sample_info, get_confidence)
+        .Times(1)
+        .WillOnce(Return(std::make_tuple((size_t)1, 100.0, -50.5)));
+
+    auto actual = sample_info.get_genotype_from_coverage();
+
+    EXPECT_EQ(1, actual->first);
+    EXPECT_NEAR(-50.5, actual->second, 0.000001);
+}
+
+TEST_F(SampleInfoTest___get_genotype_from_coverage___Fixture,
+    valid_confidence_and_very_close_above_threshold)
+{
+    EXPECT_CALL(sample_info, get_confidence)
+        .Times(1)
+        .WillOnce(Return(std::make_tuple((size_t)1, 100.00000006, -50.5)));
+
+    auto actual = sample_info.get_genotype_from_coverage();
+
+    EXPECT_EQ(1, actual->first);
+    EXPECT_NEAR(-50.5, actual->second, 0.000001);
+}
+
+TEST_F(SampleInfoTest___get_genotype_from_coverage___Fixture,
+    valid_confidence_and_very_close_below_threshold)
+{
+    EXPECT_CALL(sample_info, get_confidence)
+        .Times(1)
+        .WillOnce(Return(std::make_tuple((size_t)1, 99.999996, -50.5)));
+
+    auto actual = sample_info.get_genotype_from_coverage();
+
+    EXPECT_EQ(1, actual->first);
+    EXPECT_NEAR(-50.5, actual->second, 0.000001);
+}
+
+TEST_F(SampleInfoTest___get_genotype_from_coverage___Fixture,
+    valid_confidence_and_close_below_threshold)
+{
+    EXPECT_CALL(sample_info, get_confidence)
+        .Times(1)
+        .WillOnce(Return(std::make_tuple((size_t)1, 99.996, -50.5)));
+
+    auto actual = sample_info.get_genotype_from_coverage();
+
+    EXPECT_EQ(boost::none, actual);
+}
+
 TEST_F(SampleInfoTest___Fixture, to_string___no_flags_set___expects_FatalRuntimeError)
 {
     ASSERT_EXCEPTION(default_sample_info.to_string(false, false), FatalRuntimeError,
