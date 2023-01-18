@@ -7,6 +7,10 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+
+- We now test whether the genotype confidence of a variant is greater than or equal to the threshold provided by `--gt-conf`. Previously we only tested if it was greater than. [[#320][320]]
+
 ## [0.10.0-alpha.0]
 
 ### Changed
@@ -154,6 +158,7 @@ their changes meticulously documented here.
 [249]: https://github.com/rmcolq/pandora/issues/249
 [265]: https://github.com/rmcolq/pandora/pull/265
 [294]: https://github.com/rmcolq/pandora/issues/294
+[320]: https://github.com/rmcolq/pandora/issues/320
 [v0.7.0]: https://github.com/rmcolq/pandora/releases/tag/v0.7.0
 [Racon]: https://github.com/lbcb-sci/racon
 [SAM]: https://samtools.github.io/hts-specs/SAMv1.pdf
