@@ -260,7 +260,7 @@ SampleInfo::get_genotype_from_coverage() const
             = *index_and_confidence_and_max_likelihood_optional;
 
         const double threshold = genotyping_options->get_confidence_threshold();
-        const auto conf_equals_threshold = boost::math::relative_difference(confidence, threshold) < 1E-5;
+        const auto conf_equals_threshold = Maths::equals(confidence, threshold);
         const bool satisfy_confidence_threshold = conf_equals_threshold || confidence > threshold;
 
         if (satisfy_confidence_threshold) {

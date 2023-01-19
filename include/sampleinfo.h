@@ -10,7 +10,6 @@
 #include "OptionsAggregator.h"
 #include <boost/bind.hpp>
 #include "fatal_error.h"
-#include "boost/math/special_functions/relative_difference.hpp"
 
 // TODO: use memoization to speed up everything here
 // TODO: this class is doing too much. There is the concept of an allele info which can

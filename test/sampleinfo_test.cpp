@@ -1172,7 +1172,7 @@ TEST_F(SampleInfoTest___get_genotype_from_coverage___Fixture,
 {
     EXPECT_CALL(sample_info, get_confidence)
         .Times(1)
-        .WillOnce(Return(std::make_tuple((size_t)1, 99.999996, -50.5)));
+        .WillOnce(Return(std::make_tuple((size_t)1, 99.99999999999996, -50.5)));
 
     auto actual = sample_info.get_genotype_from_coverage();
 
