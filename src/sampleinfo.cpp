@@ -259,8 +259,10 @@ SampleInfo::get_genotype_from_coverage() const
         std::tie(index_of_max_likelihood, confidence, max_likelihood)
             = *index_and_confidence_and_max_likelihood_optional;
 
-        const bool satisfy_confidence_threshold
-            = confidence > genotyping_options->get_confidence_threshold();
+        const double threshold = genotyping_options->get_confidence_threshold();
+        const auto conf_equals_threshold = Maths::equals(confidence, threshold);
+        const bool satisfy_confidence_threshold = conf_equals_threshold || confidence > threshold;
+
         if (satisfy_confidence_threshold) {
             return std::make_pair((uint32_t)index_of_max_likelihood, max_likelihood);
         }
