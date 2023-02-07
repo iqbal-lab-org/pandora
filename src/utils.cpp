@@ -18,6 +18,7 @@
 #include "fastaq_handler.h"
 #include "minimizermatch_file.h"
 #include "sam_file.h"
+#include "minihit_clusters.h"
 
 #define _GNU_SOURCE
 #include <sys/mman.h>
@@ -161,7 +162,7 @@ void add_read_hits(const Seq& sequence,
 
 void decide_if_add_cluster_or_not(
     const Seq &seq,
-    MinimizerHitClusters& clusters_of_hits,
+    MinimizerHitClusters& clusters_of_hits, // Note: clusters_of_hits here is in insertion mode
     const std::vector<uint32_t> &prg_min_path_lengths,
     const std::vector<std::string> &prg_names,
     const std::set<MinimizerHitPtr, pComp>::iterator &mh_previous,
@@ -223,7 +224,7 @@ void decide_if_add_cluster_or_not(
 void define_clusters(
     const std::string &sample_name,
     const Seq &seq,
-    MinimizerHitClusters& clusters_of_hits,
+    MinimizerHitClusters& clusters_of_hits, // Note: clusters_of_hits here is in insertion mode
     const std::vector<uint32_t> &prg_min_path_lengths,
     const std::vector<std::string> &prg_names,
     std::shared_ptr<MinimizerHits> minimizer_hits, const int max_diff,
@@ -287,9 +288,6 @@ void define_clusters(
                                  expected_number_kmers_in_read_sketch, fraction_kmers_required_for_cluster,
                                  min_cluster_size, current_cluster, number_of_equal_read_minimizers,
                                  distances_between_hits, cluster_def_file);
-
-    BOOST_LOG_TRIVIAL(trace) << tag << "Found " << clusters_of_hits.size()
-                             << " clusters of hits";
 }
 
 void filter_clusters(
@@ -381,6 +379,8 @@ void filter_clusters(
 void filter_clusters2(MinimizerHitClusters& clusters_of_hits,
     const uint32_t& genome_size)
 {
+    fatal_error("Not implemented");
+    /*
     // Sort clusters by size, and filter out those small clusters which are entirely
     // contained in bigger clusters on reads
     BOOST_LOG_TRIVIAL(trace) << "Filter2 the " << clusters_of_hits.size()
@@ -424,6 +424,7 @@ void filter_clusters2(MinimizerHitClusters& clusters_of_hits,
     }
     BOOST_LOG_TRIVIAL(trace) << "Now have " << clusters_of_hits.size()
                              << " clusters of hits";
+    */
 }
 
 void add_clusters_to_pangraph(
@@ -459,18 +460,21 @@ MinimizerHitClusters get_minimizer_hit_clusters(
     const uint32_t min_cluster_size,
     const uint32_t expected_number_kmers_in_read_sketch)
 {
+    const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(seq.id) + "]: ";
     MinimizerHitClusters minimizer_hit_clusters;
 
-    // this step infers the gene order for a read and adds this to the pangraph
-    // by defining clusters of hits, keeping those which are not noise and
-    // then adding the inferred gene ordering
     if (minimizer_hits->empty()) {
+        minimizer_hit_clusters.finalise_insertions();
+        BOOST_LOG_TRIVIAL(trace) << tag << "Found 0 clusters of hits";
         return minimizer_hit_clusters;
     }
 
     define_clusters(sample_name, seq, minimizer_hit_clusters, prg_min_path_lengths,
         prg_names, minimizer_hits, max_diff, fraction_kmers_required_for_cluster,
         min_cluster_size, expected_number_kmers_in_read_sketch, cluster_def_file);
+
+    minimizer_hit_clusters.finalise_insertions();
+    BOOST_LOG_TRIVIAL(trace) << tag << "Found " << minimizer_hit_clusters.size() << " clusters of hits";
 
     filter_clusters(sample_name, seq, minimizer_hit_clusters, prg_names,
         cluster_filter_file);

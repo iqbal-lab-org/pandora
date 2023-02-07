@@ -1,6 +1,7 @@
 #include "sam_file.h"
 #include "minihits.h"
 #include "minihit.h"
+#include "minihit_clusters.h"
 #include "version.h"
 #include "globals.h"
 

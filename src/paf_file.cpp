@@ -1,6 +1,7 @@
 #include "paf_file.h"
 #include "minihits.h"
 #include "minihit.h"
+#include "minihit_clusters.h"
 #include "localPRG.h"
 
 PafFile::PafFile(const fs::path &filepath,

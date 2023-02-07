@@ -30,6 +30,14 @@ public:
     MinimizerHits() = default;
     ~MinimizerHits() = default;
 
+    // copy constructors
+    MinimizerHits(const MinimizerHits& other) = default;
+    MinimizerHits& operator=(const MinimizerHits& other) = default;
+
+    // move constructors
+    MinimizerHits(MinimizerHits&& other) = default;
+    MinimizerHits& operator=(MinimizerHits&& other) = default;
+
     inline void insert(const MinimizerHitPtr minimizer_hit) {
         hits.insert(minimizer_hit);
     }
