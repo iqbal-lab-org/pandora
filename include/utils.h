@@ -86,10 +86,10 @@ void define_clusters(
     const uint32_t expected_number_kmers_in_read_sketch,
     ClusterDefFile& cluster_def_file);
 
-void filter_clusters(
+MinimizerHitClusters filter_clusters(
     const std::string &sample_name,
     const Seq &seq,
-    MinimizerHitClusters& clusters_of_hits,
+    const MinimizerHitClusters& clusters_of_hits,
     const std::vector<std::string> &prg_names,
     ClusterFilterFile& cluster_filter_file
 );

@@ -290,21 +290,26 @@ void define_clusters(
                                  distances_between_hits, cluster_def_file);
 }
 
-void filter_clusters(
+MinimizerHitClusters filter_clusters(
     const std::string &sample_name,
     const Seq &seq,
-    MinimizerHitClusters& clusters_of_hits,
+    const MinimizerHitClusters& clusters_of_hits,
     const std::vector<std::string> &prg_names,
     ClusterFilterFile& cluster_filter_file)
 {
     const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(seq.id) + "]: ";
+    MinimizerHitClusters filtered_clusters_of_hits;
 
     // Next order clusters, choose between those that overlap by too much
     BOOST_LOG_TRIVIAL(trace) << tag << "Filter the " << clusters_of_hits.size()
                              << " clusters of hits";
     if (clusters_of_hits.empty()) {
-        return;
+        filtered_clusters_of_hits.finalise_insertions();
+        return filtered_clusters_of_hits;
     }
+
+    std::set<size_t> clusters_to_remove;
+
     // to do this consider pairs of clusters in turn
     auto c_previous = clusters_of_hits.begin();
     for (auto c_current = ++clusters_of_hits.begin();
@@ -323,6 +328,7 @@ void filter_clusters(
         // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters,
         // but could also impose no more than 2k hits in overlap
         {
+            const bool should_remove_current_cluster = c_previous->size() >= c_current->size();
 
             // Note: this is a slow critical region and could be optimised, but there is no need
             // to, as this is just run when debugging files should be created, and is expected
@@ -330,7 +336,7 @@ void filter_clusters(
             if (!cluster_filter_file.is_fake_file) {
 #pragma omp critical(cluster_filter_file)
                 {
-                    if (c_previous->size() >= c_current->size()) {
+                    if (should_remove_current_cluster) {
                         cluster_filter_file
                             << seq.name << "\t"
                             << prg_names[(*c_current->begin())->get_prg_id()] << "\t"
@@ -346,16 +352,32 @@ void filter_clusters(
                 }
             }
 
-
-            if (c_previous->size() >= c_current->size()) {
-                clusters_of_hits.erase(c_current);
-                c_current = c_previous;
+            if (should_remove_current_cluster) {
+                auto pos = c_current - clusters_of_hits.begin();
+                clusters_to_remove.insert(pos);
+                BOOST_LOG_TRIVIAL(trace) << tag << "Cluster #" << pos << " to be filtered out";
+                // c_previous continues the same
             } else {
-                clusters_of_hits.erase(c_previous);
+                auto pos = c_previous - clusters_of_hits.begin();
+                clusters_to_remove.insert(pos);
+                c_previous = c_current;
+                BOOST_LOG_TRIVIAL(trace) << tag << "Cluster #" << pos << " to be filtered out";
             }
         }
-        c_previous = c_current;
+        else {
+            c_previous = c_current;
+        }
     }
+
+    size_t cluster_index = 0;
+    for (const auto &cluster : clusters_of_hits) {
+        const bool cluster_should_be_added = clusters_to_remove.find(cluster_index) == clusters_to_remove.end();
+        if (cluster_should_be_added) {
+            filtered_clusters_of_hits.insert(cluster);
+        }
+        ++cluster_index;
+    }
+    filtered_clusters_of_hits.finalise_insertions();
 
     // Note: this is a slow critical region and could be optimised, but there is no need
     // to, as this is just run when debugging files should be created, and is expected
@@ -363,7 +385,7 @@ void filter_clusters(
     if (!cluster_filter_file.is_fake_file) {
 #pragma omp critical(cluster_filter_file)
         {
-            for (const auto& cluster : clusters_of_hits) {
+            for (const auto& cluster : filtered_clusters_of_hits) {
                 cluster_filter_file << seq.name << "\t"
                                     << prg_names[(*cluster.begin())->get_prg_id()]
                                     << "\t" << cluster.size() << "\t"
@@ -372,8 +394,10 @@ void filter_clusters(
         }
     }
 
-    BOOST_LOG_TRIVIAL(trace) << tag << "Now have " << clusters_of_hits.size()
+    BOOST_LOG_TRIVIAL(trace) << tag << "Now have " << filtered_clusters_of_hits.size()
                              << " clusters of hits";
+
+    return filtered_clusters_of_hits;
 }
 
 void filter_clusters2(MinimizerHitClusters& clusters_of_hits,
@@ -476,11 +500,10 @@ MinimizerHitClusters get_minimizer_hit_clusters(
     minimizer_hit_clusters.finalise_insertions();
     BOOST_LOG_TRIVIAL(trace) << tag << "Found " << minimizer_hit_clusters.size() << " clusters of hits";
 
-    filter_clusters(sample_name, seq, minimizer_hit_clusters, prg_names,
-        cluster_filter_file);
+    MinimizerHitClusters filtered_clusters_of_hits = filter_clusters(sample_name, seq, minimizer_hit_clusters, prg_names, cluster_filter_file);
     // filter_clusters2(clusters_of_hits, genome_size);
 
-    return minimizer_hit_clusters;
+    return filtered_clusters_of_hits;
 }
 
 // TODO: this should be in a constructor of pangenome::Graph or in a factory class

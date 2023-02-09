@@ -81,12 +81,6 @@ public:
         check_if_can_query();
         return clusters.end();
     }
-
-    template <class iterator_class>
-    void erase (iterator_class pos) {
-        check_if_can_query();
-        clusters.erase(pos);
-    }
 };
 
 #endif // PANDORA_MINIHIT_CLUSTERS_H
