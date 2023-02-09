@@ -40,8 +40,15 @@ std::string ZipFileReader::read_full_text_file_as_single_string(
 
     const int length = stat.size;
     char buffer[length +1 ];
-    if(zip_fread(zipsub_file, buffer, length) != length){
-        fatal_error("Unable to read from: ", zip_path);
+    int total_number_of_bytes_read = 0;
+    while (total_number_of_bytes_read < length) {
+        int number_of_bytes_read = zip_fread(zipsub_file,
+            buffer+total_number_of_bytes_read,
+            length-total_number_of_bytes_read);
+        if(number_of_bytes_read == -1){
+            fatal_error("Unable to read from: ", zip_path);
+        }
+        total_number_of_bytes_read += number_of_bytes_read;
     }
     buffer[length] = '\0';
 
