@@ -50,10 +50,10 @@ std::string ZipFileReader::read_full_text_file_as_single_string(
         if(number_of_bytes_read == -1){
             fatal_error("Unable to read from: ", zip_path);
         }
-        total_number_of_bytes_read += number_of_bytes_read;
         BOOST_LOG_TRIVIAL(trace) << tag << "Read " << number_of_bytes_read << " bytes from zip entry "
                                  << zip_path << ". Total read: " << total_number_of_bytes_read <<
-            ". Size: " << length;
+                                 ". Size: " << length;
+        total_number_of_bytes_read += number_of_bytes_read;
     }
     buffer[length] = '\0';
 
