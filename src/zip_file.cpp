@@ -1,4 +1,5 @@
 #include "zip_file.h"
+#include <cstdlib>
 
 void ZipFileWriter::write_data(const std::string &data) {
     char* data_ptr = const_cast<char*>(data.c_str());
@@ -39,7 +40,11 @@ std::string ZipFileReader::read_full_text_file_as_single_string(
     std::tie(zipsub_file, stat) = open_file_inside_zip(archive, zip_path);
 
     const int length = stat.size;
-    char buffer[length +1 ];
+    char* buffer = (char*)std::malloc(length+1);
+    if (buffer==nullptr) {
+        fatal_error("Unable to allocate ", length+1, " bytes in ZipFileReader::read_full_text_file_as_single_string()");
+    }
+
     if(zip_fread(zipsub_file, buffer, length) != length){
         fatal_error("Unable to read from: ", zip_path);
     }
@@ -49,5 +54,8 @@ std::string ZipFileReader::read_full_text_file_as_single_string(
         fatal_error("Unable to close: ", zip_path);
     }
 
-    return std::string(buffer);
+    std::string text(buffer);
+    free(buffer);
+
+    return text;
 }
