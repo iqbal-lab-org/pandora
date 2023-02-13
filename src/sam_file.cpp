@@ -205,7 +205,11 @@ std::string SAMFile::get_sam_record_from_hit_cluster(
             << "RF:Z:" << right_flank << "\t"
             << "PP:Z:" << cluster_of_hits_prg_paths_ss.str() << "\n";
 
-        prg_ids_that_we_mapped_to.insert(first_hit->get_prg_id());
+        #pragma omp critical(prg_ids_that_we_mapped_to)
+        {
+            prg_ids_that_we_mapped_to.insert(first_hit->get_prg_id());
+        }
+
     }
 
     if (!at_least_a_single_mapping_was_output) {
