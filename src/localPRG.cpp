@@ -1722,6 +1722,8 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
     BOOST_LOG_TRIVIAL(debug) << "Found global coverage " << global_covg
                              << " and path mode " << mode_covg << " and mean "
                              << mean_covg;
+
+    /*
     if (global_covg > 20 and 20 * mean_covg < global_covg) {
         BOOST_LOG_TRIVIAL(debug)
             << "Skip LocalPRG " << name << " mean along max likelihood path too low";
@@ -1741,6 +1743,7 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
         kmp.clear();
         return;
     }
+     */
 
     std::string fq_name = pnode->get_name();
     std::string header = " log P(data|sequence)=" + std::to_string(ppath);
