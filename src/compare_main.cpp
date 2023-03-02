@@ -255,6 +255,11 @@ int pandora_compare(CompareOptions& opt)
         BOOST_LOG_TRIVIAL(info) << "Estimate parameters for kmer graph model";
         auto exp_depth_covg = estimate_parameters(pangraph_sample, sample_outdir,
             index.get_kmer_size(), opt.error_rate, covg, opt.binomial, 0);
+
+        // just don't update the parameters using estimate_parameters()
+        opt.error_rate=0.001;
+        opt.binomial=false;
+
         genotyping_options.add_exp_depth_covg(exp_depth_covg);
 
         if (genotyping_options.get_min_kmer_covg() == 0) {
