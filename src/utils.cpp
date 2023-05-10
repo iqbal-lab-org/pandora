@@ -536,7 +536,7 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
     uint32_t id { 0 };
 
     SAMFile filtered_mappings(sample_outdir / (sample_name + ".filtered.sam"),
-        index.get_prg_names(), index.get_prg_lengths(), k*2);
+        index.get_prg_names(), index.get_prg_lengths(), k*2, k);
 
     MinimizerMatchFile minimizer_matches(sample_outdir / (sample_name + ".minimatches"),
         index.get_prg_names(), !keep_extra_debugging_files);
@@ -623,7 +623,7 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
                 if (!minimizer_matches.is_fake_file) {
 #pragma omp critical(minimizer_matches)
                     {
-                        minimizer_matches.write_hits(sequence, *minimizer_hits);
+                        minimizer_matches.write_hits(sequence, *minimizer_hits, k);
                     }
                 }
 

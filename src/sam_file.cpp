@@ -56,7 +56,7 @@ std::vector<bool> SAMFile::get_mapped_positions_bitset(const Seq &seq, const Min
     std::vector<bool> mapped_positions_bitset(seq.full_seq.size(), false);
     for (const MinimizerHitPtr &hit : cluster) {
         const uint32_t read_start_position = hit->get_read_start_position();
-        const uint32_t read_end_position = hit->get_read_start_position()+hit->get_prg_path().length();
+        const uint32_t read_end_position = hit->get_read_start_position()+k;
         for (uint32_t pos = read_start_position; pos < read_end_position; ++pos) {
             mapped_positions_bitset[pos] = true;
         }
@@ -134,7 +134,7 @@ std::string SAMFile::get_sam_record_from_hit_cluster(
         const MinimizerHitPtr first_hit = *(cluster.begin());
         const std::string &prg_name = prg_names[first_hit->get_prg_id()];
 
-        const uint32_t alignment_start = first_hit->get_prg_path().begin()->start + 1;
+//        const uint32_t alignment_start = first_hit->get_prg_path().begin()->start + 1;
 
         const std::vector<bool> mapped_positions_bitset =
             get_mapped_positions_bitset(seq, cluster);
@@ -163,10 +163,10 @@ std::string SAMFile::get_sam_record_from_hit_cluster(
             std::swap(left_flank, right_flank);
         }
 
-        std::stringstream cluster_of_hits_prg_paths_ss;
-        for (const MinimizerHitPtr &hit : cluster) {
-            cluster_of_hits_prg_paths_ss << hit->get_prg_path() << "->";
-        }
+//        std::stringstream cluster_of_hits_prg_paths_ss;
+//        for (const MinimizerHitPtr &hit : cluster) {
+//            cluster_of_hits_prg_paths_ss << hit->get_prg_path() << "->";
+//        }
 
         auto number_ambiguous_bases = std::count_if(
             segment_sequence.begin(), segment_sequence.end(),
@@ -189,7 +189,8 @@ std::string SAMFile::get_sam_record_from_hit_cluster(
         ss  << seq.name << "\t"
             << flag << "\t"
             << prg_name << "\t"
-            << alignment_start << "\t"
+//            << alignment_start << "\t"
+            << "." << "\t"
             << "255\t"
             << cigar << "\t"
             << "*\t0\t0\t"
@@ -203,7 +204,8 @@ std::string SAMFile::get_sam_record_from_hit_cluster(
             << "MM:i:" << minus_strand_count << "\t"
             << "LF:Z:" << left_flank << "\t"
             << "RF:Z:" << right_flank << "\t"
-            << "PP:Z:" << cluster_of_hits_prg_paths_ss.str() << "\n";
+//            << "PP:Z:" << cluster_of_hits_prg_paths_ss.str() << "\n";
+            ;
 
         #pragma omp critical(prg_ids_that_we_mapped_to)
         {

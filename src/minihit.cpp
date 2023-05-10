@@ -11,13 +11,13 @@ MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer& minimizer_from_rea
     , read_strand { minimizer_from_read.is_forward_strand }
     , minimizer_from_PRG { minimizer_from_PRG }
 {
-    const bool both_minimizers_have_same_length
-        = minimizer_from_read.pos_of_kmer_in_read.length
-        == minimizer_from_PRG.path.length();
-    if (!both_minimizers_have_same_length) {
-        fatal_error("Error when storing minimizers: minimizer from read/sequence "
-                    "and from PRG have different lengths");
-    }
+//    const bool both_minimizers_have_same_length
+//        = minimizer_from_read.pos_of_kmer_in_read.length
+//        == minimizer_from_PRG.path.length();
+//    if (!both_minimizers_have_same_length) {
+//        fatal_error("Error when storing minimizers: minimizer from read/sequence "
+//                    "and from PRG have different lengths");
+//    }
 }
 
 bool MinimizerHit::operator==(const MinimizerHit& y) const
@@ -31,9 +31,9 @@ bool MinimizerHit::operator==(const MinimizerHit& y) const
     if (get_prg_id() != y.get_prg_id()) {
         return false;
     }
-    if (!(get_prg_path() == y.get_prg_path())) {
-        return false;
-    }
+//    if (!(get_prg_path() == y.get_prg_path())) {
+//        return false;
+//    }
     if (same_strands() != y.same_strands()) {
         return false;
     }
@@ -75,12 +75,12 @@ bool MinimizerHit::operator<(const MinimizerHit& y) const
     }
 
     // then by position on target string
-    if (get_prg_path() < y.get_prg_path()) {
-        return true;
-    }
-    if (y.get_prg_path() < get_prg_path()) {
-        return false;
-    }
+//    if (get_prg_path() < y.get_prg_path()) {
+//        return true;
+//    }
+//    if (y.get_prg_path() < get_prg_path()) {
+//        return false;
+//    }
 
     return false;
 }
@@ -88,7 +88,7 @@ bool MinimizerHit::operator<(const MinimizerHit& y) const
 std::ostream& operator<<(std::ostream& out, MinimizerHit const& m)
 {
     out << "(" << m.get_read_id() << ", " << m.get_read_start_position() << ", "
-        << m.get_prg_id() << ", " << m.get_prg_path() << ", " << m.same_strands() << ", "
+        << m.get_prg_id() << ", " << ", " << m.same_strands() << ", "
         << m.get_kmer_node_id() << ")";
     return out;
 }
