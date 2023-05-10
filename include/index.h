@@ -30,8 +30,8 @@ class Index {
 protected:
     ///////////////////////////////////////////////////////////////////////////////////
     // attributes
-    const uint32_t w;
-    const uint32_t k;
+    uint32_t w;
+    uint32_t k;
 
     // required to produce mapping files (SAMFile, MinimizerMatchFile, PafFile, etc)
     std::vector<std::string> prg_names;
