@@ -13,7 +13,6 @@
 #include "seq.h"
 #include "localPRG.h"
 #include "pangenome/pangraph.h"
-#include "noise_filtering.h"
 #include "minihit.h"
 #include "fastaq_handler.h"
 #include "minimizermatch_file.h"
@@ -454,7 +453,7 @@ void filter_clusters2(MinimizerHitClusters& clusters_of_hits,
 void add_clusters_to_pangraph(
     const MinimizerHitClusters& minimizer_hit_clusters,
     std::shared_ptr<pangenome::Graph> &pangraph,
-    Index &index)
+    Index &index, uint32_t sample_id)
 {
     BOOST_LOG_TRIVIAL(trace) << "Add clusters to PanGraph";
     if (minimizer_hit_clusters.empty()) {
@@ -466,8 +465,18 @@ void add_clusters_to_pangraph(
         // we lazily load them just now
         uint32_t mapped_prg_id = (*cluster.begin())->get_prg_id();
         std::shared_ptr<LocalPRG> prg = index.get_prg_given_id(mapped_prg_id);
-        uint32_t read_id = (*cluster.begin())->get_read_id();
-        pangraph->add_hits_between_PRG_and_read(prg, read_id, cluster);
+        pangraph->record_hit(prg);
+
+        for (const auto &hit : cluster) {
+            auto& pangraph_node = pangraph->nodes[hit->get_kmer_node_id()];
+            if (hit->same_strands()) {
+                pangraph_node->kmer_prg_with_coverage.increment_forward_covg(
+                    hit->get_kmer_node_id(), sample_id);
+            } else {
+                pangraph_node->kmer_prg_with_coverage.increment_reverse_covg(
+                    hit->get_kmer_node_id(), sample_id);
+            }
+        }
     }
 }
 
@@ -639,7 +648,7 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
                     sequence, clusters_of_hits);
 #pragma omp critical(pangraph)
                 {
-                    add_clusters_to_pangraph(clusters_of_hits, pangraph, index);
+                    add_clusters_to_pangraph(clusters_of_hits, pangraph, index, 0);
                     filtered_mappings.write_sam_record(sam_record);
                     if (!paf_file.is_fake_file) {
                         paf_file.write_clusters(sequence, clusters_of_hits);
@@ -651,22 +660,13 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
                 break; // max_covg exceeded, get out
         }
     }
+
     BOOST_LOG_TRIVIAL(info) << "Processed " << id << " reads";
 
     BOOST_LOG_TRIVIAL(debug) << "Pangraph has " << pangraph->nodes.size() << " nodes";
 
     covg = covg / genome_size;
     BOOST_LOG_TRIVIAL(debug) << "Estimated coverage: " << covg;
-
-    if (illumina and clean) {
-        clean_pangraph_with_debruijn_graph(pangraph, 2, 1, illumina);
-        BOOST_LOG_TRIVIAL(debug)
-            << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes";
-    } else if (clean) {
-        clean_pangraph_with_debruijn_graph(pangraph, 3, 1, illumina);
-        BOOST_LOG_TRIVIAL(debug)
-            << "After cleaning, pangraph has " << pangraph->nodes.size() << " nodes";
-    }
 
     return covg;
 }

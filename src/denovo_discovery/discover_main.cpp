@@ -147,20 +147,11 @@ void pandora_discover_core(const SampleData& sample, Index &index, const Discove
         opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean, opt.max_covg,
         opt.threads, opt.keep_extra_debugging_files);
 
-    const auto pangraph_gfa { sample_outdir / "pandora.pangraph.gfa" };
-    BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
-                            << "Writing pangenome::Graph to file " << pangraph_gfa;
-    write_pangraph_gfa(pangraph_gfa, pangraph);
-
     if (pangraph->nodes.empty()) {
         BOOST_LOG_TRIVIAL(warning)
             << "[Sample " << sample_name << "] "
             << "Found no LocalPRGs in the reads for sample " << sample_name;
     }
-
-    BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
-                            << "Updating local PRGs with hits...";
-    pangraph->add_hits_to_kmergraphs();
 
     BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
                             << "Find PRG paths and discover novel alleles...";

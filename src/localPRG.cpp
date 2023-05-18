@@ -1699,7 +1699,7 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
     const bool bin, const uint32_t global_covg,
     const uint32_t& max_num_kmers_to_average, const uint32_t& sample_id) const
 {
-    if (pnode->reads.empty()) {
+    if (pnode->covg == 0) {
         BOOST_LOG_TRIVIAL(warning) << "Node " << pnode->get_name() << " has no reads";
         return;
     }

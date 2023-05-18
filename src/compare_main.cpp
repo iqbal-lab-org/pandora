@@ -240,17 +240,10 @@ int pandora_compare(CompareOptions& opt)
             opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean,
             opt.max_covg, opt.threads, opt.keep_extra_debugging_files);
 
-        const auto pangraph_gfa { sample_outdir / "pandora.pangraph.gfa" };
-        BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file " << pangraph_gfa;
-        write_pangraph_gfa(pangraph_gfa, pangraph_sample);
-
         if (pangraph_sample->nodes.empty()) {
             BOOST_LOG_TRIVIAL(warning)
                 << "Found no LocalPRGs in the reads for sample " << sample_name;
         }
-
-        BOOST_LOG_TRIVIAL(info) << "Update LocalPRGs with hits";
-        pangraph_sample->add_hits_to_kmergraphs(0);
 
         BOOST_LOG_TRIVIAL(info) << "Estimate parameters for kmer graph model";
         auto exp_depth_covg = estimate_parameters(pangraph_sample, sample_outdir,
@@ -299,12 +292,6 @@ int pandora_compare(CompareOptions& opt)
                 << ". Is your genome_size accurate? Genome size is assumed to be "
                 << opt.genome_size << " and can be updated with --genome_size";
         }
-
-        // Note: pangraph_sample is destroyed here and as well as all Read information
-        // (pangenome::Graph::reads) about the sample pangraph does not keep the read
-        // information This is important since this is the heaviest information to keep
-        // in compare pangraph has just coverage information and the consensus path for
-        // each sample and PRG
     }
 
     // for each pannode in graph, find a best reference

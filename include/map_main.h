@@ -19,8 +19,6 @@
 #include "pangenome/pannode.h"
 #include "index.h"
 #include "estimate_parameters.h"
-#include "noise_filtering.h"
-
 #include "CLI11.hpp"
 
 using std::set;

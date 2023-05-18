@@ -97,7 +97,7 @@ MinimizerHitClusters filter_clusters(
 void add_clusters_to_pangraph(
     const MinimizerHitClusters& minimizer_hit_clusters,
     std::shared_ptr<pangenome::Graph> &pangraph,
-    Index &index);
+    Index &index, uint32_t sample_id);
 
 MinimizerHitClusters get_minimizer_hit_clusters(
     const std::string &sample_name,
