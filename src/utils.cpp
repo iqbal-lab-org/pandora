@@ -458,6 +458,9 @@ void add_clusters_to_pangraph(
     Index &index, uint32_t sample_id)
 {
     BOOST_LOG_TRIVIAL(trace) << "Add clusters to PanGraph";
+    if (minimizer_hit_clusters.empty()) {
+        return;
+    }
 
     for (const auto &cluster : minimizer_hit_clusters) {
         // each cluster here defines a mapping, so we know which prgs mapped
@@ -645,14 +648,12 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
                 const std::string sam_record = filtered_mappings.get_sam_record_from_hit_cluster(
                     sequence, clusters_of_hits);
 
-                if (!clusters_of_hits.empty()) {
 #pragma omp critical(pangraph)
-                    {
-                        add_clusters_to_pangraph(clusters_of_hits, pangraph, index, 0);
-                        filtered_mappings.write_sam_record(sam_record);
-                        if (!paf_file.is_fake_file) {
-                            paf_file.write_clusters(sequence, clusters_of_hits);
-                        }
+                {
+                    add_clusters_to_pangraph(clusters_of_hits, pangraph, index, 0);
+                    filtered_mappings.write_sam_record(sam_record);
+                    if (!paf_file.is_fake_file) {
+                        paf_file.write_clusters(sequence, clusters_of_hits);
                     }
                 }
             }
