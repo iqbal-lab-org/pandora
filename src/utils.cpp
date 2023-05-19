@@ -458,9 +458,6 @@ void add_clusters_to_pangraph(
     Index &index, uint32_t sample_id)
 {
     BOOST_LOG_TRIVIAL(trace) << "Add clusters to PanGraph";
-    if (minimizer_hit_clusters.empty()) {
-        return;
-    }
 
     for (const auto &cluster : minimizer_hit_clusters) {
         // each cluster here defines a mapping, so we know which prgs mapped
@@ -468,9 +465,8 @@ void add_clusters_to_pangraph(
         uint32_t mapped_prg_id = (*cluster.begin())->get_prg_id();
         std::shared_ptr<LocalPRG> prg = index.get_prg_given_id(mapped_prg_id);
         pangraph->record_hit(prg);
-
+        auto& pangraph_node = pangraph->get_node(prg);
         for (const auto &hit : cluster) {
-            auto& pangraph_node = pangraph->nodes[hit->get_kmer_node_id()];
             if (hit->same_strands()) {
                 pangraph_node->kmer_prg_with_coverage.increment_forward_covg(
                     hit->get_kmer_node_id(), sample_id);
@@ -648,12 +644,15 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
 
                 const std::string sam_record = filtered_mappings.get_sam_record_from_hit_cluster(
                     sequence, clusters_of_hits);
+
+                if (!clusters_of_hits.empty()) {
 #pragma omp critical(pangraph)
-                {
-                    add_clusters_to_pangraph(clusters_of_hits, pangraph, index, 0);
-                    filtered_mappings.write_sam_record(sam_record);
-                    if (!paf_file.is_fake_file) {
-                        paf_file.write_clusters(sequence, clusters_of_hits);
+                    {
+                        add_clusters_to_pangraph(clusters_of_hits, pangraph, index, 0);
+                        filtered_mappings.write_sam_record(sam_record);
+                        if (!paf_file.is_fake_file) {
+                            paf_file.write_clusters(sequence, clusters_of_hits);
+                        }
                     }
                 }
             }
