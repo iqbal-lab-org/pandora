@@ -69,6 +69,17 @@ void setup_map_subcommand(CLI::App& app)
         ->group("Mapping");
 
     map_subcmd
+        ->add_option(
+            "-r,--rng-seed", opt->rng_seed, "RNG seed, an int>0 to force deterministic "
+                                            "mapping when multiple optimal mappings are"
+                                            "possible. To be avoided except in "
+                                            "debugging/investigation scenarios. A value "
+                                            "of 0 will be interpreted as no seed given "
+                                            "and mapping will not be deterministic.")
+        ->capture_default_str()
+        ->group("Mapping");
+
+    map_subcmd
         ->add_flag("--kg", opt->output_kg,
             "Save kmer graphs with forward and reverse coverage annotations for found "
             "loci")
@@ -229,7 +240,7 @@ int pandora_map(MapOptions& opt)
     uint32_t covg
         = pangraph_from_read_file(sample, pangraph, index, opt.max_diff, opt.error_rate,
             opt.outdir, opt.min_cluster_size, opt.genome_size, opt.max_covg,
-        opt.threads, opt.keep_extra_debugging_files);
+        opt.threads, opt.keep_extra_debugging_files, opt.rng_seed);
 
     if (pangraph->nodes.empty()) {
         BOOST_LOG_TRIVIAL(info) << "Found none of the LocalPRGs in the reads.";

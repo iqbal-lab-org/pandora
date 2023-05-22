@@ -91,7 +91,8 @@ MinimizerHitClusters filter_clusters(
     const Seq &seq,
     const MinimizerHitClusters& clusters_of_hits,
     const std::vector<std::string> &prg_names,
-    ClusterFilterFile& cluster_filter_file
+    ClusterFilterFile& cluster_filter_file,
+    const uint32_t rng_seed = 0
 );
 
 void add_clusters_to_pangraph(
@@ -110,14 +111,16 @@ MinimizerHitClusters get_minimizer_hit_clusters(
     ClusterDefFile &cluster_def_file,
     ClusterFilterFile &cluster_filter_file,
     const uint32_t min_cluster_size,
-    const uint32_t expected_number_kmers_in_read_sketch = std::numeric_limits<uint32_t>::max());
+    const uint32_t expected_number_kmers_in_read_sketch,
+    const uint32_t rng_seed);
 
 uint32_t pangraph_from_read_file(const SampleData& sample,
     std::shared_ptr<pangenome::Graph> pangraph, Index &index,
     const int max_diff, const float& e_rate,
     const fs::path& sample_outdir, const uint32_t min_cluster_size = 10,
     const uint32_t genome_size = 5000000, const uint32_t max_covg = 300,
-    uint32_t threads = 1, const bool keep_extra_debugging_files = false);
+    uint32_t threads = 1, const bool keep_extra_debugging_files = false,
+    const uint32_t rng_seed = 0);
 
 void infer_most_likely_prg_path_for_pannode(
     const std::vector<std::shared_ptr<LocalPRG>>&, PanNode*, uint32_t, float);
