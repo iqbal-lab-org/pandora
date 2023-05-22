@@ -26,7 +26,6 @@ struct DiscoverOptions {
     uint32_t max_diff { 250 };
     bool output_kg { false };
     bool illumina { false };
-    bool clean { false };
     bool binomial { false };
     uint32_t max_covg { 600 };
     uint32_t min_cluster_size { 10 };

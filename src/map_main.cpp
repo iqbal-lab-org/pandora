@@ -85,11 +85,6 @@ void setup_map_subcommand(CLI::App& app)
         ->group("Preset");
 
     map_subcmd
-        ->add_flag(
-            "--clean", opt->clean, "Add a step to clean and detangle the pangraph")
-        ->group("Filtering");
-
-    map_subcmd
         ->add_flag("--bin", opt->binomial,
             "Use binomial model for kmer coverages [default: negative binomial]")
         ->group("Parameter Estimation");
@@ -233,7 +228,7 @@ int pandora_map(MapOptions& opt)
     auto pangraph = std::make_shared<pangenome::Graph>();
     uint32_t covg
         = pangraph_from_read_file(sample, pangraph, index, opt.max_diff, opt.error_rate,
-            opt.outdir, opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean, opt.max_covg,
+            opt.outdir, opt.min_cluster_size, opt.genome_size, opt.max_covg,
         opt.threads, opt.keep_extra_debugging_files);
 
     if (pangraph->nodes.empty()) {

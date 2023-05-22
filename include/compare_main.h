@@ -39,7 +39,6 @@ struct CompareOptions {
     uint32_t max_diff { 250 };
     bool output_vcf { false };
     bool illumina { false };
-    bool clean { false };
     bool binomial { false };
     uint32_t max_covg { 300 };
     bool genotype { false };
