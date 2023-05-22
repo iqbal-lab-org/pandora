@@ -49,15 +49,6 @@ template <typename T> struct spointer_values_equal {
     bool operator()(const std::shared_ptr<T> other) const { return *to_find == *other; }
 };
 
-// pointer less comparator, from
-// https://stackoverflow.com/questions/41375232/is-there-an-stl-comparator-for-stdset-or-stdmap-with-shared-ptr-keys-that
-struct ptr_less {
-    template <typename T> bool operator()(T lhs, T rhs) const
-    {
-        return std::less<decltype(*lhs)>()(*lhs, *rhs);
-    }
-};
-
 // utility functions
 std::string now();
 
@@ -150,11 +141,7 @@ std::vector<SampleData> load_read_index(const fs::path& read_index_fpath);
 // Returns filepath
 std::pair<int, std::string> build_memfd(const std::string &data);
 
-std::string exec(const char* cmd);
-
 void build_file(const std::string &filepath, const std::string &data);
-
-bool tool_exists(const std::string &command);
 
 void concatenate_text_files(
     const fs::path& output_filename, const std::vector<fs::path>& input_filenames,
@@ -166,9 +153,6 @@ inline void to_upper(std::string &str) {
     std::transform(str.begin(), str.end(), str.begin(), ::toupper);
 }
 
-int random_int();
 std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const std::string& input_string, uint8_t delim = 4);
-
-uintmax_t get_number_of_bytes_in_file(const fs::path &file);
 
 #endif
