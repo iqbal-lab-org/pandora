@@ -18,26 +18,21 @@
  * Querying can only happen after insertions are finalised.
  */
 class MinimizerHitClusters {
-private:
-    bool insertion_phase;
-    std::vector<MinimizerHits> clusters;
-    std::mt19937 rng;  // TODO: make shuffling deterministic?
-
-    inline void check_if_can_insert() const {
-        if (!insertion_phase) {
-            fatal_error("Tried to insert a cluster in a MinimizerHitClusters when insertion phase was finished");
-        }
-    }
-
-    inline void check_if_can_query() const {
-        if (insertion_phase) {
-            fatal_error("Tried to query a MinimizerHitClusters when insertion phase was not finished");
-        }
-    }
-
 public:
-    MinimizerHitClusters() : insertion_phase(true), clusters(), rng(std::random_device()()){}
-    ~MinimizerHitClusters() = default;
+    explicit MinimizerHitClusters(const uint32_t rng_seed) : insertion_phase(true), clusters(){
+        if (bool deterministic_run = rng_seed > 0; deterministic_run) {
+            rng = std::mt19937(rng_seed);
+        } else{
+            rng = std::mt19937(std::random_device()());
+        }
+    }
+    ~MinimizerHitClusters() = default;  // Note: this is not virtual as there is no need to
+
+    // enable copy/move
+    MinimizerHitClusters(const MinimizerHitClusters &) = default;  // copy constructor
+    MinimizerHitClusters& operator=(const MinimizerHitClusters &) = default; // copy assignment operator
+    MinimizerHitClusters(MinimizerHitClusters &&) = default; // move constructor
+    MinimizerHitClusters& operator=(MinimizerHitClusters &&) = default; // move assignment operator
 
     inline void insert(const MinimizerHits& cluster) {
         check_if_can_insert();
@@ -80,6 +75,23 @@ public:
     inline auto end () {
         check_if_can_query();
         return clusters.end();
+    }
+
+private:
+    bool insertion_phase;
+    std::vector<MinimizerHits> clusters;
+    std::mt19937 rng;
+
+    inline void check_if_can_insert() const {
+        if (!insertion_phase) {
+            fatal_error("Tried to insert a cluster in a MinimizerHitClusters when insertion phase was finished");
+        }
+    }
+
+    inline void check_if_can_query() const {
+        if (insertion_phase) {
+            fatal_error("Tried to query a MinimizerHitClusters when insertion phase was not finished");
+        }
     }
 };
 
