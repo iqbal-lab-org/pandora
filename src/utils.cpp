@@ -24,15 +24,10 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
 #include <cstdio>
 #include <stdexcept>
 #include <string>
 #include <array>
-#include <random>
-
-#include <cstdio>
-#include <sys/wait.h>
 
 std::string now()
 {
@@ -294,10 +289,11 @@ MinimizerHitClusters filter_clusters(
     const Seq &seq,
     const MinimizerHitClusters& clusters_of_hits,
     const std::vector<std::string> &prg_names,
-    ClusterFilterFile& cluster_filter_file)
+    ClusterFilterFile& cluster_filter_file,
+    const uint32_t rng_seed)
 {
     const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(seq.id) + "]: ";
-    MinimizerHitClusters filtered_clusters_of_hits;
+    MinimizerHitClusters filtered_clusters_of_hits(rng_seed);
 
     // Next order clusters, choose between those that overlap by too much
     BOOST_LOG_TRIVIAL(trace) << tag << "Filter the " << clusters_of_hits.size()
@@ -492,10 +488,11 @@ MinimizerHitClusters get_minimizer_hit_clusters(
     ClusterDefFile &cluster_def_file,
     ClusterFilterFile &cluster_filter_file,
     const uint32_t min_cluster_size,
-    const uint32_t expected_number_kmers_in_read_sketch)
+    const uint32_t expected_number_kmers_in_read_sketch,
+    const uint32_t rng_seed)
 {
     const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(seq.id) + "]: ";
-    MinimizerHitClusters minimizer_hit_clusters;
+    MinimizerHitClusters minimizer_hit_clusters(rng_seed);
 
     if (minimizer_hits->empty()) {
         minimizer_hit_clusters.finalise_insertions();
@@ -521,8 +518,8 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
     std::shared_ptr<pangenome::Graph> pangraph, Index &index,
     const int max_diff, const float& e_rate,
     const fs::path& sample_outdir, const uint32_t min_cluster_size,
-    const uint32_t genome_size, const bool illumina, const bool clean,
-    const uint32_t max_covg, uint32_t threads, const bool keep_extra_debugging_files)
+    const uint32_t genome_size, const uint32_t max_covg, uint32_t threads,
+    const bool keep_extra_debugging_files, const uint32_t rng_seed)
 {
     // constant variables
     const SampleIdText sample_name = sample.first;
@@ -643,7 +640,8 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
                         index.get_prg_min_path_lengths(), index.get_prg_names(),
                         minimizer_hits, pangraph, max_diff, genome_size,
                         fraction_kmers_required_for_cluster, cluster_def_file,
-                        cluster_filter_file, min_cluster_size, expected_number_kmers_in_read_sketch);
+                        cluster_filter_file, min_cluster_size,
+                        expected_number_kmers_in_read_sketch, rng_seed);
 
                 const std::string sam_record = filtered_mappings.get_sam_record_from_hit_cluster(
                     sequence, clusters_of_hits);
@@ -695,23 +693,6 @@ void open_file_for_appending(const std::string& file_path, std::ofstream& stream
     if (!stream.is_open()) {
         fatal_error("Error opening file ", file_path);
     }
-}
-
-// read all strings in the readsFile file and return them as a vector of strings
-std::vector<std::string> get_vector_of_strings_from_file(const std::string& file_path)
-{
-    std::vector<std::string> lines;
-    std::string line;
-
-    std::ifstream in_file;
-    open_file_for_reading(file_path, in_file);
-    while (getline(in_file, line)) {
-        if (line.size() > 0)
-            lines.push_back(line);
-    }
-    in_file.close();
-
-    return lines;
 }
 
 uint32_t strtogs(const char* str)
@@ -799,32 +780,11 @@ std::pair<int, std::string> build_memfd(const std::string &data) {
     return std::make_pair(fd, ss_filepath.str());
 }
 
-// From https://stackoverflow.com/a/478960/5264075
-// Exec a command and returns stdout
-std::string exec(const char* cmd) {
-    BOOST_LOG_TRIVIAL(debug) << "Running " << cmd;
-    std::array<char, 4096> buffer;
-    std::string result;
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-    if (!pipe) {
-        throw std::runtime_error("popen() failed!");
-    }
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        result += buffer.data();
-    }
-    return result;
-}
-
 void build_file(const std::string &filepath, const std::string &data) {
     std::ofstream output_file;
     open_file_for_writing(filepath, output_file);
     output_file.write(data.c_str(), data.size());
     output_file.close();
-}
-
-bool tool_exists(const std::string &command) {
-    int ret = std::system(command.c_str());
-    return WEXITSTATUS(ret) == 0;
 }
 
 void concatenate_text_files(
@@ -859,14 +819,6 @@ std::string reverse_complement(const std::string& forward)
     }
     reverse[len] = '\0';
     return reverse;
-}
-
-int random_int()
-{
-    static std::random_device dev;
-    static std::mt19937 rng(dev());
-    static std::uniform_int_distribution<std::mt19937::result_type> dist;
-    return dist(rng);
 }
 
 std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const std::string& input_string, uint8_t delim)

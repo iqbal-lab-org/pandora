@@ -152,8 +152,6 @@ public:
 
     void save_covg_dist(const std::string&);
 
-    std::vector<std::vector<KmerNodePtr>> get_random_paths(uint32_t);
-
     float prob_path(const std::vector<KmerNodePtr>& kpath, const uint32_t& sample_id,
         const std::string& prob_model);
 
