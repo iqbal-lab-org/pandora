@@ -22,6 +22,7 @@ struct DiscoverOptions {
     uint32_t threads { 1 };
     uint8_t verbosity { 0 };
     float error_rate { 0.11 };
+    uint32_t rng_seed { 0 };
     uint32_t genome_size { 5000000 };
     uint32_t max_diff { 250 };
     bool output_kg { false };

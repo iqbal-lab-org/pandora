@@ -35,6 +35,7 @@ struct CompareOptions {
     fs::path vcf_refs_file;
     uint8_t verbosity { 0 };
     float error_rate { 0.11 };
+    uint32_t rng_seed { 0 };
     uint32_t genome_size { 5000000 };
     uint32_t max_diff { 250 };
     bool output_vcf { false };
