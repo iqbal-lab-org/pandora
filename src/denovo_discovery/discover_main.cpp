@@ -67,17 +67,6 @@ void setup_discover_subcommand(CLI::App& app)
         ->group("Mapping");
 
     discover_subcmd
-        ->add_option(
-            "-r,--rng-seed", opt->rng_seed, "RNG seed, an int>0 to force deterministic "
-                                            "mapping when multiple optimal mappings are"
-                                            "possible. To be avoided except in "
-                                            "debugging/investigation scenarios. A value "
-                                            "of 0 will be interpreted as no seed given "
-                                            "and mapping will not be deterministic.")
-        ->capture_default_str()
-        ->group("Mapping");
-
-    discover_subcmd
         ->add_flag("--kg", opt->output_kg,
             "Save kmer graphs with forward and reverse coverage annotations for found "
             "loci")
@@ -174,6 +163,17 @@ void setup_discover_subcommand(CLI::App& app)
 
     discover_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
+
+    discover_subcmd
+        ->add_option(
+            "-r,--rng-seed", opt->rng_seed, "RNG seed, an int>0 to force deterministic "
+                                            "mapping when multiple optimal mappings are "
+                                            "possible. To be avoided except in "
+                                            "debugging/investigation scenarios. A value "
+                                            "of 0 will be interpreted as no seed given "
+                                            "and mapping will not be deterministic.")
+        ->capture_default_str()
+        ->group("Debugging");
 
     // Set the function that will be called when this subcommand is issued.
     discover_subcmd->callback([opt]() { pandora_discover(*opt); });

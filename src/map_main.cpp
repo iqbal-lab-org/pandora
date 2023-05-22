@@ -69,17 +69,6 @@ void setup_map_subcommand(CLI::App& app)
         ->group("Mapping");
 
     map_subcmd
-        ->add_option(
-            "-r,--rng-seed", opt->rng_seed, "RNG seed, an int>0 to force deterministic "
-                                            "mapping when multiple optimal mappings are"
-                                            "possible. To be avoided except in "
-                                            "debugging/investigation scenarios. A value "
-                                            "of 0 will be interpreted as no seed given "
-                                            "and mapping will not be deterministic.")
-        ->capture_default_str()
-        ->group("Mapping");
-
-    map_subcmd
         ->add_flag("--kg", opt->output_kg,
             "Save kmer graphs with forward and reverse coverage annotations for found "
             "loci")
@@ -229,6 +218,17 @@ void setup_map_subcommand(CLI::App& app)
         ->add_flag("-K,--debugging-files", opt->keep_extra_debugging_files,
             "Keep extra debugging files. Warning: this might "
             "create thousands of files.")
+        ->group("Debugging");
+
+    map_subcmd
+        ->add_option(
+            "-r,--rng-seed", opt->rng_seed, "RNG seed, an int>0 to force deterministic "
+                                            "mapping when multiple optimal mappings are "
+                                            "possible. To be avoided except in "
+                                            "debugging/investigation scenarios. A value "
+                                            "of 0 will be interpreted as no seed given "
+                                            "and mapping will not be deterministic.")
+        ->capture_default_str()
         ->group("Debugging");
 
     map_subcmd->add_flag(
