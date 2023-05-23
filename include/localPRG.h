@@ -115,7 +115,16 @@ public:
     std::vector<LocalNodePtr> find_alt_path(const std::vector<LocalNodePtr>&,
         const uint32_t, const std::string&, const std::string&) const;
 
-    std::string random_path();
+    template<typename RNG>
+    std::string random_path(RNG &&rng) {
+        std::vector<LocalNodePtr> npath;
+        npath.push_back(prg.nodes.at(0));
+        while (not npath.back()->outNodes.empty()) {
+            uint32_t random_number = rng();
+            npath.push_back(npath.back()->outNodes[random_number]);
+        }
+        return string_along_path(npath);
+    }
 
     // TODO: I really feel like these methods are not responsability of a LocalPRG
     // TODO: many of them should be in VCF class, or in the KmerGraphWithCoverage or
