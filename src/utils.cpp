@@ -482,7 +482,7 @@ MinimizerHitClusters get_minimizer_hit_clusters(
     const std::vector<std::string> &prg_names,
     std::shared_ptr<MinimizerHits> minimizer_hits,
     std::shared_ptr<pangenome::Graph> pangraph, const int max_diff,
-    const uint32_t& genome_size, const float& fraction_kmers_required_for_cluster,
+    const float& fraction_kmers_required_for_cluster,
     ClusterDefFile &cluster_def_file,
     ClusterFilterFile &cluster_filter_file,
     const uint32_t min_cluster_size,
@@ -636,7 +636,7 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
                 MinimizerHitClusters clusters_of_hits =
                     get_minimizer_hit_clusters(sample_name, sequence,
                         index.get_prg_min_path_lengths(), index.get_prg_names(),
-                        minimizer_hits, pangraph, max_diff, genome_size,
+                        minimizer_hits, pangraph, max_diff,
                         fraction_kmers_required_for_cluster, cluster_def_file,
                         cluster_filter_file, min_cluster_size,
                         expected_number_kmers_in_read_sketch, rng_seed);

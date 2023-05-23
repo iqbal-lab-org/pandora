@@ -98,7 +98,7 @@ MinimizerHitClusters get_minimizer_hit_clusters(
     const std::vector<std::string> &prg_names,
     std::shared_ptr<MinimizerHits> minimizer_hits,
     std::shared_ptr<pangenome::Graph> pangraph, const int max_diff,
-    const uint32_t& genome_size, const float& fraction_kmers_required_for_cluster,
+    const float& fraction_kmers_required_for_cluster,
     ClusterDefFile &cluster_def_file,
     ClusterFilterFile &cluster_filter_file,
     const uint32_t min_cluster_size,
