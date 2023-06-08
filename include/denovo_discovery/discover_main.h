@@ -10,7 +10,6 @@
 #include "utils.h"
 #include "index.h"
 #include "pangenome/pangraph.h"
-#include "noise_filtering.h"
 #include "estimate_parameters.h"
 
 namespace fs = boost::filesystem;
@@ -23,11 +22,11 @@ struct DiscoverOptions {
     uint32_t threads { 1 };
     uint8_t verbosity { 0 };
     float error_rate { 0.11 };
+    uint32_t rng_seed { 0 };
     uint32_t genome_size { 5000000 };
     uint32_t max_diff { 250 };
     bool output_kg { false };
     bool illumina { false };
-    bool clean { false };
     bool binomial { false };
     uint32_t max_covg { 600 };
     uint32_t min_cluster_size { 10 };

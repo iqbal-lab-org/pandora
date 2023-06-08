@@ -16,7 +16,6 @@ class LocalPRG;
 
 class pangenome::Node {
 public:
-    std::unordered_multiset<ReadPtr> reads;
     std::set<SamplePtr, SamplePtrSorterBySampleId> samples;
     const uint32_t prg_id; // corresponding the the LocalPRG id - TODO: this is not
                            // needed - we point to the LocalPRG, which has this info
@@ -24,7 +23,7 @@ public:
         node_id; // unique node id, so can have multiple copies of a localPRG in graph
     const std::string name; // TODO: this is not needed - we point to the LocalPRG,
                             // which has this info
-    mutable uint32_t covg; // TODO: this is not needed - it is reads.size()
+    mutable uint32_t covg;
     std::shared_ptr<LocalPRG> prg; // TODO: this should be made const
     KmerGraphWithCoverage kmer_prg_with_coverage;
 
@@ -39,8 +38,6 @@ public:
 
     // Node(const Node&);
     // Node& operator=(const Node&);
-
-    void remove_read(ReadPtr);
 
     std::string get_name() const;
 
@@ -59,8 +56,6 @@ public:
     friend std::ostream& operator<<(std::ostream& out, const Node& n);
 
     friend class pangenome::Graph;
-
-    friend class pangenome::Read;
 };
 
 struct EqualComparatorWeakNodePtr {

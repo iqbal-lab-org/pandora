@@ -193,9 +193,9 @@ int find_prob_thresh(std::vector<uint32_t>& kmer_prob_dist)
     return peak - 200;
 }
 
-uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
-    const fs::path& outdir, const uint32_t k, float& e_rate, const uint32_t covg,
-    bool& bin, const uint32_t& sample_id)
+uint32_t estimate_parameters(const std::shared_ptr<pangenome::Graph> &pangraph,
+    const fs::path& outdir, const uint32_t k, float e_rate, const uint32_t covg,
+    bool bin, const uint32_t& sample_id)
 {
     uint32_t exp_depth_covg = covg;
 

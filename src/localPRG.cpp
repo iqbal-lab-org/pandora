@@ -1699,7 +1699,7 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
     const bool bin, const uint32_t global_covg,
     const uint32_t& max_num_kmers_to_average, const uint32_t& sample_id) const
 {
-    if (pnode->reads.empty()) {
+    if (pnode->covg == 0) {
         BOOST_LOG_TRIVIAL(warning) << "Node " << pnode->get_name() << " has no reads";
         return;
     }
@@ -1820,17 +1820,6 @@ void LocalPRG::add_variants_to_vcf(VCF& master_vcf, pangenome::NodePtr pnode,
     {
         master_vcf.append_vcf(vcf);
     }
-}
-
-std::string LocalPRG::random_path()
-{
-    std::vector<LocalNodePtr> npath;
-    npath.push_back(prg.nodes.at(0));
-    while (not npath.back()->outNodes.empty()) {
-        uint32_t random_number = rand() % npath.back()->outNodes.size();
-        npath.push_back(npath.back()->outNodes[random_number]);
-    }
-    return string_along_path(npath);
 }
 
 bool operator!=(
