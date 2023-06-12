@@ -10,15 +10,7 @@ MinimizerHit::MinimizerHit(const uint32_t i, const Minimizer& minimizer_from_rea
     , read_start_position { minimizer_from_read.pos_of_kmer_in_read.start }
     , read_strand { minimizer_from_read.is_forward_strand }
     , minimizer_from_PRG { minimizer_from_PRG }
-{
-//    const bool both_minimizers_have_same_length
-//        = minimizer_from_read.pos_of_kmer_in_read.length
-//        == minimizer_from_PRG.path.length();
-//    if (!both_minimizers_have_same_length) {
-//        fatal_error("Error when storing minimizers: minimizer from read/sequence "
-//                    "and from PRG have different lengths");
-//    }
-}
+{ }
 
 bool MinimizerHit::operator==(const MinimizerHit& y) const
 {
@@ -31,9 +23,9 @@ bool MinimizerHit::operator==(const MinimizerHit& y) const
     if (get_prg_id() != y.get_prg_id()) {
         return false;
     }
-//    if (!(get_prg_path() == y.get_prg_path())) {
-//        return false;
-//    }
+    if (!(get_kmer_node_id() == y.get_kmer_node_id())) {
+        return false;
+    }
     if (same_strands() != y.same_strands()) {
         return false;
     }
@@ -74,13 +66,13 @@ bool MinimizerHit::operator<(const MinimizerHit& y) const
         return false;
     }
 
-    // then by position on target string
-//    if (get_prg_path() < y.get_prg_path()) {
-//        return true;
-//    }
-//    if (y.get_prg_path() < get_prg_path()) {
-//        return false;
-//    }
+    // then by position on the DAG
+    if (get_kmer_node_id() < y.get_kmer_node_id()) {
+        return true;
+    }
+    if (y.get_kmer_node_id() < get_kmer_node_id()) {
+        return false;
+    }
 
     return false;
 }

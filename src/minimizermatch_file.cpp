@@ -7,7 +7,7 @@ MinimizerMatchFile::MinimizerMatchFile(const fs::path &filepath,
                                        const std::vector<std::string> &prg_names,
                                        bool is_fake_file) :
     GenericFile(filepath, is_fake_file), prg_names(prg_names) {
-    (*this) << "kmer\tread\tread_start\tread_end\tread_strand\tprg\tprg_path\tprg_strand\n";
+    (*this) << "kmer\tread\tread_start\tread_end\tread_strand\tprg\tprg_strand\n";
 }
 
 void MinimizerMatchFile::write_hits(const Seq &seq, const MinimizerHits &hits, const uint32_t k) {

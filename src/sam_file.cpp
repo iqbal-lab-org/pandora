@@ -134,6 +134,7 @@ std::string SAMFile::get_sam_record_from_hit_cluster(
         const MinimizerHitPtr first_hit = *(cluster.begin());
         const std::string &prg_name = prg_names[first_hit->get_prg_id()];
 
+        // TODO: how to get alignment start now?
 //        const uint32_t alignment_start = first_hit->get_prg_path().begin()->start + 1;
 
         const std::vector<bool> mapped_positions_bitset =
@@ -162,11 +163,6 @@ std::string SAMFile::get_sam_record_from_hit_cluster(
             right_flank = rev_complement(right_flank);
             std::swap(left_flank, right_flank);
         }
-
-//        std::stringstream cluster_of_hits_prg_paths_ss;
-//        for (const MinimizerHitPtr &hit : cluster) {
-//            cluster_of_hits_prg_paths_ss << hit->get_prg_path() << "->";
-//        }
 
         auto number_ambiguous_bases = std::count_if(
             segment_sequence.begin(), segment_sequence.end(),
@@ -203,8 +199,7 @@ std::string SAMFile::get_sam_record_from_hit_cluster(
             << "MP:i:" << plus_strand_count << "\t"
             << "MM:i:" << minus_strand_count << "\t"
             << "LF:Z:" << left_flank << "\t"
-            << "RF:Z:" << right_flank << "\t"
-//            << "PP:Z:" << cluster_of_hits_prg_paths_ss.str() << "\n";
+            << "RF:Z:" << right_flank << "\n";
             ;
 
         #pragma omp critical(prg_ids_that_we_mapped_to)

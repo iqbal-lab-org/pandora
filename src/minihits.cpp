@@ -44,12 +44,12 @@ bool pCompReadPositionFirst::operator()(const MinimizerHitPtr& lhs, const Minimi
     if (rhs->get_prg_id() < lhs->get_prg_id()) {
         return false;
     }
-//    if (lhs->get_prg_path() < rhs->get_prg_path()) {
-//        return true;
-//    }
-//    if (rhs->get_prg_path() < lhs->get_prg_path()) {
-//        return false;
-//    }
+    if (lhs->get_kmer_node_id() < rhs->get_kmer_node_id()) {
+        return true;
+    }
+    if (rhs->get_kmer_node_id() < lhs->get_kmer_node_id()) {
+        return false;
+    }
     return false;
 }
 

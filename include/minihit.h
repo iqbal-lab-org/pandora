@@ -24,7 +24,6 @@ public:
     inline uint32_t get_read_id() const { return read_id; }
     inline uint32_t get_read_start_position() const { return read_start_position; }
     inline uint32_t get_prg_id() const { return minimizer_from_PRG.prg_id; }
-//    inline const prg::Path& get_prg_path() const { return minimizer_from_PRG.path; }
     inline uint32_t get_kmer_node_id() const { return minimizer_from_PRG.knode_id; }
     inline bool get_prg_kmer_strand() const { return minimizer_from_PRG.strand; }
     inline bool same_strands() const
