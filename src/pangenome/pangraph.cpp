@@ -148,7 +148,7 @@ std::vector<LocalNodePtr> pangenome::Graph::infer_node_vcf_reference_path(
     const auto& prg = *prg_ptr;
     if (vcf_refs.find(prg.name) != vcf_refs.end()) {
         const auto& vcf_reference_sequence = vcf_refs.at(prg.name);
-        const auto reference_path = prg.get_valid_vcf_reference(vcf_reference_sequence);
+        auto reference_path = prg.get_valid_vcf_reference(vcf_reference_sequence);
         if (!reference_path.empty())
             return reference_path;
     }
