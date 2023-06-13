@@ -134,9 +134,6 @@ std::string SAMFile::get_sam_record_from_hit_cluster(
         const MinimizerHitPtr first_hit = *(cluster.begin());
         const std::string &prg_name = prg_names[first_hit->get_prg_id()];
 
-        // TODO: how to get alignment start now?
-//        const uint32_t alignment_start = first_hit->get_prg_path().begin()->start + 1;
-
         const std::vector<bool> mapped_positions_bitset =
             get_mapped_positions_bitset(seq, cluster);
         const Cigar cigar = get_cigar(mapped_positions_bitset);
@@ -185,7 +182,7 @@ std::string SAMFile::get_sam_record_from_hit_cluster(
         ss  << seq.name << "\t"
             << flag << "\t"
             << prg_name << "\t"
-//            << alignment_start << "\t"
+            << ".\t"
             << "." << "\t"
             << "255\t"
             << cigar << "\t"
