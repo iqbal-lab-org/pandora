@@ -15,16 +15,13 @@ std::string SAMFile::get_header() const {
     }
     ss << "@PG\tID:pandora\tPN:pandora\tVN:" << PANDORA_VERSION
        << "\tCL: " << PandoraGlobals::command_line << "\n";
-    ss << "@CO\tThe reference length (in @SQ header lines) and the POS field refer to "
-          "the string representation of the PRGs\n";
+    ss << "@CO\tThe reference length (LN in @SQ header lines) is the length of the string representation of the PRGs\n";
     ss << "@CO\tLF: left flank sequence, the sequence before the first "
           "mapped kmer, soft-clipped, max " << flank_size << " bps\n";
     ss << "@CO\tRF: right flank sequence, the sequence after the last "
           "mapped kmer, soft-clipped, max " << flank_size << " bps\n";
     ss << "@CO\tMP: number of minimizer matches on the plus strand in the cluster of hits\n";
     ss << "@CO\tMM: number of minimizer matches on the minus strand in the cluster of hits\n";
-    ss << "@CO\tPP: Prg Paths of the cluster of hits: the PRG path of each "
-          "hit in considered cluster of hits\n";
     ss << "@CO\tNM: Total number of mismatches in the quasi-alignment\n";
     ss << "@CO\tAS: Alignment score (number of matches)\n";
     ss << "@CO\tnn: Number of ambiguous bases in the quasi-alignment\n";
