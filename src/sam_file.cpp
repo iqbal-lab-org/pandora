@@ -182,7 +182,7 @@ std::string SAMFile::get_sam_record_from_hit_cluster(
         ss  << seq.name << "\t"
             << flag << "\t"
             << prg_name << "\t"
-            << ".\t"
+            << "0\t"
             << "." << "\t"
             << "255\t"
             << cigar << "\t"
