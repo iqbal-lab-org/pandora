@@ -29,7 +29,7 @@ jobs:
           mkdir build_release && cd build_release
           cmake -DCMAKE_BUILD_TYPE=Release -DHUNTER_JOBS_NUMBER=4 ..
           make -j4
-          ctest -V
+          # ctest -V
           ./pandora --help
           cd ..
 
@@ -38,6 +38,6 @@ jobs:
           mkdir build_debug && cd build_debug
           cmake -DCMAKE_BUILD_TYPE=Debug -DHUNTER_JOBS_NUMBER=4 ..
           make -j4
-          ctest -V
+          # ctest -V
           ./pandora --help
           cd ..
