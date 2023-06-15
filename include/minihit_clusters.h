@@ -20,7 +20,8 @@
 class MinimizerHitClusters {
 public:
     explicit MinimizerHitClusters(const uint32_t rng_seed) : insertion_phase(true), clusters(){
-        if (bool deterministic_run = rng_seed > 0; deterministic_run) {
+        bool deterministic_run = rng_seed > 0;
+        if (deterministic_run) {
             rng = std::mt19937(rng_seed);
         } else{
             rng = std::mt19937(std::random_device()());
