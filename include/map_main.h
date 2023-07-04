@@ -44,6 +44,7 @@ struct MapOptions {
     bool illumina { false };
     bool clean { false };
     bool binomial { false };
+    bool auto_update_params { false };
     uint32_t max_covg { 300 };
     bool genotype { false };
     bool local_genotype { false };
