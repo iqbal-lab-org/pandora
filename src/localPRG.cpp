@@ -1719,26 +1719,22 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
 
     std::vector<uint32_t> covgs
         = get_covgs_along_localnode_path(pnode, lmp, kmp, sample_id);
-    auto mode_covg = Maths::mode(covgs.begin(), covgs.end());
     auto mean_covg = Maths::mean(covgs.begin(), covgs.end());
     BOOST_LOG_TRIVIAL(debug) << "Found global coverage " << global_covg
-                             << " and path mode " << mode_covg << " and mean "
-                             << mean_covg;
+                             << " and path  mean " << mean_covg;
 
-    if (mode_covg < min_absolute_gene_coverage || mean_covg < min_absolute_gene_coverage) {
+    if (mean_covg < min_absolute_gene_coverage) {
         BOOST_LOG_TRIVIAL(warning)
             << "Filtering out gene " << name << " due to "
-            << "mode coverage (" << mode_covg << ") or "
             << "mean coverage (" << mean_covg << ") "
             << "being too low, less than the --min-abs-gene-coverage parameter (" << min_absolute_gene_coverage << ")";
         kmp.clear();
         return;
     }
 
-    if (mode_covg < min_relative_gene_coverage*global_covg || mean_covg < min_relative_gene_coverage*global_covg) {
+    if (mean_covg < min_relative_gene_coverage*global_covg) {
         BOOST_LOG_TRIVIAL(warning)
             << "Filtering out gene " << name << " due to "
-            << "mode coverage (" << mode_covg << ") or "
             << "mean coverage (" << mean_covg << ") "
             << "being too low, less than the "
             << "--min-rel-gene-coverage * global coverage ("
@@ -1748,10 +1744,9 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
         return;
     }
 
-    if (mode_covg > max_relative_gene_coverage*global_covg || mean_covg > max_relative_gene_coverage*global_covg) {
+    if (mean_covg > max_relative_gene_coverage*global_covg) {
         BOOST_LOG_TRIVIAL(warning)
             << "Filtering out gene " << name << " due to "
-            << "mode coverage (" << mode_covg << ") or "
             << "mean coverage (" << mean_covg << ") "
             << "being too high, larger than the "
             << "--max-rel-gene-coverage * global coverage ("

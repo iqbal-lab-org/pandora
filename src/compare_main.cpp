@@ -106,12 +106,12 @@ void setup_compare_subcommand(CLI::App& app)
     compare_subcmd
         ->add_flag(
             "--min-abs-gene-coverage", opt->min_absolute_gene_coverage,
-            "Minimum absolute mean and mode gene coverage to keep a gene. Given the "
+            "Minimum absolute mean gene coverage to keep a gene. Given the "
             "coverage on the kmers of the maximum likelihood path of a gene, we compute "
-            "the mean and the mode gene coverage and compare with the value in this "
-            "parameter. If either the mean or the mode is lower than this parameter, "
+            "the mean gene coverage and compare with the value in this "
+            "parameter. If the mean is lower than this parameter, "
             "the gene is filtered out, e.g. if this parameter value is "
-            "3, then all genes with mean or mode <3 will be filtered out.")
+            "3, then all genes with mean <3 will be filtered out.")
         ->capture_default_str()
         ->type_name("FLOAT")
         ->group("Filtering");
@@ -119,12 +119,12 @@ void setup_compare_subcommand(CLI::App& app)
     compare_subcmd
         ->add_flag(
             "--min-rel-gene-coverage", opt->min_relative_gene_coverage,
-            "Minimum relative mean and mode gene coverage to keep a gene. This is a proportion, between 0.0 and 1.0. "
+            "Minimum relative mean gene coverage to keep a gene. This is a proportion, between 0.0 and 1.0. "
             "Given the coverage on the kmers of the maximum likelihood path of a gene, we compute "
-            "the mean and the mode gene coverage and compare with the value in this "
-            "parameter and the global coverage. If either the mean or the mode is lower"
+            "the mean gene coverage and compare with the value in this "
+            "parameter and the global coverage. If the mean is lower"
             " than the computed value, the gene is filtered out, e.g. if this parameter value is "
-            "0.05, then all genes with mean or mode < 5% of the global coverage will be "
+            "0.05, then all genes with mean < 5% of the global coverage will be "
             "filtered out.")
         ->capture_default_str()
         ->type_name("FLOAT")
@@ -133,12 +133,12 @@ void setup_compare_subcommand(CLI::App& app)
     compare_subcmd
         ->add_flag(
             "--max-rel-gene-coverage", opt->max_relative_gene_coverage,
-            "Maximum relative mean and mode gene coverage to keep a gene. "
+            "Maximum relative mean gene coverage to keep a gene. "
             "Given the coverage on the kmers of the maximum likelihood path of a gene, we compute "
-            "the mean and the mode gene coverage and compare with the value in this "
-            "parameter and the global coverage. If either the mean or the mode is higher"
+            "the mean gene coverage and compare with the value in this "
+            "parameter and the global coverage. If the mean is higher"
             " than the computed value, the gene is filtered out, e.g. if this parameter value is "
-            "10, then all genes with mean or mode > 10 times the global coverage will be "
+            "10, then all genes with mean >10 times the global coverage will be "
             "filtered out.")
         ->capture_default_str()
         ->type_name("FLOAT")
