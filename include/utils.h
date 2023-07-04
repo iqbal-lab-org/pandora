@@ -79,29 +79,31 @@ void define_clusters(
     const std::string &sample_name,
     const Seq &seq,
     MinimizerHitClusters& clusters_of_hits,
-    const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    const std::vector<uint32_t> &prg_min_path_lengths,
+    const std::vector<std::string> &prg_names,
     std::shared_ptr<MinimizerHits> minimizer_hits, const int max_diff,
     const float& fraction_kmers_required_for_cluster, const uint32_t min_cluster_size,
     const uint32_t expected_number_kmers_in_read_sketch,
     ClusterDefFile& cluster_def_file);
 
-void filter_clusters(
+MinimizerHitClusters filter_clusters(
     const std::string &sample_name,
     const Seq &seq,
-    MinimizerHitClusters& clusters_of_hits,
-    const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    const MinimizerHitClusters& clusters_of_hits,
+    const std::vector<std::string> &prg_names,
     ClusterFilterFile& cluster_filter_file
 );
 
 void add_clusters_to_pangraph(
     const MinimizerHitClusters& minimizer_hit_clusters,
     std::shared_ptr<pangenome::Graph> &pangraph,
-    const std::vector<std::shared_ptr<LocalPRG>>& prgs);
+    Index &index);
 
 MinimizerHitClusters get_minimizer_hit_clusters(
     const std::string &sample_name,
     const Seq &seq,
-    const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    const std::vector<uint32_t> &prg_min_path_lengths,
+    const std::vector<std::string> &prg_names,
     std::shared_ptr<MinimizerHits> minimizer_hits,
     std::shared_ptr<pangenome::Graph> pangraph, const int max_diff,
     const uint32_t& genome_size, const float& fraction_kmers_required_for_cluster,
@@ -111,7 +113,7 @@ MinimizerHitClusters get_minimizer_hit_clusters(
     const uint32_t expected_number_kmers_in_read_sketch = std::numeric_limits<uint32_t>::max());
 
 uint32_t pangraph_from_read_file(const SampleData& sample,
-    std::shared_ptr<pangenome::Graph> pangraph, const Index &index,
+    std::shared_ptr<pangenome::Graph> pangraph, Index &index,
     const int max_diff, const float& e_rate,
     const fs::path& sample_outdir, const uint32_t min_cluster_size = 10,
     const uint32_t genome_size = 5000000, const bool illumina = false, const bool clean = false,

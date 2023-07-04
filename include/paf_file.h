@@ -10,13 +10,13 @@ namespace fs = boost::filesystem;
 
 class PafFile : public GenericFile {
 private:
-    const std::vector<std::shared_ptr<LocalPRG>>& prgs;
+    const std::vector<std::string> &prg_names;
     void write_cluster(const Seq &seq, const MinimizerHits &cluster,
         const std::vector<MinimizerHitPtr> &all_sorted_minimizer_hits);
 
 public:
     PafFile(const fs::path &filepath,
-        const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+        const std::vector<std::string> &prg_names,
         bool is_fake_file = false);
     void write_clusters(const Seq &seq, const MinimizerHitClusters &clusters);
 };

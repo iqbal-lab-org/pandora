@@ -41,11 +41,12 @@ int pandora_random_path(RandomOptions const& opt)
 
     BOOST_LOG_TRIVIAL(info) << "Loading Index...";
     Index index = Index::load(opt.index_file.string());
+    index.load_all_prgs();
     BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
 
     Fastaq fa(opt.compress, false);
 
-    for (const auto& prg_ptr : index.get_prgs()) {
+    for (const auto& prg_ptr : index.get_loaded_prgs()) {
         std::unordered_set<std::string> random_paths;
         auto skip = 0;
         while (random_paths.size() < opt.num_paths and skip < 10) {

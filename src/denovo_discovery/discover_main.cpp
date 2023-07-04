@@ -123,7 +123,7 @@ void setup_discover_subcommand(CLI::App& app)
     discover_subcmd->callback([opt]() { pandora_discover(*opt); });
 }
 
-void pandora_discover_core(const SampleData& sample, const Index &index, const DiscoverOptions& opt)
+void pandora_discover_core(const SampleData& sample, Index &index, const DiscoverOptions& opt)
 {
     const auto& sample_name = sample.first;
     const auto& sample_fpath = sample.second;

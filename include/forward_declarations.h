@@ -11,7 +11,7 @@
 struct MinimizerHit;
 typedef std::shared_ptr<MinimizerHit> MinimizerHitPtr;
 class MinimizerHits;
-typedef std::set<MinimizerHits> MinimizerHitClusters;
+class MinimizerHitClusters;
 class LocalPRG;
 class KmerNode;
 typedef std::shared_ptr<KmerNode> KmerNodePtr;

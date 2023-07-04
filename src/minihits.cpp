@@ -78,6 +78,10 @@ bool MinimizerHits::operator<(const MinimizerHits &rhs) const
     if (rhs.size() > this->size()) {
         return false;
     }
+
+    /*
+     * We don't take the PRG into account anymore when sorting clusters because we now
+     * randomly multimap equally best clusters to random PRGs
     if (first_hit_from_left->get_prg_id() < first_hit_from_right->get_prg_id()) {
         return true;
     }
@@ -96,6 +100,8 @@ bool MinimizerHits::operator<(const MinimizerHits &rhs) const
     if (first_hit_from_right->same_strands() < first_hit_from_left->same_strands()) {
         return false;
     }
+    */
+
     return false;
 }
 

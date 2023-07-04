@@ -56,6 +56,7 @@ int pandora_seq2path(Seq2PathOptions const& opt)
 
     BOOST_LOG_TRIVIAL(info) << "Loading Index...";
     Index index = Index::load(opt.index_file.string());
+    index.load_all_prgs();
     BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
 
     if (index.get_number_of_prgs() == 0) {
@@ -63,7 +64,7 @@ int pandora_seq2path(Seq2PathOptions const& opt)
     }
 
     if (opt.top) {
-        for (const auto &prg : index.get_prgs()) {
+        for (const auto &prg : index.get_loaded_prgs()) {
             std::cout << "Top node path along PRG " << prg->name << ": ";
             auto npath = prg->prg.top_path();
             for (uint32_t j = 0; j != npath.size(); ++j) {
@@ -73,7 +74,7 @@ int pandora_seq2path(Seq2PathOptions const& opt)
         }
         return 0;
     } else if (opt.bottom) {
-        for (const auto &prg : index.get_prgs()) {
+        for (const auto &prg : index.get_loaded_prgs()) {
             std::cout << "Bottom node path along PRG " << prg->name << ": ";
             auto npath = prg->prg.bottom_path();
             for (uint32_t j = 0; j != npath.size(); ++j) {
@@ -96,7 +97,7 @@ int pandora_seq2path(Seq2PathOptions const& opt)
             }
 
             if (index.get_number_of_prgs() == 1) {
-                const auto &prg = index.get_prgs()[0];
+                const auto &prg = index.get_prg_given_id(0);
                 std::cout << "Node path for read " << seq_handle.num_reads_parsed << " "
                           << seq_handle.name << " along PRG " << prg->name << ": ";
                 npath = prg->prg.nodes_along_string(seq_handle.read);
@@ -105,7 +106,7 @@ int pandora_seq2path(Seq2PathOptions const& opt)
                         rev_complement(seq_handle.read));
                 }
             } else if (seq_handle.num_reads_parsed < index.get_number_of_prgs()) {
-                const auto &prg = index.get_prgs()[seq_handle.num_reads_parsed];
+                const auto &prg = index.get_prg_given_id(seq_handle.num_reads_parsed);
                 std::cout << "Node path for read " << seq_handle.num_reads_parsed << " "
                           << seq_handle.name << " along PRG "
                           << prg->name << ": ";

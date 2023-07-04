@@ -1,16 +1,17 @@
 #include "sam_file.h"
 #include "minihits.h"
 #include "minihit.h"
+#include "minihit_clusters.h"
 #include "version.h"
 #include "globals.h"
 
 std::string SAMFile::get_header() const {
     std::stringstream ss;
 
-    for (const auto &prg_name_and_length : prg_name_to_length) {
+    for (uint32_t prg_id : prg_ids_that_we_mapped_to) {
         ss << "@SQ\t"
-           << "SN:" << prg_name_and_length.first << "\t"
-           << "LN:" << prg_name_and_length.second << "\n";
+           << "SN:" << prg_names[prg_id] << "\t"
+           << "LN:" << prg_lengths[prg_id] << "\n";
     }
     ss << "@PG\tID:pandora\tPN:pandora\tVN:" << PANDORA_VERSION
        << "\tCL: " << PandoraGlobals::command_line << "\n";
@@ -131,7 +132,7 @@ std::string SAMFile::get_sam_record_from_hit_cluster(
         const uint32_t flag = is_plus_strand ? 0 : 16;
 
         const MinimizerHitPtr first_hit = *(cluster.begin());
-        const std::string &prg_name = prgs[first_hit->get_prg_id()]->name;
+        const std::string &prg_name = prg_names[first_hit->get_prg_id()];
 
         const uint32_t alignment_start = first_hit->get_prg_path().begin()->start + 1;
 
@@ -204,8 +205,11 @@ std::string SAMFile::get_sam_record_from_hit_cluster(
             << "RF:Z:" << right_flank << "\t"
             << "PP:Z:" << cluster_of_hits_prg_paths_ss.str() << "\n";
 
-        const uint32_t prg_length = prgs[first_hit->get_prg_id()]->seq.size();
-        prg_name_to_length[prg_name] = prg_length;
+        #pragma omp critical(prg_ids_that_we_mapped_to)
+        {
+            prg_ids_that_we_mapped_to.insert(first_hit->get_prg_id());
+        }
+
     }
 
     if (!at_least_a_single_mapping_was_output) {

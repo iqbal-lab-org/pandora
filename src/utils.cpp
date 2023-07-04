@@ -18,6 +18,7 @@
 #include "fastaq_handler.h"
 #include "minimizermatch_file.h"
 #include "sam_file.h"
+#include "minihit_clusters.h"
 
 #define _GNU_SOURCE
 #include <sys/mman.h>
@@ -161,8 +162,9 @@ void add_read_hits(const Seq& sequence,
 
 void decide_if_add_cluster_or_not(
     const Seq &seq,
-    MinimizerHitClusters& clusters_of_hits,
-    const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    MinimizerHitClusters& clusters_of_hits, // Note: clusters_of_hits here is in insertion mode
+    const std::vector<uint32_t> &prg_min_path_lengths,
+    const std::vector<std::string> &prg_names,
     const std::set<MinimizerHitPtr, pComp>::iterator &mh_previous,
     const uint32_t expected_number_kmers_in_read_sketch,
     const float fraction_kmers_required_for_cluster,
@@ -172,11 +174,8 @@ void decide_if_add_cluster_or_not(
     const std::vector<uint32_t> &distances_between_hits,
     ClusterDefFile& cluster_def_file) {
     // keep clusters which cover at least 1/2 the expected number of minihits
-    const uint32_t length_based_threshold = std::min(
-        // TODO: to map, we need to know kmer_prg.min_path_length()
-        // TODO: we should do it without knowing loading the kmer_prg
-        prgs[(*mh_previous)->get_prg_id()]->kmer_prg.min_path_length(),
-        expected_number_kmers_in_read_sketch)
+    const uint32_t length_based_threshold =
+        std::min(prg_min_path_lengths[(*mh_previous)->get_prg_id()], expected_number_kmers_in_read_sketch)
                                       * fraction_kmers_required_for_cluster;
 
     const uint32_t number_of_unique_mini_in_cluster = current_cluster.size() - number_of_equal_read_minimizers;
@@ -195,7 +194,7 @@ void decide_if_add_cluster_or_not(
         {
             // TODO: to create this file, we either need to know the PRG names without loading the PRGs
             // TODO: or to output the id
-            cluster_def_file << seq.name << "\t" << prgs[(*mh_previous)->get_prg_id()]->name << "\t";
+            cluster_def_file << seq.name << "\t" << prg_names[(*mh_previous)->get_prg_id()] << "\t";
             if (cluster_should_be_accepted) {
                 cluster_def_file << "accepted\t";
             }else {
@@ -225,8 +224,9 @@ void decide_if_add_cluster_or_not(
 void define_clusters(
     const std::string &sample_name,
     const Seq &seq,
-    MinimizerHitClusters& clusters_of_hits,
-    const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    MinimizerHitClusters& clusters_of_hits, // Note: clusters_of_hits here is in insertion mode
+    const std::vector<uint32_t> &prg_min_path_lengths,
+    const std::vector<std::string> &prg_names,
     std::shared_ptr<MinimizerHits> minimizer_hits, const int max_diff,
     const float& fraction_kmers_required_for_cluster, const uint32_t min_cluster_size,
     const uint32_t expected_number_kmers_in_read_sketch,
@@ -266,10 +266,10 @@ void define_clusters(
         const bool switched_clusters = switched_reads or switched_prgs or
             hits_too_distant or unconsistent_strands;
         if (switched_clusters) {
-            decide_if_add_cluster_or_not(seq, clusters_of_hits, prgs, mh_previous,
-            expected_number_kmers_in_read_sketch, fraction_kmers_required_for_cluster,
-            min_cluster_size, current_cluster, number_of_equal_read_minimizers,
-            distances_between_hits,cluster_def_file);
+            decide_if_add_cluster_or_not(seq, clusters_of_hits, prg_min_path_lengths, prg_names,
+                mh_previous, expected_number_kmers_in_read_sketch,
+                fraction_kmers_required_for_cluster, min_cluster_size, current_cluster,
+                number_of_equal_read_minimizers, distances_between_hits,cluster_def_file);
 
             // prepare next cluster
             current_cluster.clear();
@@ -284,30 +284,32 @@ void define_clusters(
         current_cluster.insert(*mh_current);
         mh_previous = mh_current;
     }
-    decide_if_add_cluster_or_not(seq, clusters_of_hits, prgs, mh_previous,
+    decide_if_add_cluster_or_not(seq, clusters_of_hits, prg_min_path_lengths, prg_names, mh_previous,
                                  expected_number_kmers_in_read_sketch, fraction_kmers_required_for_cluster,
                                  min_cluster_size, current_cluster, number_of_equal_read_minimizers,
                                  distances_between_hits, cluster_def_file);
-
-    BOOST_LOG_TRIVIAL(trace) << tag << "Found " << clusters_of_hits.size()
-                             << " clusters of hits";
 }
 
-void filter_clusters(
+MinimizerHitClusters filter_clusters(
     const std::string &sample_name,
     const Seq &seq,
-    MinimizerHitClusters& clusters_of_hits,
-    const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    const MinimizerHitClusters& clusters_of_hits,
+    const std::vector<std::string> &prg_names,
     ClusterFilterFile& cluster_filter_file)
 {
     const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(seq.id) + "]: ";
+    MinimizerHitClusters filtered_clusters_of_hits;
 
     // Next order clusters, choose between those that overlap by too much
     BOOST_LOG_TRIVIAL(trace) << tag << "Filter the " << clusters_of_hits.size()
                              << " clusters of hits";
     if (clusters_of_hits.empty()) {
-        return;
+        filtered_clusters_of_hits.finalise_insertions();
+        return filtered_clusters_of_hits;
     }
+
+    std::set<size_t> clusters_to_remove;
+
     // to do this consider pairs of clusters in turn
     auto c_previous = clusters_of_hits.begin();
     for (auto c_current = ++clusters_of_hits.begin();
@@ -326,6 +328,7 @@ void filter_clusters(
         // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters,
         // but could also impose no more than 2k hits in overlap
         {
+            const bool should_remove_current_cluster = c_previous->size() >= c_current->size();
 
             // Note: this is a slow critical region and could be optimised, but there is no need
             // to, as this is just run when debugging files should be created, and is expected
@@ -333,36 +336,48 @@ void filter_clusters(
             if (!cluster_filter_file.is_fake_file) {
 #pragma omp critical(cluster_filter_file)
                 {
-                    if (c_previous->size() >= c_current->size()) {
+                    if (should_remove_current_cluster) {
                         cluster_filter_file
                             << seq.name << "\t"
-                            // TODO: to create this file, we either need to know the PRG names without loading the PRGs
-                            // TODO: or to output the id
-                            << prgs[(*c_current->begin())->get_prg_id()]->name << "\t"
+                            << prg_names[(*c_current->begin())->get_prg_id()] << "\t"
                             << c_current->size() << "\t"
                             << "filtered_out\n";
                     } else {
                         cluster_filter_file
                             << seq.name << "\t"
-                            // TODO: to create this file, we either need to know the PRG names without loading the PRGs
-                            // TODO: or to output the id
-                            << prgs[(*c_previous->begin())->get_prg_id()]->name << "\t"
+                            << prg_names[(*c_previous->begin())->get_prg_id()] << "\t"
                             << c_previous->size() << "\t"
                             << "filtered_out\n";
                     }
                 }
             }
 
-
-            if (c_previous->size() >= c_current->size()) {
-                clusters_of_hits.erase(c_current);
-                c_current = c_previous;
+            if (should_remove_current_cluster) {
+                auto pos = c_current - clusters_of_hits.begin();
+                clusters_to_remove.insert(pos);
+                BOOST_LOG_TRIVIAL(trace) << tag << "Cluster #" << pos << " to be filtered out";
+                // c_previous continues the same
             } else {
-                clusters_of_hits.erase(c_previous);
+                auto pos = c_previous - clusters_of_hits.begin();
+                clusters_to_remove.insert(pos);
+                c_previous = c_current;
+                BOOST_LOG_TRIVIAL(trace) << tag << "Cluster #" << pos << " to be filtered out";
             }
         }
-        c_previous = c_current;
+        else {
+            c_previous = c_current;
+        }
     }
+
+    size_t cluster_index = 0;
+    for (const auto &cluster : clusters_of_hits) {
+        const bool cluster_should_be_added = clusters_to_remove.find(cluster_index) == clusters_to_remove.end();
+        if (cluster_should_be_added) {
+            filtered_clusters_of_hits.insert(cluster);
+        }
+        ++cluster_index;
+    }
+    filtered_clusters_of_hits.finalise_insertions();
 
     // Note: this is a slow critical region and could be optimised, but there is no need
     // to, as this is just run when debugging files should be created, and is expected
@@ -370,24 +385,28 @@ void filter_clusters(
     if (!cluster_filter_file.is_fake_file) {
 #pragma omp critical(cluster_filter_file)
         {
-            for (const auto& cluster : clusters_of_hits) {
+            for (const auto& cluster : filtered_clusters_of_hits) {
                 cluster_filter_file << seq.name << "\t"
-                                    // TODO: to create this file, we either need to know the PRG names without loading the PRGs
-                                    // TODO: or to output the id
-                                    << prgs[(*cluster.begin())->get_prg_id()]->name
+                                    << prg_names[(*cluster.begin())->get_prg_id()]
                                     << "\t" << cluster.size() << "\t"
                                     << "kept\n";
             }
         }
     }
 
-    BOOST_LOG_TRIVIAL(trace) << tag << "Now have " << clusters_of_hits.size()
+    BOOST_LOG_TRIVIAL(trace) << tag << "Now have " << filtered_clusters_of_hits.size()
                              << " clusters of hits";
+
+    return filtered_clusters_of_hits;
 }
 
 void filter_clusters2(MinimizerHitClusters& clusters_of_hits,
     const uint32_t& genome_size)
 {
+    // TODO: this method is all commented out, tagging it for removal
+    // Currently let's just error out if we ever call it
+    fatal_error("Not implemented");
+    /*
     // Sort clusters by size, and filter out those small clusters which are entirely
     // contained in bigger clusters on reads
     BOOST_LOG_TRIVIAL(trace) << "Filter2 the " << clusters_of_hits.size()
@@ -431,30 +450,34 @@ void filter_clusters2(MinimizerHitClusters& clusters_of_hits,
     }
     BOOST_LOG_TRIVIAL(trace) << "Now have " << clusters_of_hits.size()
                              << " clusters of hits";
+    */
 }
 
 void add_clusters_to_pangraph(
     const MinimizerHitClusters& minimizer_hit_clusters,
     std::shared_ptr<pangenome::Graph> &pangraph,
-    const std::vector<std::shared_ptr<LocalPRG>>& prgs)
+    Index &index)
 {
     BOOST_LOG_TRIVIAL(trace) << "Add clusters to PanGraph";
     if (minimizer_hit_clusters.empty()) {
         return;
     }
 
-    // to do this consider pairs of clusters in turn
-    for (auto cluster : minimizer_hit_clusters) {
-        // TODO: here we know prgs[(*cluster.begin())->get_prg_id()] mapped, so we can keep this PRG in RAM
-        pangraph->add_hits_between_PRG_and_read(prgs[(*cluster.begin())->get_prg_id()],
-            (*cluster.begin())->get_read_id(), cluster);
+    for (const auto &cluster : minimizer_hit_clusters) {
+        // each cluster here defines a mapping, so we know which prgs mapped
+        // we lazily load them just now
+        uint32_t mapped_prg_id = (*cluster.begin())->get_prg_id();
+        std::shared_ptr<LocalPRG> prg = index.get_prg_given_id(mapped_prg_id);
+        uint32_t read_id = (*cluster.begin())->get_read_id();
+        pangraph->add_hits_between_PRG_and_read(prg, read_id, cluster);
     }
 }
 
 MinimizerHitClusters get_minimizer_hit_clusters(
     const std::string &sample_name,
     const Seq &seq,
-    const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    const std::vector<uint32_t> &prg_min_path_lengths,
+    const std::vector<std::string> &prg_names,
     std::shared_ptr<MinimizerHits> minimizer_hits,
     std::shared_ptr<pangenome::Graph> pangraph, const int max_diff,
     const uint32_t& genome_size, const float& fraction_kmers_required_for_cluster,
@@ -463,28 +486,31 @@ MinimizerHitClusters get_minimizer_hit_clusters(
     const uint32_t min_cluster_size,
     const uint32_t expected_number_kmers_in_read_sketch)
 {
+    const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(seq.id) + "]: ";
     MinimizerHitClusters minimizer_hit_clusters;
 
-    // this step infers the gene order for a read and adds this to the pangraph
-    // by defining clusters of hits, keeping those which are not noise and
-    // then adding the inferred gene ordering
     if (minimizer_hits->empty()) {
+        minimizer_hit_clusters.finalise_insertions();
+        BOOST_LOG_TRIVIAL(trace) << tag << "Found 0 clusters of hits";
         return minimizer_hit_clusters;
     }
 
-    define_clusters(sample_name, seq, minimizer_hit_clusters, prgs, minimizer_hits, max_diff,
-        fraction_kmers_required_for_cluster, min_cluster_size,
-        expected_number_kmers_in_read_sketch, cluster_def_file);
+    define_clusters(sample_name, seq, minimizer_hit_clusters, prg_min_path_lengths,
+        prg_names, minimizer_hits, max_diff, fraction_kmers_required_for_cluster,
+        min_cluster_size, expected_number_kmers_in_read_sketch, cluster_def_file);
 
-    filter_clusters(sample_name, seq, minimizer_hit_clusters, prgs, cluster_filter_file);
+    minimizer_hit_clusters.finalise_insertions();
+    BOOST_LOG_TRIVIAL(trace) << tag << "Found " << minimizer_hit_clusters.size() << " clusters of hits";
+
+    MinimizerHitClusters filtered_clusters_of_hits = filter_clusters(sample_name, seq, minimizer_hit_clusters, prg_names, cluster_filter_file);
     // filter_clusters2(clusters_of_hits, genome_size);
 
-    return minimizer_hit_clusters;
+    return filtered_clusters_of_hits;
 }
 
 // TODO: this should be in a constructor of pangenome::Graph or in a factory class
 uint32_t pangraph_from_read_file(const SampleData& sample,
-    std::shared_ptr<pangenome::Graph> pangraph, const Index &index,
+    std::shared_ptr<pangenome::Graph> pangraph, Index &index,
     const int max_diff, const float& e_rate,
     const fs::path& sample_outdir, const uint32_t min_cluster_size,
     const uint32_t genome_size, const bool illumina, const bool clean,
@@ -512,12 +538,13 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
     uint32_t id { 0 };
 
     SAMFile filtered_mappings(sample_outdir / (sample_name + ".filtered.sam"),
-        index.get_prgs(), k*2);
+        index.get_prg_names(), index.get_prg_lengths(), k*2);
 
     MinimizerMatchFile minimizer_matches(sample_outdir / (sample_name + ".minimatches"),
-        index.get_prgs(), !keep_extra_debugging_files);
+        index.get_prg_names(), !keep_extra_debugging_files);
     PafFile paf_file(sample_outdir / (sample_name + ".minipaf"),
-        index.get_prgs(), !keep_extra_debugging_files);
+        index.get_prg_names(), !keep_extra_debugging_files);
+
     ClusterDefFile cluster_def_file(sample_outdir / (sample_name + ".clusters_def_report"), !keep_extra_debugging_files);
     ClusterFilterFile cluster_filter_file(sample_outdir / (sample_name + ".clusters_filter_report"), !keep_extra_debugging_files);
 
@@ -602,18 +629,19 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
                     }
                 }
 
-                // infer
+                // infer the clusters of hits
                 MinimizerHitClusters clusters_of_hits =
-                    get_minimizer_hit_clusters(sample_name, sequence, index.get_prgs(),
-                    minimizer_hits, pangraph, max_diff, genome_size,
-                    fraction_kmers_required_for_cluster, cluster_def_file,
-                    cluster_filter_file, min_cluster_size, expected_number_kmers_in_read_sketch);
+                    get_minimizer_hit_clusters(sample_name, sequence,
+                        index.get_prg_min_path_lengths(), index.get_prg_names(),
+                        minimizer_hits, pangraph, max_diff, genome_size,
+                        fraction_kmers_required_for_cluster, cluster_def_file,
+                        cluster_filter_file, min_cluster_size, expected_number_kmers_in_read_sketch);
 
                 const std::string sam_record = filtered_mappings.get_sam_record_from_hit_cluster(
                     sequence, clusters_of_hits);
 #pragma omp critical(pangraph)
                 {
-                    add_clusters_to_pangraph(clusters_of_hits, pangraph, index.get_prgs());
+                    add_clusters_to_pangraph(clusters_of_hits, pangraph, index);
                     filtered_mappings.write_sam_record(sam_record);
                     if (!paf_file.is_fake_file) {
                         paf_file.write_clusters(sequence, clusters_of_hits);
@@ -868,14 +896,4 @@ std::pair<std::vector<std::string>, std::vector<size_t>> split_ambiguous(const s
         offsets.emplace_back(start);
     }
     return std::make_pair(substrs, offsets);
-}
-
-
-uintmax_t get_number_of_bytes_in_file(const fs::path &file) {
-    const uintmax_t filesize = file.size();
-    const bool failed_to_get_filesize = filesize == static_cast<uintmax_t>(-1);
-    if (failed_to_get_filesize) {
-        fatal_error("Failed to get file size of file ", file.string());
-    }
-    return filesize;
 }

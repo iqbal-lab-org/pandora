@@ -1,12 +1,13 @@
 #include "paf_file.h"
 #include "minihits.h"
 #include "minihit.h"
+#include "minihit_clusters.h"
 #include "localPRG.h"
 
 PafFile::PafFile(const fs::path &filepath,
-                 const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+                 const std::vector<std::string> &prg_names,
                  bool is_fake_file)
-    : GenericFile(filepath, is_fake_file), prgs(prgs) {
+    : GenericFile(filepath, is_fake_file), prg_names(prg_names) {
     (*this) << "qname\tqmlen\tqmstart\tqmend\tqmstrands\tprg\tnmatch\talen\tmapq\n";
 }
 
@@ -60,7 +61,7 @@ void PafFile::write_cluster(const Seq &seq, const MinimizerHits &cluster,
              << lowest_position << "\t"
              << highest_position << "\t"
              << strands_info << "\t"
-             << prgs[first_hit->get_prg_id()]->name << "\t"
+             << prg_names[first_hit->get_prg_id()] << "\t"
              << nmatch << "\t"
              << alen << "\t"
              << mapq << "\n";

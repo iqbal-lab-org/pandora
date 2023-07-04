@@ -43,12 +43,13 @@ int pandora_get_vcf_ref(GetVcfRefOptions const& opt)
 
     BOOST_LOG_TRIVIAL(info) << "Loading Index...";
     Index index = Index::load(opt.index_file.string());
+    index.load_all_prgs();
     BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
 
     Fastaq output_fasta(opt.compress, false);
 
     if (opt.seqfile.empty()) {
-        for (const auto& prg_ptr : index.get_prgs()) {
+        for (const auto& prg_ptr : index.get_loaded_prgs()) {
             std::vector<LocalNodePtr> npath;
             npath = prg_ptr->prg.top_path();
             output_fasta.add_entry(prg_ptr->name, prg_ptr->string_along_path(npath));
@@ -59,7 +60,7 @@ int pandora_get_vcf_ref(GetVcfRefOptions const& opt)
         FastaqHandler readfile(opt.seqfile.string());
         bool found { false };
 
-        for (const auto& prg_ptr : index.get_prgs()) {
+        for (const auto& prg_ptr : index.get_loaded_prgs()) {
             found = false;
             readfile.get_nth_read(0);
             while (not readfile.eof()) {
