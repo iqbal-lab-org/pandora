@@ -94,6 +94,48 @@ void setup_discover_subcommand(CLI::App& app)
         ->type_name("INT")
         ->group("Filtering");
 
+    discover_subcmd
+        ->add_flag(
+            "--min-abs-gene-coverage", opt->min_absolute_gene_coverage,
+            "Minimum absolute mean and mode gene coverage to keep a gene. Given the "
+            "coverage on the kmers of the maximum likelihood path of a gene, we compute "
+            "the mean and the mode gene coverage and compare with the value in this "
+            "parameter. If either the mean or the mode is lower than this parameter, "
+            "the gene is filtered out, e.g. if this parameter value is "
+            "3, then all genes with mean or mode <3 will be filtered out.")
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Filtering");
+
+    discover_subcmd
+        ->add_flag(
+            "--min-rel-gene-coverage", opt->min_relative_gene_coverage,
+            "Minimum relative mean and mode gene coverage to keep a gene. This is a proportion, between 0.0 and 1.0. "
+            "Given the coverage on the kmers of the maximum likelihood path of a gene, we compute "
+            "the mean and the mode gene coverage and compare with the value in this "
+            "parameter and the global coverage. If either the mean or the mode is lower"
+            " than the computed value, the gene is filtered out, e.g. if this parameter value is "
+            "0.05, then all genes with mean or mode < 5% of the global coverage will be "
+            "filtered out.")
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Filtering");
+
+    discover_subcmd
+        ->add_flag(
+            "--max-rel-gene-coverage", opt->max_relative_gene_coverage,
+            "Maximum relative mean and mode gene coverage to keep a gene. "
+            "Given the coverage on the kmers of the maximum likelihood path of a gene, we compute "
+            "the mean and the mode gene coverage and compare with the value in this "
+            "parameter and the global coverage. If either the mean or the mode is higher"
+            " than the computed value, the gene is filtered out, e.g. if this parameter value is "
+            "10, then all genes with mean or mode > 10 times the global coverage will be "
+            "filtered out.")
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Filtering");
+
+
     description
         = "Minimum size of a cluster of hits between a read and a loci to consider "
           "the loci present";
@@ -219,7 +261,9 @@ void pandora_discover_core(const SampleData& sample, Index &index, const Discove
         const auto &prg = index.get_prg_given_id(pangraph_node->prg_id);
         prg->add_consensus_path_to_fastaq(consensus_fq,
              pangraph_node, kmp, lmp, index.get_window_size(), opt.binomial, covg,
-             opt.max_num_kmers_to_avg, 0);
+             opt.max_num_kmers_to_avg, 0,
+             opt.min_absolute_gene_coverage, opt.min_relative_gene_coverage,
+             opt.max_relative_gene_coverage);
 
         if (kmp.empty()) {
             // mark the node as to remove

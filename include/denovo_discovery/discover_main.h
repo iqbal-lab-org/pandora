@@ -30,6 +30,9 @@ struct DiscoverOptions {
     bool clean { false };
     bool binomial { false };
     uint32_t max_covg { 600 };
+    float min_absolute_gene_coverage { 3.0 };
+    float min_relative_gene_coverage { 0.05 };
+    float max_relative_gene_coverage { 10 };
     uint32_t min_cluster_size { 10 };
     uint32_t max_num_kmers_to_avg { 100 };
     bool keep_extra_debugging_files { false };

@@ -1697,7 +1697,9 @@ void LocalPRG::add_sample_covgs_to_vcf(VCF& vcf, const KmerGraphWithCoverage& kg
 void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePtr pnode,
     std::vector<KmerNodePtr>& kmp, std::vector<LocalNodePtr>& lmp, const uint32_t w,
     const bool bin, const uint32_t global_covg,
-    const uint32_t& max_num_kmers_to_average, const uint32_t& sample_id) const
+    const uint32_t& max_num_kmers_to_average, const uint32_t& sample_id,
+    float min_absolute_gene_coverage, float min_relative_gene_coverage,
+    float max_relative_gene_coverage) const
 {
     if (pnode->reads.empty()) {
         BOOST_LOG_TRIVIAL(warning) << "Node " << pnode->get_name() << " has no reads";
@@ -1723,26 +1725,38 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
                              << " and path mode " << mode_covg << " and mean "
                              << mean_covg;
 
-    /*
-    if (global_covg > 20 and 20 * mean_covg < global_covg) {
-        BOOST_LOG_TRIVIAL(debug)
-            << "Skip LocalPRG " << name << " mean along max likelihood path too low";
+    if (mode_covg < min_absolute_gene_coverage || mean_covg < min_absolute_gene_coverage) {
+        BOOST_LOG_TRIVIAL(warning)
+            << "Filtering out gene " << name << " due to "
+            << "mode coverage (" << mode_covg << ") or "
+            << "mean coverage (" << mean_covg << ") "
+            << "being too low, less than the --min-abs-gene-coverage parameter (" << min_absolute_gene_coverage << ")";
         kmp.clear();
         return;
     }
 
-    if (global_covg > 20 and mean_covg > 10 * global_covg) {
-        BOOST_LOG_TRIVIAL(debug) << "Skip LocalPRG " << name
-                                 << " as mean along max likelihood path too high";
+    if (mode_covg < min_relative_gene_coverage*global_covg || mean_covg < min_relative_gene_coverage*global_covg) {
+        BOOST_LOG_TRIVIAL(warning)
+            << "Filtering out gene " << name << " due to "
+            << "mode coverage (" << mode_covg << ") or "
+            << "mean coverage (" << mean_covg << ") "
+            << "being too low, less than the "
+            << "--min-rel-gene-coverage * global coverage ("
+            << min_relative_gene_coverage << " * " << global_covg << " = "
+            << min_relative_gene_coverage * global_covg << ")";
         kmp.clear();
         return;
     }
-    */
 
-    if (global_covg > 20 and mode_covg < 3 and mean_covg < 3) {
-        BOOST_LOG_TRIVIAL(debug)
-            << "Skip LocalPRG " << name
-            << " as mode and mean along max likelihood path too low";
+    if (mode_covg > max_relative_gene_coverage*global_covg || mean_covg > max_relative_gene_coverage*global_covg) {
+        BOOST_LOG_TRIVIAL(warning)
+            << "Filtering out gene " << name << " due to "
+            << "mode coverage (" << mode_covg << ") or "
+            << "mean coverage (" << mean_covg << ") "
+            << "being too high, larger than the "
+            << "--max-rel-gene-coverage * global coverage ("
+            << max_relative_gene_coverage << " * " << global_covg << " = "
+            << max_relative_gene_coverage * global_covg << ")";
         kmp.clear();
         return;
     }
