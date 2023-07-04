@@ -403,6 +403,8 @@ MinimizerHitClusters filter_clusters(
 void filter_clusters2(MinimizerHitClusters& clusters_of_hits,
     const uint32_t& genome_size)
 {
+    // TODO: this method is all commented out, tagging it for removal
+    // Currently let's just error out if we ever call it
     fatal_error("Not implemented");
     /*
     // Sort clusters by size, and filter out those small clusters which are entirely
