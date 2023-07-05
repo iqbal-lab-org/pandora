@@ -195,7 +195,7 @@ int find_prob_thresh(std::vector<uint32_t>& kmer_prob_dist)
 
 uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
     const fs::path& outdir, const uint32_t k, float& input_e_rate, const uint32_t covg,
-    bool& input_bin, const uint32_t& sample_id, bool update_parameters)
+    bool& input_bin, const uint32_t& sample_id, bool do_not_auto_update_params)
 {
     float e_rate = input_e_rate;
     bool bin = input_bin;
@@ -359,7 +359,7 @@ uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
     }
 
     // update params if asked to
-    if (update_parameters) {
+    if (!do_not_auto_update_params) {
         input_e_rate = e_rate;
         input_bin = bin;
     }

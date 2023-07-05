@@ -95,11 +95,12 @@ void setup_map_subcommand(CLI::App& app)
         ->group("Parameter Estimation");
 
     map_subcmd
-        ->add_flag("--auto-update-params", opt->auto_update_params,
-            "Automatically update error rate and kmer coverage model parameters based "
-            "on the mapping of the previous sample. It could potentially generate "
-            "more accurate results in some very specific cases, first run should always "
-            "have this flag off")
+        ->add_flag("--dont-auto-update-params", opt->do_not_auto_update_params,
+            "By default, pandora automatically updates error rate and kmer coverage model parameters based "
+            "on the mapping of the previous sample. This could potentially generate "
+            "more accurate results if your samples have no sequencing issues and a "
+            "consistent protocol was followed for the sequencing of all samples. If this is "
+            "not the case, deactivate this feature by activating this flag")
         ->group("Parameter Estimation");
 
     map_subcmd
@@ -300,7 +301,7 @@ int pandora_map(MapOptions& opt)
 
     BOOST_LOG_TRIVIAL(info) << "Estimating parameters for kmer graph model...";
     auto exp_depth_covg = estimate_parameters(pangraph, opt.outdir, index.get_kmer_size(),
-        opt.error_rate, covg, opt.binomial, 0, opt.auto_update_params);
+        opt.error_rate, covg, opt.binomial, 0, opt.do_not_auto_update_params);
     genotyping_options.add_exp_depth_covg(exp_depth_covg);
 
     if (genotyping_options.get_min_kmer_covg() == 0) {

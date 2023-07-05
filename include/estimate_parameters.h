@@ -21,6 +21,6 @@ int find_prob_thresh(std::vector<uint32_t>&);
 
 uint32_t estimate_parameters(std::shared_ptr<pangenome::Graph> pangraph,
     const fs::path& outdir, const uint32_t k, float& e_rate, const uint32_t covg,
-    bool& bin, const uint32_t& sample_id, bool update_parameters);
+    bool& bin, const uint32_t& sample_id, bool do_not_auto_update_params);
 
 #endif
