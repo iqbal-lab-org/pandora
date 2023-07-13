@@ -1739,7 +1739,9 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
             << "being too low, less than the "
             << "--min-rel-gene-coverage * global coverage ("
             << min_relative_gene_coverage << " * " << global_covg << " = "
-            << min_relative_gene_coverage * global_covg << ")";
+            << min_relative_gene_coverage * global_covg << "). "
+            << "Is global coverage very different from the expected (too low/high)? "
+            << "Try setting a better genome length (see --genome-size param).";
         kmp.clear();
         return;
     }
@@ -1751,7 +1753,9 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
             << "being too high, larger than the "
             << "--max-rel-gene-coverage * global coverage ("
             << max_relative_gene_coverage << " * " << global_covg << " = "
-            << max_relative_gene_coverage * global_covg << ")";
+            << max_relative_gene_coverage * global_covg << "). "
+            << "Is global coverage very different from the expected (too low/high)? "
+            << "Try setting a better genome length (see --genome-size param).";
         kmp.clear();
         return;
     }
