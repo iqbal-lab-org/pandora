@@ -110,7 +110,7 @@ void setup_map_subcommand(CLI::App& app)
         ->group("Filtering");
 
     map_subcmd
-        ->add_flag(
+        ->add_option(
             "--min-abs-gene-coverage", opt->min_absolute_gene_coverage,
             "Minimum absolute mean gene coverage to keep a gene. Given the "
             "coverage on the kmers of the maximum likelihood path of a gene, we compute "
@@ -123,7 +123,7 @@ void setup_map_subcommand(CLI::App& app)
         ->group("Filtering");
 
     map_subcmd
-        ->add_flag(
+        ->add_option(
             "--min-rel-gene-coverage", opt->min_relative_gene_coverage,
             "Minimum relative mean gene coverage to keep a gene. This is a proportion, between 0.0 and 1.0. "
             "Given the coverage on the kmers of the maximum likelihood path of a gene, we compute "
@@ -137,7 +137,7 @@ void setup_map_subcommand(CLI::App& app)
         ->group("Filtering");
 
     map_subcmd
-        ->add_flag(
+        ->add_option(
             "--max-rel-gene-coverage", opt->max_relative_gene_coverage,
             "Maximum relative mean gene coverage to keep a gene. "
             "Given the coverage on the kmers of the maximum likelihood path of a gene, we compute "
