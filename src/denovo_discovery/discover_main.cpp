@@ -89,6 +89,15 @@ void setup_discover_subcommand(CLI::App& app)
         ->group("Parameter Estimation");
 
     discover_subcmd
+        ->add_flag("--dont-auto-update-params", opt->do_not_auto_update_params,
+            "By default, pandora automatically updates error rate and kmer coverage model parameters based "
+            "on the mapping of the previous sample. This could potentially generate "
+            "more accurate results if your samples have no sequencing issues and a "
+            "consistent protocol was followed for the sequencing of all samples. If this is "
+            "not the case, deactivate this feature by activating this flag")
+        ->group("Parameter Estimation");
+
+    discover_subcmd
         ->add_option("--max-covg", opt->max_covg, "Maximum coverage of reads to accept")
         ->capture_default_str()
         ->type_name("INT")
@@ -164,7 +173,7 @@ void setup_discover_subcommand(CLI::App& app)
     discover_subcmd->callback([opt]() { pandora_discover(*opt); });
 }
 
-void pandora_discover_core(const SampleData& sample, Index &index, const DiscoverOptions& opt)
+void pandora_discover_core(const SampleData& sample, Index &index, DiscoverOptions& opt)
 {
     const auto& sample_name = sample.first;
     const auto& sample_fpath = sample.second;
@@ -202,6 +211,11 @@ void pandora_discover_core(const SampleData& sample, Index &index, const Discove
     BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
                             << "Updating local PRGs with hits...";
     pangraph->add_hits_to_kmergraphs();
+
+    BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
+                            << "Updating error rate...";
+    estimate_parameters(pangraph, sample_outdir, index.get_kmer_size(), opt.error_rate,
+        covg, opt.binomial, 0, opt.do_not_auto_update_params);
 
     BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
                             << "Find PRG paths and discover novel alleles...";

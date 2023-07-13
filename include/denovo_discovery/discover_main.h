@@ -29,6 +29,7 @@ struct DiscoverOptions {
     bool illumina { false };
     bool clean { false };
     bool binomial { false };
+    bool do_not_auto_update_params { false };
     uint32_t max_covg { 600 };
     float min_absolute_gene_coverage { 3.0 };
     float min_relative_gene_coverage { 0.05 };
