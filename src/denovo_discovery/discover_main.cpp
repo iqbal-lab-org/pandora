@@ -89,9 +89,59 @@ void setup_discover_subcommand(CLI::App& app)
         ->group("Parameter Estimation");
 
     discover_subcmd
+        ->add_flag("--dont-auto-update-params", opt->do_not_auto_update_params,
+            "By default, pandora automatically updates error rate and kmer coverage model parameters based "
+            "on the mapping of the previous sample. This could potentially generate "
+            "more accurate results if your samples have no sequencing issues and a "
+            "consistent protocol was followed for the sequencing of all samples. If this is "
+            "not the case, deactivate this feature by activating this flag")
+        ->group("Parameter Estimation");
+
+    discover_subcmd
         ->add_option("--max-covg", opt->max_covg, "Maximum coverage of reads to accept")
         ->capture_default_str()
         ->type_name("INT")
+        ->group("Filtering");
+
+    discover_subcmd
+        ->add_option(
+            "--min-abs-gene-coverage", opt->min_absolute_gene_coverage,
+            "Minimum absolute mean gene coverage to keep a gene. Given the "
+            "coverage on the kmers of the maximum likelihood path of a gene, we compute "
+            "the mean gene coverage and compare with the value in this "
+            "parameter. If the mean is lower than this parameter, "
+            "the gene is filtered out, e.g. if this parameter value is "
+            "3, then all genes with mean <3 will be filtered out.")
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Filtering");
+
+    discover_subcmd
+        ->add_option(
+            "--min-rel-gene-coverage", opt->min_relative_gene_coverage,
+            "Minimum relative mean gene coverage to keep a gene. This is a proportion, between 0.0 and 1.0. "
+            "Given the coverage on the kmers of the maximum likelihood path of a gene, we compute "
+            "the mean gene coverage and compare with the value in this "
+            "parameter and the global coverage. If the mean is lower"
+            " than the computed value, the gene is filtered out, e.g. if this parameter value is "
+            "0.05, then all genes with mean < 5% of the global coverage will be "
+            "filtered out.")
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Filtering");
+
+    discover_subcmd
+        ->add_option(
+            "--max-rel-gene-coverage", opt->max_relative_gene_coverage,
+            "Maximum relative mean gene coverage to keep a gene. "
+            "Given the coverage on the kmers of the maximum likelihood path of a gene, we compute "
+            "the mean gene coverage and compare with the value in this "
+            "parameter and the global coverage. If the mean is higher"
+            " than the computed value, the gene is filtered out, e.g. if this parameter value is "
+            "10, then all genes with mean >10 times the global coverage will be "
+            "filtered out.")
+        ->capture_default_str()
+        ->type_name("FLOAT")
         ->group("Filtering");
 
     description
@@ -123,7 +173,7 @@ void setup_discover_subcommand(CLI::App& app)
     discover_subcmd->callback([opt]() { pandora_discover(*opt); });
 }
 
-void pandora_discover_core(const SampleData& sample, Index &index, const DiscoverOptions& opt)
+void pandora_discover_core(const SampleData& sample, Index &index, DiscoverOptions& opt)
 {
     const auto& sample_name = sample.first;
     const auto& sample_fpath = sample.second;
@@ -161,6 +211,11 @@ void pandora_discover_core(const SampleData& sample, Index &index, const Discove
     BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
                             << "Updating local PRGs with hits...";
     pangraph->add_hits_to_kmergraphs();
+
+    BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
+                            << "Updating error rate...";
+    estimate_parameters(pangraph, sample_outdir, index.get_kmer_size(), opt.error_rate,
+        covg, opt.binomial, 0, opt.do_not_auto_update_params);
 
     BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
                             << "Find PRG paths and discover novel alleles...";
@@ -219,7 +274,9 @@ void pandora_discover_core(const SampleData& sample, Index &index, const Discove
         const auto &prg = index.get_prg_given_id(pangraph_node->prg_id);
         prg->add_consensus_path_to_fastaq(consensus_fq,
              pangraph_node, kmp, lmp, index.get_window_size(), opt.binomial, covg,
-             opt.max_num_kmers_to_avg, 0);
+             opt.max_num_kmers_to_avg, 0,
+             opt.min_absolute_gene_coverage, opt.min_relative_gene_coverage,
+             opt.max_relative_gene_coverage);
 
         if (kmp.empty()) {
             // mark the node as to remove

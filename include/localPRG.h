@@ -145,7 +145,9 @@ public:
 
     void add_consensus_path_to_fastaq(Fastaq&, pangenome::NodePtr, std::vector<KmerNodePtr>&,
         std::vector<LocalNodePtr>&, const uint32_t, const bool, const uint32_t,
-        const uint32_t& max_num_kmers_to_average, const uint32_t& sample_id) const;
+        const uint32_t& max_num_kmers_to_average, const uint32_t& sample_id,
+        float min_absolute_gene_coverage, float min_relative_gene_coverage,
+        float max_relative_gene_coverage) const;
     std::vector<LocalNodePtr> get_valid_vcf_reference(const std::string&) const;
 
     void add_variants_to_vcf(VCF&, pangenome::NodePtr, const std::string&,
