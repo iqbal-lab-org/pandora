@@ -286,18 +286,11 @@ int pandora_map(MapOptions& opt)
             opt.outdir, opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean, opt.max_covg,
         opt.threads, opt.keep_extra_debugging_files);
 
-    const auto pangraph_gfa { opt.outdir / "pandora.pangraph.gfa" };
-    BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file " << pangraph_gfa;
-    write_pangraph_gfa(pangraph_gfa, pangraph);
-
     if (pangraph->nodes.empty()) {
         BOOST_LOG_TRIVIAL(info) << "Found none of the LocalPRGs in the reads.";
         BOOST_LOG_TRIVIAL(info) << "Done!";
         return 0;
     }
-
-    BOOST_LOG_TRIVIAL(info) << "Updating local PRGs with hits...";
-    pangraph->add_hits_to_kmergraphs();
 
     BOOST_LOG_TRIVIAL(info) << "Estimating parameters for kmer graph model...";
     auto exp_depth_covg = estimate_parameters(pangraph, opt.outdir, index.get_kmer_size(),

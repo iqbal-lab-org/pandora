@@ -3,7 +3,6 @@
 #include <boost/log/trivial.hpp>
 #include "pangenome/pannode.h"
 #include "pangenome/pansample.h"
-#include "pangenome/panread.h"
 #include "minihit.h"
 #include "localPRG.h"
 #include "OptionsAggregator.h"
@@ -61,17 +60,6 @@ Node& Node::operator=(const Node& other)
 
     return *this;
 }*/
-
-void pangenome::Node::remove_read(ReadPtr r)
-{
-    // removes single copy of read
-    auto it = find(reads.begin(), reads.end(), r);
-    if (it != reads.end()) {
-        covg -= 1;
-        reads.erase(it);
-        // it = find(reads.begin(), reads.end(), r);
-    }
-}
 
 std::string pangenome::Node::get_name() const
 {

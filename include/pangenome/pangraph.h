@@ -15,7 +15,6 @@
 namespace fs = boost::filesystem;
 
 using KmerNodePtr = std::shared_ptr<KmerNode>;
-using ReadId = uint32_t;
 using NodeId = uint32_t;
 
 class pangenome::Graph {
@@ -26,7 +25,6 @@ protected:
 
 public:
     // TODO: move all attributes to private
-    std::map<ReadId, ReadPtr> reads;
     std::unordered_map<NodeId, NodePtr> nodes;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,7 +50,6 @@ public:
     {
         return samples.at(sample_name);
     }
-    const ReadPtr& get_read(const uint32_t& read_id) const { return reads.at(read_id); }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,20 +70,9 @@ public:
     void add_node(const std::shared_ptr<LocalPRG>& prg, uint32_t node_id);
 
     /**
-     * Adds a cluster of hits between the given PRG and the given Read.
-     * This adds a node corresponding to the PRG and reads accordingly.
-     * This is called when the pangraph represents a sample - the coverage of the
-     * PRG/node is the number of reads containing it.
-     * @param prg
-     * @param read_id
-     * @param cluster
+     * Record we have hit the given PRG
      */
-    void add_hits_between_PRG_and_read(
-        const std::shared_ptr<LocalPRG>&
-            prg, // the prg from where this cluster of hits come
-        const uint32_t read_id, // the read id from where this cluster of reads come
-        const MinimizerHits & cluster
-    );
+    void record_hit(const std::shared_ptr<LocalPRG>& prg);
 
     /**
      * Adds hits between the given PRG and sample described as a path of minimizer kmers
@@ -109,11 +95,6 @@ public:
             get_node(node_id), get_sample(sample_name), kmp);
     }
 
-    /**
-     * Adds a new read to this pan graph
-     * @param read_id
-     */
-    void add_read(const uint32_t& read_id);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
@@ -124,14 +105,6 @@ public:
 
     // TODO: possibly refactor the methods below
     std::unordered_map<uint32_t, NodePtr>::iterator remove_node(NodePtr);
-    void remove_read(const uint32_t);
-    std::vector<WeakNodePtr>::iterator remove_node_from_read(
-        std::vector<WeakNodePtr>::iterator, ReadPtr);
-
-    void split_node_by_reads(std::unordered_set<ReadPtr>&, std::vector<uint_least32_t>&,
-        const std::vector<bool>&, const uint_least32_t);
-
-    void add_hits_to_kmergraphs(const uint32_t& sample_id = 0);
 
     void copy_coverages_to_kmergraphs(const Graph&, const uint32_t&);
     std::vector<LocalNodePtr> infer_node_vcf_reference_path(const Node&,

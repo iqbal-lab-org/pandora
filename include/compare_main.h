@@ -19,7 +19,6 @@
 #include "pangenome/pangraph.h"
 #include "pangenome/pannode.h"
 #include "index.h"
-#include "noise_filtering.h"
 #include "estimate_parameters.h"
 #include "OptionsAggregator.h"
 #include "CLI11.hpp"

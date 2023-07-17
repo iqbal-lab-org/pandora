@@ -10,7 +10,6 @@
 #include "utils.h"
 #include "index.h"
 #include "pangenome/pangraph.h"
-#include "noise_filtering.h"
 #include "estimate_parameters.h"
 
 namespace fs = boost::filesystem;

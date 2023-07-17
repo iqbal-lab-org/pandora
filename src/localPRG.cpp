@@ -1701,7 +1701,7 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
     float min_absolute_gene_coverage, float min_relative_gene_coverage,
     float max_relative_gene_coverage) const
 {
-    if (pnode->reads.empty()) {
+    if (pnode->covg == 0) {
         BOOST_LOG_TRIVIAL(warning) << "Node " << pnode->get_name() << " has no reads";
         return;
     }
