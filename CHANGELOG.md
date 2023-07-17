@@ -25,6 +25,7 @@ reference pangenome collections, with a few million PRGs. This new index breaks 
   * `_metadata`: metadata about the index (first line is window size, second is kmer size);
   * `*.gfa`: the several GFA files describing the minimizing kmer graph for each PRG;
 - Minimum C++ standard upgraded from `C++11` to `C++14`;
+- We now test whether the genotype confidence of a variant is greater than or equal to the threshold provided by `--gt-conf`. Previously we only tested if it was greater than. [[#320][320]]
 
 ### Removed
 - Removed CLI parameters `-w` and `-k` from the following `pandora` subcommands: `compare`, `discover`, `map`,
@@ -187,6 +188,7 @@ their changes meticulously documented here.
 [249]: https://github.com/rmcolq/pandora/issues/249
 [265]: https://github.com/rmcolq/pandora/pull/265
 [294]: https://github.com/rmcolq/pandora/issues/294
+[320]: https://github.com/rmcolq/pandora/issues/320
 [v0.7.0]: https://github.com/rmcolq/pandora/releases/tag/v0.7.0
 [Racon]: https://github.com/lbcb-sci/racon
 [SAM]: https://samtools.github.io/hts-specs/SAMv1.pdf
