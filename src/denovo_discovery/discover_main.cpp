@@ -204,10 +204,6 @@ void pandora_discover_core(const SampleData& sample, Index &index, DiscoverOptio
     }
 
     BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
-                            << "Updating local PRGs with hits...";
-    pangraph->add_hits_to_kmergraphs();
-
-    BOOST_LOG_TRIVIAL(info) << "[Sample " << sample_name << "] "
                             << "Updating error rate...";
     estimate_parameters(pangraph, sample_outdir, index.get_kmer_size(), opt.error_rate,
         covg, opt.binomial, 0, opt.do_not_auto_update_params);
