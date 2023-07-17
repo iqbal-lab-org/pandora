@@ -40,7 +40,6 @@ struct MapOptions {
     bool output_kg { false };
     bool output_vcf { false };
     bool illumina { false };
-    bool clean { false };
     bool binomial { false };
     bool do_not_auto_update_params { false };
     uint32_t max_covg { 300 };

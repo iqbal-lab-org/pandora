@@ -80,11 +80,6 @@ void setup_compare_subcommand(CLI::App& app)
         ->group("Preset");
 
     compare_subcmd
-        ->add_flag(
-            "--clean", opt->clean, "Add a step to clean and detangle the pangraph")
-        ->group("Filtering");
-
-    compare_subcmd
         ->add_flag("--bin", opt->binomial,
             "Use binomial model for kmer coverages [default: negative binomial]")
         ->group("Parameter Estimation");
@@ -287,8 +282,8 @@ int pandora_compare(CompareOptions& opt)
                                 << sample_fpath << " (this will take a while)";
         uint32_t covg = pangraph_from_read_file(sample, pangraph_sample, index,
             opt.max_diff, opt.error_rate, sample_outdir,
-            opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean,
-            opt.max_covg, opt.threads, opt.keep_extra_debugging_files);
+            opt.min_cluster_size, opt.genome_size, opt.max_covg, opt.threads,
+            opt.keep_extra_debugging_files);
 
         if (pangraph_sample->nodes.empty()) {
             BOOST_LOG_TRIVIAL(warning)
