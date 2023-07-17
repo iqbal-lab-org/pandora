@@ -121,7 +121,8 @@ public:
         npath.push_back(prg.nodes.at(0));
         while (not npath.back()->outNodes.empty()) {
             uint32_t random_number = rng();
-            npath.push_back(npath.back()->outNodes[random_number]);
+            size_t random_neighbour = random_number % npath.back()->outNodes.size();
+            npath.push_back(npath.back()->outNodes[random_neighbour]);
         }
         return string_along_path(npath);
     }
