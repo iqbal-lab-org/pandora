@@ -1835,17 +1835,6 @@ void LocalPRG::add_variants_to_vcf(VCF& master_vcf, pangenome::NodePtr pnode,
     }
 }
 
-std::string LocalPRG::random_path()
-{
-    std::vector<LocalNodePtr> npath;
-    npath.push_back(prg.nodes.at(0));
-    while (not npath.back()->outNodes.empty()) {
-        uint32_t random_number = rand() % npath.back()->outNodes.size();
-        npath.push_back(npath.back()->outNodes[random_number]);
-    }
-    return string_along_path(npath);
-}
-
 bool operator!=(
     const std::vector<KmerNodePtr>& lhs, const std::vector<KmerNodePtr>& rhs)
 {

@@ -80,11 +80,6 @@ void setup_compare_subcommand(CLI::App& app)
         ->group("Preset");
 
     compare_subcmd
-        ->add_flag(
-            "--clean", opt->clean, "Add a step to clean and detangle the pangraph")
-        ->group("Filtering");
-
-    compare_subcmd
         ->add_flag("--bin", opt->binomial,
             "Use binomial model for kmer coverages [default: negative binomial]")
         ->group("Parameter Estimation");
@@ -217,6 +212,17 @@ void setup_compare_subcommand(CLI::App& app)
             "create thousands of files.")
         ->group("Debugging");
 
+    compare_subcmd
+        ->add_option(
+            "-r,--rng-seed", opt->rng_seed, "RNG seed, an int>0 to force deterministic "
+                                            "mapping when multiple optimal mappings are "
+                                            "possible. To be avoided except in "
+                                            "debugging/investigation scenarios. A value "
+                                            "of 0 will be interpreted as no seed given "
+                                            "and mapping will not be deterministic.")
+        ->capture_default_str()
+        ->group("Debugging");
+
     compare_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
 
@@ -287,8 +293,8 @@ int pandora_compare(CompareOptions& opt)
                                 << sample_fpath << " (this will take a while)";
         uint32_t covg = pangraph_from_read_file(sample, pangraph_sample, index,
             opt.max_diff, opt.error_rate, sample_outdir,
-            opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean,
-            opt.max_covg, opt.threads, opt.keep_extra_debugging_files);
+            opt.min_cluster_size, opt.genome_size, opt.max_covg, opt.threads,
+            opt.keep_extra_debugging_files, opt.rng_seed);
 
         if (pangraph_sample->nodes.empty()) {
             BOOST_LOG_TRIVIAL(warning)
