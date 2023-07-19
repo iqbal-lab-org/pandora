@@ -28,8 +28,7 @@ public:
     }
 
     template <class Iterator>
-    inline static typename std::iterator_traits<Iterator>::value_type mean(
-        Iterator begin, Iterator end)
+    inline static double mean(Iterator begin, Iterator end)
     {
         typedef
             typename std::iterator_traits<Iterator>::difference_type difference_type;
@@ -40,7 +39,7 @@ public:
             return get_default_value<Iterator>();
         }
 
-        return Maths::sum(begin, end) / number_of_elements;
+        return ((double)Maths::sum(begin, end)) / number_of_elements;
     }
 
     template <class Iterator>

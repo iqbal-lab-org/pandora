@@ -90,9 +90,59 @@ void setup_map_subcommand(CLI::App& app)
         ->group("Parameter Estimation");
 
     map_subcmd
+        ->add_flag("--dont-auto-update-params", opt->do_not_auto_update_params,
+            "By default, pandora automatically updates error rate and kmer coverage model parameters based "
+            "on the mapping of the previous sample. This could potentially generate "
+            "more accurate results if your samples have no sequencing issues and a "
+            "consistent protocol was followed for the sequencing of all samples. If this is "
+            "not the case, deactivate this feature by activating this flag")
+        ->group("Parameter Estimation");
+
+    map_subcmd
         ->add_option("--max-covg", opt->max_covg, "Maximum coverage of reads to accept")
         ->capture_default_str()
         ->type_name("INT")
+        ->group("Filtering");
+
+    map_subcmd
+        ->add_option(
+            "--min-abs-gene-coverage", opt->min_absolute_gene_coverage,
+            "Minimum absolute mean gene coverage to keep a gene. Given the "
+            "coverage on the kmers of the maximum likelihood path of a gene, we compute "
+            "the mean gene coverage and compare with the value in this "
+            "parameter. If the mean is lower than this parameter, "
+            "the gene is filtered out, e.g. if this parameter value is "
+            "3, then all genes with mean <3 will be filtered out.")
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Filtering");
+
+    map_subcmd
+        ->add_option(
+            "--min-rel-gene-coverage", opt->min_relative_gene_coverage,
+            "Minimum relative mean gene coverage to keep a gene. This is a proportion, between 0.0 and 1.0. "
+            "Given the coverage on the kmers of the maximum likelihood path of a gene, we compute "
+            "the mean gene coverage and compare with the value in this "
+            "parameter and the global coverage. If the mean is lower"
+            " than the computed value, the gene is filtered out, e.g. if this parameter value is "
+            "0.05, then all genes with mean < 5% of the global coverage will be "
+            "filtered out.")
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Filtering");
+
+    map_subcmd
+        ->add_option(
+            "--max-rel-gene-coverage", opt->max_relative_gene_coverage,
+            "Maximum relative mean gene coverage to keep a gene. "
+            "Given the coverage on the kmers of the maximum likelihood path of a gene, we compute "
+            "the mean gene coverage and compare with the value in this "
+            "parameter and the global coverage. If the mean is higher"
+            " than the computed value, the gene is filtered out, e.g. if this parameter value is "
+            "10, then all genes with mean >10 times the global coverage will be "
+            "filtered out.")
+        ->capture_default_str()
+        ->type_name("FLOAT")
         ->group("Filtering");
 
     description = "Add extra step to carefully genotype sites.";
@@ -250,7 +300,7 @@ int pandora_map(MapOptions& opt)
 
     BOOST_LOG_TRIVIAL(info) << "Estimating parameters for kmer graph model...";
     auto exp_depth_covg = estimate_parameters(pangraph, opt.outdir, index.get_kmer_size(),
-        opt.error_rate, covg, opt.binomial, 0);
+        opt.error_rate, covg, opt.binomial, 0, opt.do_not_auto_update_params);
     genotyping_options.add_exp_depth_covg(exp_depth_covg);
 
     if (genotyping_options.get_min_kmer_covg() == 0) {
@@ -313,7 +363,9 @@ int pandora_map(MapOptions& opt)
         std::vector<KmerNodePtr> kmp;
         std::vector<LocalNodePtr> lmp;
         prg->add_consensus_path_to_fastaq(consensus_fq, pangraph_node, kmp, lmp,
-            index.get_window_size(), opt.binomial, covg, opt.max_num_kmers_to_avg, 0);
+            index.get_window_size(), opt.binomial, covg, opt.max_num_kmers_to_avg, 0,
+            opt.min_absolute_gene_coverage, opt.min_relative_gene_coverage,
+            opt.max_relative_gene_coverage);
 
         if (kmp.empty()) {
 #pragma omp critical(nodes_to_remove)

@@ -40,7 +40,11 @@ struct CompareOptions {
     uint32_t max_diff { 250 };
     bool output_vcf { false };
     bool illumina { false };
+    float min_absolute_gene_coverage { 3.0 };
+    float min_relative_gene_coverage { 0.05 };
+    float max_relative_gene_coverage { 100 };
     bool binomial { false };
+    bool do_not_auto_update_params { false };
     uint32_t max_covg { 300 };
     bool genotype { false };
     bool local_genotype { false };
