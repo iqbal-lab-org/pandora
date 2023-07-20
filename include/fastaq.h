@@ -34,7 +34,7 @@ struct Fastaq {
         const uint_least16_t, const std::string header = "");
 
     void add_entry(
-        const std::string&, const std::string&, const std::string header = "");
+        const std::string&, const std::string&, const std::string &header = "");
 
     void clear();
 

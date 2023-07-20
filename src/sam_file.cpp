@@ -15,16 +15,13 @@ std::string SAMFile::get_header() const {
     }
     ss << "@PG\tID:pandora\tPN:pandora\tVN:" << PANDORA_VERSION
        << "\tCL: " << PandoraGlobals::command_line << "\n";
-    ss << "@CO\tThe reference length (in @SQ header lines) and the POS field refer to "
-          "the string representation of the PRGs\n";
+    ss << "@CO\tThe reference length (LN in @SQ header lines) is the length of the string representation of the PRGs\n";
     ss << "@CO\tLF: left flank sequence, the sequence before the first "
           "mapped kmer, soft-clipped, max " << flank_size << " bps\n";
     ss << "@CO\tRF: right flank sequence, the sequence after the last "
           "mapped kmer, soft-clipped, max " << flank_size << " bps\n";
     ss << "@CO\tMP: number of minimizer matches on the plus strand in the cluster of hits\n";
     ss << "@CO\tMM: number of minimizer matches on the minus strand in the cluster of hits\n";
-    ss << "@CO\tPP: Prg Paths of the cluster of hits: the PRG path of each "
-          "hit in considered cluster of hits\n";
     ss << "@CO\tNM: Total number of mismatches in the quasi-alignment\n";
     ss << "@CO\tAS: Alignment score (number of matches)\n";
     ss << "@CO\tnn: Number of ambiguous bases in the quasi-alignment\n";
@@ -56,7 +53,7 @@ std::vector<bool> SAMFile::get_mapped_positions_bitset(const Seq &seq, const Min
     std::vector<bool> mapped_positions_bitset(seq.full_seq.size(), false);
     for (const MinimizerHitPtr &hit : cluster) {
         const uint32_t read_start_position = hit->get_read_start_position();
-        const uint32_t read_end_position = hit->get_read_start_position()+hit->get_prg_path().length();
+        const uint32_t read_end_position = hit->get_read_start_position()+k;
         for (uint32_t pos = read_start_position; pos < read_end_position; ++pos) {
             mapped_positions_bitset[pos] = true;
         }
@@ -134,8 +131,6 @@ std::string SAMFile::get_sam_record_from_hit_cluster(
         const MinimizerHitPtr first_hit = *(cluster.begin());
         const std::string &prg_name = prg_names[first_hit->get_prg_id()];
 
-        const uint32_t alignment_start = first_hit->get_prg_path().begin()->start + 1;
-
         const std::vector<bool> mapped_positions_bitset =
             get_mapped_positions_bitset(seq, cluster);
         const Cigar cigar = get_cigar(mapped_positions_bitset);
@@ -163,11 +158,6 @@ std::string SAMFile::get_sam_record_from_hit_cluster(
             std::swap(left_flank, right_flank);
         }
 
-        std::stringstream cluster_of_hits_prg_paths_ss;
-        for (const MinimizerHitPtr &hit : cluster) {
-            cluster_of_hits_prg_paths_ss << hit->get_prg_path() << "->";
-        }
-
         auto number_ambiguous_bases = std::count_if(
             segment_sequence.begin(), segment_sequence.end(),
             [](char base) -> bool {
@@ -189,7 +179,8 @@ std::string SAMFile::get_sam_record_from_hit_cluster(
         ss  << seq.name << "\t"
             << flag << "\t"
             << prg_name << "\t"
-            << alignment_start << "\t"
+            << "0\t"
+            << "." << "\t"
             << "255\t"
             << cigar << "\t"
             << "*\t0\t0\t"
@@ -202,8 +193,8 @@ std::string SAMFile::get_sam_record_from_hit_cluster(
             << "MP:i:" << plus_strand_count << "\t"
             << "MM:i:" << minus_strand_count << "\t"
             << "LF:Z:" << left_flank << "\t"
-            << "RF:Z:" << right_flank << "\t"
-            << "PP:Z:" << cluster_of_hits_prg_paths_ss.str() << "\n";
+            << "RF:Z:" << right_flank << "\n";
+            ;
 
         #pragma omp critical(prg_ids_that_we_mapped_to)
         {

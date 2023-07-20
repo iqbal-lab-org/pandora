@@ -240,18 +240,6 @@ int pandora_compare(CompareOptions& opt)
     }
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
 
-    // =========
-    // todo: this all seems strange
-    if (opt.error_rate < 0.01) {
-        opt.illumina = true;
-    }
-    if (opt.error_rate > 0.05 and opt.illumina) {
-        opt.error_rate = 0.001;
-    }
-    if (opt.illumina and opt.error_rate > 0.1) {
-        opt.error_rate = 0.001;
-    }
-    // ==========
     if (opt.genotype) {
         opt.output_vcf = true;
     }

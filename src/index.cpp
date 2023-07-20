@@ -146,13 +146,8 @@ void Index::load_minhash() {
             zip_in.ignore(1, '\t');
             zip_in >> size;
             auto* vmr = new std::vector<MiniRecord>;
-            if (minhash.find(key) != minhash.end()) {
-                vmr = minhash[key];
-                vmr->reserve(vmr->size() + size);
-            } else {
-                vmr->reserve(size);
-                minhash[key] = vmr;
-            }
+            vmr->reserve(size);
+            minhash[key] = vmr;
             zip_in.ignore(1, '\t');
         } else if (c == EOF) {
             break;

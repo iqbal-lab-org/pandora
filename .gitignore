@@ -108,3 +108,5 @@ example/make_prg*
 .ipynb_checkpoints
 scripts/compare_pandora_results/pandora_multisample.matrix*
 !test/test_cases/sample_example/pangenome.prg.fa
+
+/debugging/
