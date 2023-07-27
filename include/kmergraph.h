@@ -59,7 +59,7 @@ public:
 
     void discover_k();
 
-    uint32_t min_path_length() const;
+    uint32_t max_path_length() const;
 
     // get the KmerGraph as gfa
     std::string to_gfa(const std::shared_ptr<LocalPRG> localprg = nullptr) const;

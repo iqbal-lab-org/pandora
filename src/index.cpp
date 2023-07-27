@@ -201,11 +201,11 @@ Index Index::load(const fs::path& indexfile)
     BOOST_LOG_TRIVIAL(debug) << "Loading prg lengths";
     auto prg_lengths = zip_file->read_prg_lengths();
 
-    BOOST_LOG_TRIVIAL(debug) << "Loading prg min path lengths";
-    auto prg_min_path_lengths = zip_file->read_prg_min_path_lengths();
+    BOOST_LOG_TRIVIAL(debug) << "Loading prg max path lengths";
+    auto prg_max_path_lengths = zip_file->read_prg_max_path_lengths();
 
     Index index(w_and_k.first, w_and_k.second, std::move(prg_names), std::move(prg_lengths),
-        std::move(prg_min_path_lengths), zip_file);
+        std::move(prg_max_path_lengths), zip_file);
 
     BOOST_LOG_TRIVIAL(debug) << "Loading minhash";
     index.load_minhash();
@@ -223,8 +223,8 @@ void Index::index_prgs(ZipFileWriter &index_archive,
     uint32_t estimated_index_size = std::accumulate(prg_lengths.begin(), prg_lengths.end(), 0);
     this->minhash.reserve(estimated_index_size);
 
-    // fill prg_min_path_lengths with 0-ed values that will be set in the main loop
-    prg_min_path_lengths.resize(prg_names.size());
+    // fill prg_max_path_lengths with 0-ed values that will be set in the main loop
+    prg_max_path_lengths.resize(prg_names.size());
 
     // now fill index
 #pragma omp parallel num_threads(threads)
@@ -259,12 +259,12 @@ void Index::index_prgs(ZipFileWriter &index_archive,
                 index_archive.write_data(prg_as_gfa);
             }
 
-            // prg_min_path_lengths variables
+            // prg_max_path_lengths variables
             uint32_t prg_index = prg_names_to_ids.at(local_prg->name);
-            uint32_t min_path_length = local_prg->kmer_prg.min_path_length();
-#pragma omp critical(Index__index_prgs__prg_min_path_lengths)
+            uint32_t max_path_length = local_prg->kmer_prg.max_path_length();
+#pragma omp critical(Index__index_prgs__prg_max_path_lengths)
             {
-                prg_min_path_lengths[prg_index] = min_path_length;
+                prg_max_path_lengths[prg_index] = max_path_length;
             }
         } catch (const IndexingLimitReached &error) {
             BOOST_LOG_TRIVIAL(warning) << error.what();
@@ -276,6 +276,6 @@ void Index::index_prgs(ZipFileWriter &index_archive,
     this->save_minhash(index_archive);
     this->save_prg_names(index_archive);
     this->save_prg_lengths(index_archive);
-    this->save_prg_min_path_lengths(index_archive);
+    this->save_prg_max_path_lengths(index_archive);
     this->save_metadata(index_archive);
 }

@@ -420,28 +420,24 @@ void KmerGraph::load(std::stringstream &gfa_stream)
     }
 }
 
-uint32_t KmerGraph::min_path_length() const
+uint32_t KmerGraph::max_path_length() const
 {
     std::vector<KmerNodePtr> sorted_nodes(
         this->sorted_nodes.begin(), this->sorted_nodes.end());
 
-    // length of shortest path from node i to end of graph
-    std::vector<uint32_t> id_to_len(sorted_nodes.size(), 0);
+    std::vector<uint32_t> id_to_max_len(sorted_nodes.size(), 0);
     for (uint32_t j = sorted_nodes.size() - 1; j != 0; --j) {
         auto& current_node = sorted_nodes[j-1];
-        auto& current_node_len = id_to_len[current_node->id];
+        auto& current_node_len = id_to_max_len[current_node->id];
         for (auto& weak_out_node : current_node->out_nodes) {
             auto out_node = weak_out_node.lock();
-            auto out_node_len = id_to_len[out_node->id];
-            bool found_longer_path = out_node_len + 1 > current_node_len;
-            if (found_longer_path) {
-                current_node_len = out_node_len + 1;
-            }
+            const auto out_node_len = id_to_max_len[out_node->id];
+            current_node_len = std::max(current_node_len, out_node_len + 1);
         }
     }
 
-    uint32_t shortest_path_length = id_to_len[0];
-    return shortest_path_length;
+    uint32_t max_path_length = id_to_max_len[0];
+    return max_path_length;
 }
 
 bool KmerGraph::operator==(const KmerGraph& other_graph) const

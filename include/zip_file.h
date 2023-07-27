@@ -120,8 +120,8 @@ public:
     inline std::vector<uint32_t> read_prg_lengths() {
         return read_int_values("_prg_lengths");
     }
-    inline std::vector<uint32_t> read_prg_min_path_lengths() {
-        return read_int_values("_prg_min_path_lengths");
+    inline std::vector<uint32_t> read_prg_max_path_lengths() {
+        return read_int_values("_prg_max_path_lengths");
     }
     ////////////////////////////////////////////////////////////////////////////////////
 

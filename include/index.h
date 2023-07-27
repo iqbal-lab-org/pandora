@@ -39,7 +39,7 @@ protected:
 
     // required to map to PRGs without actually loading them
     std::vector<uint32_t> prg_lengths;
-    std::vector<uint32_t> prg_min_path_lengths;
+    std::vector<uint32_t> prg_max_path_lengths;
     std::shared_ptr<ZipFileReader> zip_file;
 
     // populated when loading an index - just valid for index consumption commands
@@ -59,17 +59,17 @@ protected:
         w(w), k(k), prg_names(std::move(prg_names)),
         prg_names_to_ids(this->prg_names.size()), prg_lengths(std::move(prg_lengths)),
         prgs(this->prg_names.size(), nullptr) {
-        prg_min_path_lengths.reserve(get_number_of_prgs());
+        prg_max_path_lengths.reserve(get_number_of_prgs());
         init_prg_names_to_ids();
     }
 
     // constructor to be used when LOADING an index from disk
     Index(const uint32_t w, const uint32_t k, std::vector<std::string> &&prg_names,
-        std::vector<uint32_t> &&prg_lengths, std::vector<uint32_t> &&prg_min_path_lengths,
+        std::vector<uint32_t> &&prg_lengths, std::vector<uint32_t> &&prg_max_path_lengths,
         const std::shared_ptr<ZipFileReader> &zip_file) :
         w(w), k(k), prg_names(std::move(prg_names)),
         prg_names_to_ids(this->prg_names.size()), prg_lengths(std::move(prg_lengths)),
-        prg_min_path_lengths(std::move(prg_min_path_lengths)), zip_file(zip_file),
+        prg_max_path_lengths(std::move(prg_max_path_lengths)), zip_file(zip_file),
         prgs(this->prg_names.size(), nullptr) {
         init_prg_names_to_ids();
     }
@@ -116,9 +116,9 @@ protected:
         save_values(index_archive, "_prg_lengths",
             prg_lengths.begin(), prg_lengths.end());
     }
-    inline void save_prg_min_path_lengths(ZipFileWriter &index_archive) const {
-        save_values(index_archive, "_prg_min_path_lengths",
-            prg_min_path_lengths.begin(), prg_min_path_lengths.end());
+    inline void save_prg_max_path_lengths(ZipFileWriter &index_archive) const {
+        save_values(index_archive, "_prg_max_path_lengths",
+            prg_max_path_lengths.begin(), prg_max_path_lengths.end());
     }
     inline void save_metadata(ZipFileWriter &index_archive) const {
         std::vector<uint32_t> metadata{w, k};
@@ -213,11 +213,11 @@ public:
         return prg_lengths[id];
     }
 
-    inline const std::vector<uint32_t> & get_prg_min_path_lengths() const {
-        return prg_min_path_lengths;
+    inline const std::vector<uint32_t> & get_prg_max_path_lengths() const {
+        return prg_max_path_lengths;
     }
-    inline uint32_t get_prg_min_path_lengths_given_id(size_t id) const {
-        return prg_min_path_lengths[id];
+    inline uint32_t get_prg_max_path_lengths_given_id(size_t id) const {
+        return prg_max_path_lengths[id];
     }
 
     inline std::vector<std::shared_ptr<LocalPRG>> get_loaded_prgs() const {

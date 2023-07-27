@@ -635,7 +635,7 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
                 // infer the clusters of hits
                 MinimizerHitClusters clusters_of_hits =
                     get_minimizer_hit_clusters(sample_name, sequence,
-                        index.get_prg_min_path_lengths(), index.get_prg_names(),
+                        index.get_prg_max_path_lengths(), index.get_prg_names(),
                         minimizer_hits, max_diff,
                         fraction_kmers_required_for_cluster, cluster_def_file,
                         cluster_filter_file, min_cluster_size,
