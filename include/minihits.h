@@ -68,6 +68,8 @@ public:
         return hits.end();
     }
 
+    uint32_t read_span_size() const;
+
     inline void clear() { hits.clear(); }
 
     bool operator<(const MinimizerHits &rhs) const;

@@ -115,3 +115,8 @@ std::pair<uint32_t, uint32_t> MinimizerHits::get_strand_counts() const {
     uint32_t minus_strand_count = strands.size() - plus_strand_count;
     return std::make_pair(plus_strand_count, minus_strand_count);
 }
+
+uint32_t MinimizerHits::read_span_size() const
+{
+    return (*--end())->get_read_start_position() - (*begin())->get_read_start_position();
+}

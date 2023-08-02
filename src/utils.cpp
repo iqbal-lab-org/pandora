@@ -321,7 +321,7 @@ MinimizerHitClusters filter_clusters(
         // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters,
         // but could also impose no more than 2k hits in overlap
         {
-            const bool should_remove_current_cluster = c_previous->size() >= c_current->size();
+            const bool should_remove_current_cluster = c_previous->read_span_size() >= c_current->read_span_size();
 
             // Note: this is a slow critical region and could be optimised, but there is no need
             // to, as this is just run when debugging files should be created, and is expected
