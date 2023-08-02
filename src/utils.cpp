@@ -164,7 +164,6 @@ void decide_if_add_cluster_or_not(
     const float fraction_kmers_required_for_cluster,
     const uint32_t min_cluster_size,
     const MinimizerHits &current_cluster,
-    const uint32_t number_of_equal_read_minimizers,
     const std::vector<uint32_t> &distances_between_hits,
     ClusterDefFile& cluster_def_file) {
     // keep clusters which cover at least 1/2 the expected number of minihits
@@ -172,9 +171,8 @@ void decide_if_add_cluster_or_not(
         std::min(prg_min_path_lengths[(*mh_previous)->get_prg_id()], expected_number_kmers_in_read_sketch)
                                       * fraction_kmers_required_for_cluster;
 
-    const uint32_t number_of_unique_mini_in_cluster = current_cluster.size() - number_of_equal_read_minimizers;
     const uint32_t cluster_size_threshold = std::max(length_based_threshold, min_cluster_size);
-    const bool cluster_should_be_accepted = number_of_unique_mini_in_cluster >= cluster_size_threshold;
+    const bool cluster_should_be_accepted = current_cluster.get_number_of_unique_mini_in_cluster() >= cluster_size_threshold;
 
     if (cluster_should_be_accepted) {
         clusters_of_hits.insert(current_cluster);
@@ -193,8 +191,8 @@ void decide_if_add_cluster_or_not(
                 cluster_def_file << "rejected\t";
             }
             cluster_def_file << current_cluster.size() << "\t"
-                             << number_of_equal_read_minimizers << "\t"
-                             << number_of_unique_mini_in_cluster << "\t"
+                             << current_cluster.get_number_of_equal_read_minimizers() << "\t"
+                             << current_cluster.get_number_of_unique_mini_in_cluster() << "\t"
                              << length_based_threshold << "\t"
                              << min_cluster_size << "\t";
 
@@ -238,13 +236,14 @@ void define_clusters(
     auto mh_previous = minimizer_hits->begin();
     MinimizerHits current_cluster;
     current_cluster.insert(*mh_previous);
-    uint32_t number_of_equal_read_minimizers = 0;
+
     std::vector<uint32_t> distances_between_hits;
     for (auto mh_current = ++minimizer_hits->begin();
          mh_current != minimizer_hits->end(); ++mh_current) {
         const bool read_minimizer_is_the_same =
             (*mh_current)->get_read_start_position() == (*mh_previous)->get_read_start_position();
-        number_of_equal_read_minimizers += (int)read_minimizer_is_the_same;
+        if (read_minimizer_is_the_same)
+            current_cluster.increment_number_of_equal_read_minimizers();
 
         const bool switched_reads = (*mh_current)->get_read_id() != (*mh_previous)->get_read_id();
         const bool switched_prgs = (*mh_current)->get_prg_id() != (*mh_previous)->get_prg_id();
@@ -261,11 +260,10 @@ void define_clusters(
             decide_if_add_cluster_or_not(seq, clusters_of_hits, prg_min_path_lengths, prg_names,
                 mh_previous, expected_number_kmers_in_read_sketch,
                 fraction_kmers_required_for_cluster, min_cluster_size, current_cluster,
-                number_of_equal_read_minimizers, distances_between_hits,cluster_def_file);
+                distances_between_hits,cluster_def_file);
 
             // prepare next cluster
             current_cluster.clear();
-            number_of_equal_read_minimizers=0;
             distances_between_hits.clear();
 
         } else {
@@ -278,7 +276,7 @@ void define_clusters(
     }
     decide_if_add_cluster_or_not(seq, clusters_of_hits, prg_min_path_lengths, prg_names, mh_previous,
                                  expected_number_kmers_in_read_sketch, fraction_kmers_required_for_cluster,
-                                 min_cluster_size, current_cluster, number_of_equal_read_minimizers,
+                                 min_cluster_size, current_cluster,
                                  distances_between_hits, cluster_def_file);
 }
 
@@ -321,7 +319,7 @@ MinimizerHitClusters filter_clusters(
         // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters,
         // but could also impose no more than 2k hits in overlap
         {
-            const bool should_remove_current_cluster = c_previous->read_span_size() >= c_current->read_span_size();
+            const bool should_remove_current_cluster = c_previous->get_number_of_unique_mini_in_cluster() >= c_current->get_number_of_unique_mini_in_cluster();
 
             // Note: this is a slow critical region and could be optimised, but there is no need
             // to, as this is just run when debugging files should be created, and is expected
@@ -333,7 +331,7 @@ MinimizerHitClusters filter_clusters(
                         cluster_filter_file
                             << seq.name << "\t"
                             << prg_names[(*c_current->begin())->get_prg_id()] << "\t"
-                            << c_current->size() << "\t"
+                            << c_current->get_number_of_unique_mini_in_cluster() << "\t"
                             << "filtered_out\n";
                     } else {
                         cluster_filter_file

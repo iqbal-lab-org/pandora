@@ -25,9 +25,9 @@ struct pEq {
 class MinimizerHits {
 private:
     std::set<MinimizerHitPtr, pComp> hits;
-
+    uint32_t number_of_equal_read_minimizers;
 public:
-    MinimizerHits() = default;
+    MinimizerHits() : hits(), number_of_equal_read_minimizers(0) {};
     ~MinimizerHits() = default;
 
     // copy constructors
@@ -70,7 +70,22 @@ public:
 
     uint32_t read_span_size() const;
 
-    inline void clear() { hits.clear(); }
+    inline void clear() {
+        hits.clear();
+        number_of_equal_read_minimizers=0;
+    }
+
+    inline void increment_number_of_equal_read_minimizers() {
+        number_of_equal_read_minimizers++;
+    }
+
+    inline uint32_t get_number_of_equal_read_minimizers() const {
+        return number_of_equal_read_minimizers;
+    }
+
+    inline size_t get_number_of_unique_mini_in_cluster() const {
+        return size() - number_of_equal_read_minimizers;
+    }
 
     bool operator<(const MinimizerHits &rhs) const;
 

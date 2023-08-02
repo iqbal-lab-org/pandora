@@ -21,7 +21,7 @@ private:
 public:
     ClusterFilterFile(const fs::path &filepath, bool is_fake_file = false)
         : GenericFile(filepath, is_fake_file){
-        (*this) << "read\tprg\tcluster_size\tstatus\n";
+        (*this) << "read\tprg\tnb_of_unique_minimisers\tstatus\n";
     }
 };
 
