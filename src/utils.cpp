@@ -286,6 +286,7 @@ MinimizerHitClusters filter_clusters(
     const MinimizerHitClusters& clusters_of_hits,
     const std::vector<std::string> &prg_names,
     ClusterFilterFile& cluster_filter_file,
+    const double overlap_threshold,
     const uint32_t rng_seed)
 {
     const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(seq.id) + "]: ";
@@ -305,16 +306,14 @@ MinimizerHitClusters filter_clusters(
     auto c_previous = clusters_of_hits.begin();
     for (auto c_current = ++clusters_of_hits.begin();
          c_current != clusters_of_hits.end(); ++c_current) {
-        const bool both_clusters_from_same_read =
-            ((*(*c_current).begin())->get_read_id() == (*(*c_previous).begin())->get_read_id());
-        const bool same_prg = (*(*c_current).begin())->get_prg_id() == (*(*c_previous).begin())->get_prg_id();
-        const bool unconsistent_strands = (*(*c_current).begin())->same_strands() != (*(*c_previous).begin())->same_strands();
-        const bool current_cluster_is_contained_in_previous =
-            (*--(*c_current).end())->get_read_start_position() <=
-            (*--(*c_previous).end())->get_read_start_position();
+        const bool both_clusters_from_same_read = c_current->front()->get_read_id() == c_previous->front()->get_read_id();
+        const bool same_prg = c_current->front()->get_prg_id() == c_previous->front()->get_prg_id();
+        const bool unconsistent_strands = c_current->front()->same_strands() != c_previous->front()->same_strands();
+        const double overlap = c_current->overlap_amount(*c_previous);
+        const bool clusters_overlap = overlap >= overlap_threshold;
         const bool one_of_the_clusters_should_be_filtered_out =
             both_clusters_from_same_read && ((same_prg && unconsistent_strands) or
-                current_cluster_is_contained_in_previous);
+                clusters_overlap);
         if (one_of_the_clusters_should_be_filtered_out)
         // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters,
         // but could also impose no more than 2k hits in overlap
@@ -332,13 +331,25 @@ MinimizerHitClusters filter_clusters(
                             << seq.name << "\t"
                             << prg_names[(*c_current->begin())->get_prg_id()] << "\t"
                             << c_current->get_number_of_unique_mini_in_cluster() << "\t"
-                            << "filtered_out\n";
+                            << "filtered_out\t"
+                            << c_previous->get_number_of_unique_mini_in_cluster() << "\t"
+                            << c_current->front()->get_read_start_position() << "\t"
+                            << c_current->back()->get_read_start_position() << "\t"
+                            << c_previous->front()->get_read_start_position() << "\t"
+                            << c_previous->back()->get_read_start_position() << "\t"
+                            << overlap << "\n";
                     } else {
                         cluster_filter_file
                             << seq.name << "\t"
                             << prg_names[(*c_previous->begin())->get_prg_id()] << "\t"
-                            << c_previous->size() << "\t"
-                            << "filtered_out\n";
+                            << c_previous->get_number_of_unique_mini_in_cluster() << "\t"
+                            << "kept\t"
+                            << c_current->get_number_of_unique_mini_in_cluster() << "\t"
+                            << c_previous->front()->get_read_start_position() << "\t"
+                            << c_previous->back()->get_read_start_position() << "\t"
+                            << c_current->front()->get_read_start_position() << "\t"
+                            << c_current->back()->get_read_start_position() << "\t"
+                            << overlap << "\n";
                     }
                 }
             }

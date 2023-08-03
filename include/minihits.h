@@ -64,8 +64,24 @@ public:
         return hits.begin();
     }
 
+    inline auto rbegin () const {
+        return hits.rbegin();
+    }
+
+    inline const MinimizerHitPtr& front() const {
+        return *hits.begin();
+    }
+
     inline auto end () const {
         return hits.end();
+    }
+
+    inline auto rend () const {
+        return hits.rend();
+    }
+
+    inline const MinimizerHitPtr& back() const {
+        return *hits.rbegin();
     }
 
     uint32_t read_span_size() const;
@@ -90,5 +106,12 @@ public:
     bool operator<(const MinimizerHits &rhs) const;
 
     std::pair<uint32_t, uint32_t> get_strand_counts() const;
+
+    /**
+     * Returns a proportion denoting the amount of overlap between this cluster and the
+     * cluster passed as an argument. The proportion is over the smallest cluster.
+     */
+    double overlap_amount(const MinimizerHits& cluster) const;
+
 };
 #endif

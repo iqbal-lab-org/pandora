@@ -83,6 +83,7 @@ MinimizerHitClusters filter_clusters(
     const MinimizerHitClusters& clusters_of_hits,
     const std::vector<std::string> &prg_names,
     ClusterFilterFile& cluster_filter_file,
+    const double overlap_threshold=0.8,/* TODO: should this become a CLI parameter? */
     const uint32_t rng_seed = 0
 );
 

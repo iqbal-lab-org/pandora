@@ -118,5 +118,23 @@ std::pair<uint32_t, uint32_t> MinimizerHits::get_strand_counts() const {
 
 uint32_t MinimizerHits::read_span_size() const
 {
-    return (*--end())->get_read_start_position() - (*begin())->get_read_start_position();
+    return back()->get_read_start_position() - front()->get_read_start_position();
+}
+
+double MinimizerHits::overlap_amount(const MinimizerHits& cluster) const {
+    // Calculate the overlap
+    const uint32_t start = std::max(this->front()->get_read_start_position(),
+                                    cluster.front()->get_read_start_position());
+    const uint32_t end = std::min(this->back()->get_read_start_position(),
+                                  cluster.back()->get_read_start_position());
+
+    const bool no_overlap = start > end;
+    if (no_overlap) {
+        return false;
+    }
+
+    const uint32_t overlap = end - start;
+    const uint32_t shortest_read_span = std::min(this->read_span_size(), cluster.read_span_size());
+
+    return (double)overlap / shortest_read_span;
 }
