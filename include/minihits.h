@@ -26,8 +26,10 @@ class MinimizerHits {
 private:
     std::set<MinimizerHitPtr, pComp> hits;
     uint32_t number_of_equal_read_minimizers;
+    std::vector<uint32_t> *prg_max_path_lengths;  // required to calculate target coverage
 public:
-    MinimizerHits() : hits(), number_of_equal_read_minimizers(0) {};
+    MinimizerHits(std::vector<uint32_t> *prg_max_path_lengths) :
+        hits(), number_of_equal_read_minimizers(0), prg_max_path_lengths(prg_max_path_lengths) {};
     ~MinimizerHits() = default;
 
     // copy constructors
@@ -38,7 +40,7 @@ public:
     MinimizerHits(MinimizerHits&& other) = default;
     MinimizerHits& operator=(MinimizerHits&& other) = default;
 
-    inline void insert(const MinimizerHitPtr minimizer_hit) {
+    inline void insert(const MinimizerHitPtr &minimizer_hit) {
         hits.insert(minimizer_hit);
     }
 
@@ -112,6 +114,10 @@ public:
      * cluster passed as an argument. The proportion is over the smallest cluster.
      */
     double overlap_amount(const MinimizerHits& cluster) const;
+
+    double target_coverage() const;
+
+    bool is_preferred_to(const MinimizerHits& cluster) const;
 
 };
 #endif

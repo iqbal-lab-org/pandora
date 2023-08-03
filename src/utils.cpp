@@ -234,7 +234,7 @@ void define_clusters(
     // A cluster of hits should match same localPRG, each hit not more than max_diff
     // read bases from the last hit (this last bit is to handle repeat genes).
     auto mh_previous = minimizer_hits->begin();
-    MinimizerHits current_cluster;
+    MinimizerHits current_cluster(&prg_max_path_lengths);
     current_cluster.insert(*mh_previous);
 
     std::vector<uint32_t> distances_between_hits;
@@ -318,7 +318,7 @@ MinimizerHitClusters filter_clusters(
         // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters,
         // but could also impose no more than 2k hits in overlap
         {
-            const bool should_remove_current_cluster = c_previous->get_number_of_unique_mini_in_cluster() >= c_current->get_number_of_unique_mini_in_cluster();
+            const bool should_remove_current_cluster = c_previous->is_preferred_to(*c_current);
 
             // Note: this is a slow critical region and could be optimised, but there is no need
             // to, as this is just run when debugging files should be created, and is expected
@@ -329,27 +329,33 @@ MinimizerHitClusters filter_clusters(
                     if (should_remove_current_cluster) {
                         cluster_filter_file
                             << seq.name << "\t"
-                            << prg_names[(*c_current->begin())->get_prg_id()] << "\t"
+                            << prg_names[c_current->front()->get_prg_id()] << "\t"
                             << c_current->get_number_of_unique_mini_in_cluster() << "\t"
-                            << "filtered_out\t"
-                            << c_previous->get_number_of_unique_mini_in_cluster() << "\t"
+                            << c_current->target_coverage() << "\t"
                             << c_current->front()->get_read_start_position() << "\t"
                             << c_current->back()->get_read_start_position() << "\t"
+                            << overlap << "\t"
+                            << "filtered_out\t"
+                            << prg_names[c_previous->front()->get_prg_id()] << "\t"
+                            << c_previous->get_number_of_unique_mini_in_cluster() << "\t"
+                            << c_previous->target_coverage() << "\t"
                             << c_previous->front()->get_read_start_position() << "\t"
-                            << c_previous->back()->get_read_start_position() << "\t"
-                            << overlap << "\n";
+                            << c_previous->back()->get_read_start_position() << "\n";
                     } else {
                         cluster_filter_file
                             << seq.name << "\t"
-                            << prg_names[(*c_previous->begin())->get_prg_id()] << "\t"
+                            << prg_names[c_previous->front()->get_prg_id()] << "\t"
                             << c_previous->get_number_of_unique_mini_in_cluster() << "\t"
-                            << "kept\t"
-                            << c_current->get_number_of_unique_mini_in_cluster() << "\t"
+                            << c_previous->target_coverage() << "\t"
                             << c_previous->front()->get_read_start_position() << "\t"
                             << c_previous->back()->get_read_start_position() << "\t"
+                            << overlap << "\t"
+                            << "kept\t"
+                            << prg_names[c_current->front()->get_prg_id()] << "\t"
+                            << c_current->get_number_of_unique_mini_in_cluster() << "\t"
+                            << c_current->target_coverage() << "\t"
                             << c_current->front()->get_read_start_position() << "\t"
-                            << c_current->back()->get_read_start_position() << "\t"
-                            << overlap << "\n";
+                            << c_current->back()->get_read_start_position() << "\n";
                     }
                 }
             }
@@ -389,8 +395,12 @@ MinimizerHitClusters filter_clusters(
         {
             for (const auto& cluster : filtered_clusters_of_hits) {
                 cluster_filter_file << seq.name << "\t"
-                                    << prg_names[(*cluster.begin())->get_prg_id()]
-                                    << "\t" << cluster.size() << "\t"
+                                    << prg_names[cluster.front()->get_prg_id()] << "\t"
+                                    << cluster.get_number_of_unique_mini_in_cluster() << "\t"
+                                    << cluster.target_coverage() << "\t"
+                                    << cluster.front()->get_read_start_position() << "\t"
+                                    << cluster.back()->get_read_start_position() << "\t"
+                                    << "NA\t"
                                     << "kept\n";
             }
         }
@@ -630,7 +640,7 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
                     / (w + 1) };
 
                 // get the minimizer hits
-                auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
+                auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits(&index.get_prg_max_path_lengths()));
                 add_read_hits(sequence, minimizer_hits, index);
 
                 // write unfiltered minimizer hits
