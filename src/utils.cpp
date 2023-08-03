@@ -157,7 +157,7 @@ void add_read_hits(const Seq& sequence,
 void decide_if_add_cluster_or_not(
     const Seq &seq,
     MinimizerHitClusters& clusters_of_hits, // Note: clusters_of_hits here is in insertion mode
-    const std::vector<uint32_t> &prg_min_path_lengths,
+    std::vector<uint32_t> &prg_max_path_lengths,
     const std::vector<std::string> &prg_names,
     const std::set<MinimizerHitPtr, pComp>::iterator &mh_previous,
     const uint32_t expected_number_kmers_in_read_sketch,
@@ -168,7 +168,7 @@ void decide_if_add_cluster_or_not(
     ClusterDefFile& cluster_def_file) {
     // keep clusters which cover at least 1/2 the expected number of minihits
     const uint32_t length_based_threshold =
-        std::min(prg_min_path_lengths[(*mh_previous)->get_prg_id()], expected_number_kmers_in_read_sketch)
+        std::min(prg_max_path_lengths[(*mh_previous)->get_prg_id()], expected_number_kmers_in_read_sketch)
                                       * fraction_kmers_required_for_cluster;
 
     const uint32_t cluster_size_threshold = std::max(length_based_threshold, min_cluster_size);
@@ -215,7 +215,7 @@ void define_clusters(
     const std::string &sample_name,
     const Seq &seq,
     MinimizerHitClusters& clusters_of_hits, // Note: clusters_of_hits here is in insertion mode
-    const std::vector<uint32_t> &prg_min_path_lengths,
+    std::vector<uint32_t> &prg_max_path_lengths,
     const std::vector<std::string> &prg_names,
     std::shared_ptr<MinimizerHits> &minimizer_hits, const int max_diff,
     const float& fraction_kmers_required_for_cluster, const uint32_t min_cluster_size,
@@ -257,7 +257,7 @@ void define_clusters(
         const bool switched_clusters = switched_reads or switched_prgs or
             hits_too_distant or unconsistent_strands;
         if (switched_clusters) {
-            decide_if_add_cluster_or_not(seq, clusters_of_hits, prg_min_path_lengths, prg_names,
+            decide_if_add_cluster_or_not(seq, clusters_of_hits, prg_max_path_lengths, prg_names,
                 mh_previous, expected_number_kmers_in_read_sketch,
                 fraction_kmers_required_for_cluster, min_cluster_size, current_cluster,
                 distances_between_hits,cluster_def_file);
@@ -274,7 +274,7 @@ void define_clusters(
         current_cluster.insert(*mh_current);
         mh_previous = mh_current;
     }
-    decide_if_add_cluster_or_not(seq, clusters_of_hits, prg_min_path_lengths, prg_names, mh_previous,
+    decide_if_add_cluster_or_not(seq, clusters_of_hits, prg_max_path_lengths, prg_names, mh_previous,
                                  expected_number_kmers_in_read_sketch, fraction_kmers_required_for_cluster,
                                  min_cluster_size, current_cluster,
                                  distances_between_hits, cluster_def_file);
@@ -487,7 +487,7 @@ void add_clusters_to_pangraph(
 MinimizerHitClusters get_minimizer_hit_clusters(
     const std::string &sample_name,
     const Seq &seq,
-    const std::vector<uint32_t> &prg_min_path_lengths,
+    std::vector<uint32_t> &prg_max_path_lengths,
     const std::vector<std::string> &prg_names,
     std::shared_ptr<MinimizerHits> &minimizer_hits,
     const int max_diff,
@@ -507,7 +507,7 @@ MinimizerHitClusters get_minimizer_hit_clusters(
         return minimizer_hit_clusters;
     }
 
-    define_clusters(sample_name, seq, minimizer_hit_clusters, prg_min_path_lengths,
+    define_clusters(sample_name, seq, minimizer_hit_clusters, prg_max_path_lengths,
         prg_names, minimizer_hits, max_diff, fraction_kmers_required_for_cluster,
         min_cluster_size, expected_number_kmers_in_read_sketch, cluster_def_file);
 
