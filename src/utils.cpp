@@ -350,7 +350,7 @@ MinimizerHitClusters filter_clusters(
                             << c_previous->front()->get_read_start_position() << "\t"
                             << c_previous->back()->get_read_start_position() << "\t"
                             << overlap << "\t"
-                            << "kept\t"
+                            << "filtered_out\t"
                             << prg_names[c_current->front()->get_prg_id()] << "\t"
                             << c_current->get_number_of_unique_mini_in_cluster() << "\t"
                             << c_current->target_coverage() << "\t"

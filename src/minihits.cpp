@@ -143,9 +143,14 @@ double MinimizerHits::target_coverage() const {
     return (double)get_number_of_unique_mini_in_cluster() / (double)prg_max_path_lengths->at(front()->get_prg_id());
 }
 
-bool MinimizerHits::is_preferred_to(const MinimizerHits& cluster) const {
-    if (this->get_number_of_unique_mini_in_cluster() != cluster.get_number_of_unique_mini_in_cluster()) {
+bool MinimizerHits::is_preferred_to(const MinimizerHits& cluster, double minimisers_tolerance) const {
+    double margin = minimisers_tolerance *
+        std::max(this->get_number_of_unique_mini_in_cluster(), cluster.get_number_of_unique_mini_in_cluster());
+    double difference = std::abs((double)(this->get_number_of_unique_mini_in_cluster() - cluster.get_number_of_unique_mini_in_cluster()));
+
+    if (difference > margin) {
         return this->get_number_of_unique_mini_in_cluster() > cluster.get_number_of_unique_mini_in_cluster();
     }
+
     return this->target_coverage() > cluster.target_coverage();
 }
