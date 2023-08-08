@@ -122,7 +122,6 @@ uint32_t MinimizerHits::read_span_size() const
 }
 
 double MinimizerHits::overlap_amount(const MinimizerHits& cluster) const {
-    // Calculate the overlap
     const uint32_t start = std::max(this->front()->get_read_start_position(),
                                     cluster.front()->get_read_start_position());
     const uint32_t end = std::min(this->back()->get_read_start_position(),
