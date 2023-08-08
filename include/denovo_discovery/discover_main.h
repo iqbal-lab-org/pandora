@@ -26,6 +26,7 @@ struct DiscoverOptions {
     uint32_t genome_size { 5000000 };
     uint32_t max_diff { 250 };
     float conflicting_clusters_overlap_threshold { 0.8 };
+    float conflicting_clusters_minimiser_tolerance { 0.05 };
     bool output_kg { false };
     bool illumina { false };
     bool binomial { false };

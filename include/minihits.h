@@ -118,8 +118,7 @@ public:
     double target_coverage() const;
 
     bool is_preferred_to(const MinimizerHits& cluster,
-        double minimisers_tolerance=0.05 /* TODO: make this a CLI parameter? */
-        ) const;
+        double minimisers_tolerance) const;
 
 };
 #endif

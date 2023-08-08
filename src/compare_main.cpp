@@ -69,6 +69,16 @@ void setup_compare_subcommand(CLI::App& app)
         ->type_name("INT")
         ->group("Mapping");
 
+    description
+        = "When two clusters of hits are conflicting, the one with highest number of unique minimisers "
+          "will be kept. However, if the difference between the number of unique minimisers is too small, "
+          "less than this parameter, then we will prefer the cluster that has higher target coverage.";
+    compare_subcmd
+        ->add_option("--cluster-mini-tolerance", opt->conflicting_clusters_minimiser_tolerance, description)
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Mapping");
+
     compare_subcmd
         ->add_flag("--loci-vcf", opt->output_vcf, "Save a VCF file for each found loci")
         ->group("Input/Output");
@@ -295,8 +305,8 @@ int pandora_compare(CompareOptions& opt)
         uint32_t covg = pangraph_from_read_file(sample, pangraph_sample, index,
             opt.max_diff, opt.error_rate, sample_outdir,
             opt.min_cluster_size, opt.genome_size, opt.max_covg,
-            opt.conflicting_clusters_overlap_threshold, opt.threads,
-            opt.keep_extra_debugging_files, opt.rng_seed);
+            opt.conflicting_clusters_overlap_threshold, opt.conflicting_clusters_minimiser_tolerance,
+            opt.threads, opt.keep_extra_debugging_files, opt.rng_seed);
 
         if (pangraph_sample->nodes.empty()) {
             BOOST_LOG_TRIVIAL(warning)
