@@ -411,6 +411,10 @@ int pandora_discover(DiscoverOptions& opt)
     }
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
 
+    if (opt.illumina) {
+        opt.error_rate = 0.001;
+    }
+
     BOOST_LOG_TRIVIAL(info) << "Loading Index...";
     Index index = Index::load(opt.index_file.string());
     BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
