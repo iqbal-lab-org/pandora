@@ -286,7 +286,7 @@ MinimizerHitClusters filter_clusters(
     const MinimizerHitClusters& clusters_of_hits,
     const std::vector<std::string> &prg_names,
     ClusterFilterFile& cluster_filter_file,
-    const double overlap_threshold,
+    const float overlap_threshold,
     const uint32_t rng_seed)
 {
     const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(seq.id) + "]: ";
@@ -506,6 +506,7 @@ MinimizerHitClusters get_minimizer_hit_clusters(
     ClusterFilterFile &cluster_filter_file,
     const uint32_t min_cluster_size,
     const uint32_t expected_number_kmers_in_read_sketch,
+    const float conflicting_clusters_overlap_threshold,
     const uint32_t rng_seed)
 {
     const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(seq.id) + "]: ";
@@ -524,7 +525,8 @@ MinimizerHitClusters get_minimizer_hit_clusters(
     minimizer_hit_clusters.finalise_insertions();
     BOOST_LOG_TRIVIAL(trace) << tag << "Found " << minimizer_hit_clusters.size() << " clusters of hits";
 
-    MinimizerHitClusters filtered_clusters_of_hits = filter_clusters(sample_name, seq, minimizer_hit_clusters, prg_names, cluster_filter_file);
+    MinimizerHitClusters filtered_clusters_of_hits = filter_clusters(sample_name, seq,
+        minimizer_hit_clusters, prg_names, cluster_filter_file, conflicting_clusters_overlap_threshold);
     // filter_clusters2(clusters_of_hits, genome_size);
 
     return filtered_clusters_of_hits;
@@ -535,7 +537,9 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
     std::shared_ptr<pangenome::Graph> &pangraph, Index &index,
     const int max_diff, const float& e_rate,
     const fs::path& sample_outdir, const uint32_t min_cluster_size,
-    const uint32_t genome_size, const uint32_t max_covg, uint32_t threads,
+    const uint32_t genome_size, const uint32_t max_covg,
+    const float conflicting_clusters_overlap_threshold,
+    uint32_t threads,
     const bool keep_extra_debugging_files, const uint32_t rng_seed)
 {
     // constant variables
@@ -658,7 +662,9 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
                         minimizer_hits, max_diff,
                         fraction_kmers_required_for_cluster, cluster_def_file,
                         cluster_filter_file, min_cluster_size,
-                        expected_number_kmers_in_read_sketch, rng_seed);
+                        expected_number_kmers_in_read_sketch,
+                        conflicting_clusters_overlap_threshold,
+                        rng_seed);
 
                 const std::string sam_record = filtered_mappings.get_sam_record_from_hit_cluster(
                     sequence, clusters_of_hits);

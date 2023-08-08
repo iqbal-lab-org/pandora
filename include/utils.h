@@ -83,7 +83,7 @@ MinimizerHitClusters filter_clusters(
     const MinimizerHitClusters& clusters_of_hits,
     const std::vector<std::string> &prg_names,
     ClusterFilterFile& cluster_filter_file,
-    const double overlap_threshold=0.8,/* TODO: should this become a CLI parameter? */
+    const float overlap_threshold,
     const uint32_t rng_seed = 0
 );
 
@@ -111,6 +111,7 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
     const int max_diff, const float& e_rate,
     const fs::path& sample_outdir, const uint32_t min_cluster_size = 10,
     const uint32_t genome_size = 5000000, const uint32_t max_covg = 300,
+    const float conflicting_clusters_overlap_threshold=0.8,
     uint32_t threads = 1, const bool keep_extra_debugging_files = false,
     const uint32_t rng_seed = 0);
 

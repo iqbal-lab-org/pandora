@@ -159,6 +159,15 @@ void setup_compare_subcommand(CLI::App& app)
         ->type_name("INT")
         ->group("Mapping");
 
+    description
+        = "Minimum proportion of overlap between two clusters of hits to consider "
+          "them conflicting. Only one of the conflicting clusters will be kept.";
+    compare_subcmd
+        ->add_option("--min-cluster-overlap", opt->conflicting_clusters_overlap_threshold, description)
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Mapping");
+
     description = "Maximum number of kmers to average over when selecting the maximum "
                   "likelihood path";
     compare_subcmd->add_option("--kmer-avg", opt->max_num_kmers_to_avg, description)
@@ -285,7 +294,8 @@ int pandora_compare(CompareOptions& opt)
                                 << sample_fpath << " (this will take a while)";
         uint32_t covg = pangraph_from_read_file(sample, pangraph_sample, index,
             opt.max_diff, opt.error_rate, sample_outdir,
-            opt.min_cluster_size, opt.genome_size, opt.max_covg, opt.threads,
+            opt.min_cluster_size, opt.genome_size, opt.max_covg,
+            opt.conflicting_clusters_overlap_threshold, opt.threads,
             opt.keep_extra_debugging_files, opt.rng_seed);
 
         if (pangraph_sample->nodes.empty()) {
