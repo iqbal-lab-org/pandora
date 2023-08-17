@@ -48,7 +48,7 @@ them, but just load on demand (also known as lazy loading). This is particularly
 PanRGs;
 - Random multimapping of reads if they map equally well to several graphs, reducing mapping bias. Added parameter
 `--rng-seed` to `pandora map/compare/discover` commands to make multimapping deterministic, if required;
-- A new parameter to deal with auto-updating error rate and kmer model (see `--auto-update-params` parameter in 
+- A new parameter to deal with auto-updating error rate and kmer model (see `--dont-auto-update-params` parameter in 
 `pandora map/compare/discover` commands);
 - Three new parameters to control when a gene should be filtered out due to too low or too high coverage (see
 `--min-abs-gene-coverage`, `--min-rel-gene-coverage` and `--max-rel-gene-coverage` parameters in
