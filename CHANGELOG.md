@@ -7,10 +7,12 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
-## [0.10.0-alpha.1]
+## [0.11.0-alpha.0]
+
+This version is a major release that breaks backwards compatibility with previous versions of `pandora`.
+It improves `pandora` runtime performance by 15x and RAM usage by 20x;
 
 ### Changed
-
 - The `pandora` index changed from a set of files in a directory structure to a single, compressible and indexable `zip`
 file (`pandora` indexes now have the suffix `.panidx.zip`). This is now the single file that is produced by the
 `pandora index` command and is required as argument to all the other `pandora` commands. This index is self contained in 
@@ -18,26 +20,40 @@ the sense that it encodes all the information and metadata about it (e.g. which 
 kmer size, etc). This new index provide the infrastructure for the next features and simplifies working with large 
 reference pangenome collections, with a few million PRGs. This new index breaks backwards compatibility with previous 
 `pandora` versions. The structure of this zip archive is as follows:
-  * `_prgs`: The PRGs themselves used as input to create this index;
-  * `_prg_names`: The names of the PRGs;
-  * `_prg_min_path_lengths`: the length of the shortest path through each PRG;
+  * `_prg_names`: The names of the PRGs used as input to create this index;
+  * `_prg_max_path_lengths`: the length of the longest path through each PRG;
+  * `_prg_lengths`: the length of the string representation of each PRG;
   * `_minhash`: the minimizer hash data structure;
-  * `_metadata`: metadata about the index (first line is window size, second is kmer size);
+  * `_metadata`: metadata about the index;
   * `*.gfa`: the several GFA files describing the minimizing kmer graph for each PRG;
+  * `*.fa`: the string representation of each PRG;
 - Minimum C++ standard upgraded from `C++11` to `C++14`;
-- We now test whether the genotype confidence of a variant is greater than or equal to the threshold provided by `--gt-conf`. Previously we only tested if it was greater than. [[#320][320]]
+- We now test whether the genotype confidence of a variant is greater than or equal to the threshold provided by
+`--gt-conf`. Previously we only tested if it was greater than;
 
 ### Removed
-- Removed CLI parameters `-w` and `-k` from the following `pandora` subcommands: `compare`, `discover`, `map`,
+- Removed CLI parameters `-w`, `-k` and `--clean` from the following `pandora` subcommands: `compare`, `discover`, `map`,
 `seq2path`;   
 - Removed `merge_index` subcommand;
+- Removed gene-DBG and noise-filtering modules;
 
 ### Fixed
-- Several refactoring to the `pandora` index implementation;
-
+- Fixed a major bug on finding the longest path through PRGs;
+- Several refactorings to the `pandora` index implementation;
+- Optimisation of the `pandora` index data structure;
+ 
 ### Added
-- A memory-efficient way to load PRGs when indexing, where we don't need to load all PRGs at once to index them, but 
-just load on demand; 
+- A memory-efficient way to load PRGs when indexing and mapping, where we don't need to load all PRGs at once to process 
+them, but just load on demand (also known as lazy loading). This is particularly useful when working with very large 
+PanRGs;
+- Random multimapping of reads if they map equally well to several graphs, reducing mapping bias. Added parameter
+`--rng-seed` to `pandora map/compare/discover` commands to make multimapping deterministic, if required;
+- A new parameter to deal with auto-updating error rate and kmer model (see `--auto-update-params` parameter in 
+`pandora map/compare/discover` commands);
+- Three new parameters to control when a gene should be filtered out due to too low or too high coverage (see
+`--min-abs-gene-coverage`, `--min-rel-gene-coverage` and `--max-rel-gene-coverage` parameters in
+`pandora map/compare/discover` commands);
+
 
 ## [0.10.0-alpha.0]
 
@@ -170,8 +186,8 @@ their changes meticulously documented here.
 
 - k-mer coverage underflow bug in `LocalPRG` [[#183][183]]
 
-[Unreleased]: https://github.com/rmcolq/pandora/compare/0.10.0-alpha.1...HEAD
-[0.10.0-alpha.1]: https://github.com/rmcolq/pandora/compare/0.10.0-alpha.1...0.10.0-alpha.0
+[Unreleased]: https://github.com/rmcolq/pandora/compare/0.11.0-alpha.0...HEAD
+[0.11.0-alpha.0]: https://github.com/rmcolq/pandora/compare/0.11.0-alpha.0...0.10.0-alpha.0
 [0.10.0-alpha.0]: https://github.com/rmcolq/pandora/compare/0.10.0-alpha.0...0.9.2
 [0.9.2]: https://github.com/rmcolq/pandora/compare/0.9.2...0.9.1
 [0.9.1]: https://github.com/rmcolq/pandora/releases/tag/0.9.1

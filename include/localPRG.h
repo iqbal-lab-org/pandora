@@ -59,6 +59,14 @@ public:
 
     LocalPRG(uint32_t id, const std::string& name, const std::string& seq);
 
+    bool operator==(const LocalPRG &other) const {
+        if (this->id != other.id) return false;
+        if (this->seq != other.seq) return false;
+        if (this->prg != other.prg) return false;
+        if (this->kmer_prg != other.kmer_prg) return false;
+        return true;
+    }
+
     // functions used to create LocalGraph from PRG string, and to sketch graph
     bool isalpha_string(const std::string&) const;
 
@@ -107,7 +115,17 @@ public:
     std::vector<LocalNodePtr> find_alt_path(const std::vector<LocalNodePtr>&,
         const uint32_t, const std::string&, const std::string&) const;
 
-    std::string random_path();
+    template<typename RNG>
+    std::string random_path(RNG &&rng) {
+        std::vector<LocalNodePtr> npath;
+        npath.push_back(prg.nodes.at(0));
+        while (not npath.back()->outNodes.empty()) {
+            uint32_t random_number = rng();
+            size_t random_neighbour = random_number % npath.back()->outNodes.size();
+            npath.push_back(npath.back()->outNodes[random_neighbour]);
+        }
+        return string_along_path(npath);
+    }
 
     // TODO: I really feel like these methods are not responsability of a LocalPRG
     // TODO: many of them should be in VCF class, or in the KmerGraphWithCoverage or
@@ -137,7 +155,9 @@ public:
 
     void add_consensus_path_to_fastaq(Fastaq&, pangenome::NodePtr, std::vector<KmerNodePtr>&,
         std::vector<LocalNodePtr>&, const uint32_t, const bool, const uint32_t,
-        const uint32_t& max_num_kmers_to_average, const uint32_t& sample_id) const;
+        const uint32_t& max_num_kmers_to_average, const uint32_t& sample_id,
+        float min_absolute_gene_coverage, float min_relative_gene_coverage,
+        float max_relative_gene_coverage) const;
     std::vector<LocalNodePtr> get_valid_vcf_reference(const std::string&) const;
 
     void add_variants_to_vcf(VCF&, pangenome::NodePtr, const std::string&,

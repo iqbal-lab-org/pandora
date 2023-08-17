@@ -10,13 +10,11 @@ namespace fs = boost::filesystem;
 
 class MinimizerMatchFile : public GenericFile {
 private:
-    const std::vector<std::shared_ptr<LocalPRG>>& prgs;
+    const std::vector<std::string> &prg_names;
 public:
-    MinimizerMatchFile(const fs::path &filepath,
-                       // just to convert prg IDs to prg names
-                       const std::vector<std::shared_ptr<LocalPRG>>& prgs,
+    MinimizerMatchFile(const fs::path &filepath, const std::vector<std::string> &prg_names,
                        bool is_fake_file = false);
-    void write_hits(const Seq &seq, const MinimizerHits &hits);
+    void write_hits(const Seq &seq, const MinimizerHits &hits, const uint32_t k);
 };
 
 

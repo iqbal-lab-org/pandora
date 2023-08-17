@@ -19,8 +19,6 @@
 #include "pangenome/pannode.h"
 #include "index.h"
 #include "estimate_parameters.h"
-#include "noise_filtering.h"
-
 #include "CLI11.hpp"
 
 using std::set;
@@ -37,14 +35,18 @@ struct MapOptions {
     fs::path vcf_refs_file;
     uint8_t verbosity { 0 };
     float error_rate { 0.11 };
+    uint32_t rng_seed { 0 };
     uint32_t genome_size { 5000000 };
     uint32_t max_diff { 250 };
     bool output_kg { false };
     bool output_vcf { false };
     bool illumina { false };
-    bool clean { false };
     bool binomial { false };
+    bool do_not_auto_update_params { false };
     uint32_t max_covg { 300 };
+    float min_absolute_gene_coverage { 3.0 };
+    float min_relative_gene_coverage { 0.05 };
+    float max_relative_gene_coverage { 100 };
     bool genotype { false };
     bool local_genotype { false };
     bool snps_only { false };

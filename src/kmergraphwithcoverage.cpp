@@ -1,6 +1,5 @@
 #include <sstream>
 #include <limits>
-#include <cstdlib> /* srand, rand */
 #include <cmath>
 
 #include <boost/math/distributions/negative_binomial.hpp>
@@ -327,38 +326,6 @@ float KmerGraphWithCoverage::find_max_path(std::vector<KmerNodePtr>& maxpath,
     return prob_path(maxpath, sample_id, prob_model);
 }
 
-std::vector<std::vector<KmerNodePtr>> KmerGraphWithCoverage::get_random_paths(
-    uint32_t num_paths)
-{
-    // find a random path through kmergraph picking ~uniformly from the outnodes at each
-    // point
-    std::vector<std::vector<KmerNodePtr>> rpaths;
-    std::vector<KmerNodePtr> rpath;
-    uint32_t i;
-
-    time_t now;
-    now = time(nullptr);
-    srand((unsigned int)now);
-
-    if (!kmer_prg->nodes.empty()) {
-        for (uint32_t j = 0; j != num_paths; ++j) {
-            i = rand() % kmer_prg->nodes[0]->out_nodes.size();
-            rpath.push_back(kmer_prg->nodes[0]->out_nodes[i].lock());
-            while (rpath.back() != kmer_prg->nodes[kmer_prg->nodes.size() - 1]) {
-                if (rpath.back()->out_nodes.size() == 1) {
-                    rpath.push_back(rpath.back()->out_nodes[0].lock());
-                } else {
-                    i = rand() % rpath.back()->out_nodes.size();
-                    rpath.push_back(rpath.back()->out_nodes[i].lock());
-                }
-            }
-            rpath.pop_back();
-            rpaths.push_back(rpath);
-            rpath.clear();
-        }
-    }
-    return rpaths;
-}
 
 float KmerGraphWithCoverage::prob_path(const std::vector<KmerNodePtr>& kpath,
     const uint32_t& sample_id, const std::string& prob_model)

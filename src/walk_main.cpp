@@ -46,12 +46,13 @@ int pandora_walk(WalkOptions const& opt)
 
     BOOST_LOG_TRIVIAL(info) << "Loading Index...";
     Index index = Index::load(opt.index_file.string());
+    index.load_all_prgs();
     BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
 
     std::vector<LocalNodePtr> npath;
 
     if (opt.top) {
-        for (const auto& prg_ptr : index.get_prgs()) {
+        for (const auto& prg_ptr : index.get_loaded_prgs()) {
             npath = prg_ptr->prg.top_path();
             std::cout << prg_ptr->name << "\t";
             for (uint32_t j = 0; j != npath.size(); ++j) {
@@ -60,7 +61,7 @@ int pandora_walk(WalkOptions const& opt)
             std::cout << std::endl;
         }
     } else if (opt.bottom) {
-        for (const auto& prg_ptr : index.get_prgs()) {
+        for (const auto& prg_ptr : index.get_loaded_prgs()) {
             npath = prg_ptr->prg.bottom_path();
             std::cout << prg_ptr->name << "\t";
             for (uint32_t j = 0; j != npath.size(); ++j) {
@@ -80,7 +81,7 @@ int pandora_walk(WalkOptions const& opt)
                 break;
             }
 
-            for (const auto& prg_ptr : index.get_prgs()) {
+            for (const auto& prg_ptr : index.get_loaded_prgs()) {
                 npath = prg_ptr->prg.nodes_along_string(readfile.read);
                 if (not npath.empty()) {
                     std::cout << readfile.name << "\t" << prg_ptr->name << "\t";

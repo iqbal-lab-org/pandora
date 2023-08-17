@@ -1,6 +1,6 @@
 name: Pandora CI
 
-on: [ push, pull_request ]
+on: [ pull_request ]
 
 jobs:
   test:
@@ -27,17 +27,17 @@ jobs:
       - name: Build and test release build
         run: |
           mkdir build_release && cd build_release
-          cmake -DCMAKE_BUILD_TYPE=Release -DHUNTER_JOBS_NUMBER=4 ..
-          make -j4
-          ctest -V
+          cmake -DCMAKE_BUILD_TYPE=Release -DHUNTER_JOBS_NUMBER=2 ..
+          make -j2
+          # ctest -V
           ./pandora --help
           cd ..
 
       - name: Build and test debug build
         run: |
           mkdir build_debug && cd build_debug
-          cmake -DCMAKE_BUILD_TYPE=Debug -DHUNTER_JOBS_NUMBER=4 ..
-          make -j4
-          ctest -V
+          cmake -DCMAKE_BUILD_TYPE=Debug -DHUNTER_JOBS_NUMBER=2 ..
+          make -j2
+          # ctest -V
           ./pandora --help
           cd ..

@@ -1,6 +1,5 @@
 #include <iostream>
 #include <unordered_map>
-#include <unordered_set>
 #include <set>
 #include <memory>
 #include <vector>
@@ -10,9 +9,7 @@
 #include "utils.h"
 #include "pangenome/pangraph.h"
 #include "pangenome/pannode.h"
-#include "pangenome/panread.h"
 #include "pangenome/pansample.h"
-#include "fastaq_handler.h"
 #include "fatal_error.h"
 
 using namespace pangenome;
@@ -30,16 +27,6 @@ pangenome::Graph::Graph(const std::vector<std::string>& sample_names)
     }
 }
 
-void pangenome::Graph::add_read(const uint32_t& read_id)
-{
-    auto it = reads.find(read_id);
-    const bool found = it != reads.end();
-    if (not found) {
-        auto read_ptr = std::make_shared<Read>(read_id);
-        reads[read_id] = read_ptr;
-    }
-}
-
 void pangenome::Graph::add_node(const std::shared_ptr<LocalPRG>& prg, uint32_t node_id)
 {
     NodePtr node_ptr;
@@ -53,78 +40,15 @@ void pangenome::Graph::add_node(const std::shared_ptr<LocalPRG>& prg, uint32_t n
     }
 }
 
-/**
- * Updated the node information with this new read mapping to it
- * Increments node coverage by 1 and add the read to the set of reads the read cover
- * @param node_ptr
- * @param read_ptr
- */
-// TODO: this should be a method of the Node class
-void update_node_info_with_this_read(const NodePtr& node_ptr, const ReadPtr& read_ptr)
+void pangenome::Graph::record_hit(const std::shared_ptr<LocalPRG>&prg)
 {
-    node_ptr->covg += 1;
-    node_ptr->reads.insert(read_ptr);
-
-    const bool coverage_information_is_consistent_with_read_information
-        = node_ptr->covg == node_ptr->reads.size();
-    if (!coverage_information_is_consistent_with_read_information) {
-        fatal_error("Error updating Pangraph node with read: coverage information "
-                    "is not consistent with read information");
-    }
-}
-
-// Checks that all hits in the cluster are from the given prg and read
-void check_correct_hits(const uint32_t prg_id, const uint32_t read_id,
-    const MinimizerHits& cluster)
-{
-    for (const auto& hit_ptr : cluster) {
-        const bool hits_correspond_to_correct_read = read_id == hit_ptr->get_read_id();
-        if (!hits_correspond_to_correct_read) {
-            fatal_error("Minimizer hits error: hit should be on read id ", read_id,
-                ", but it is on read id ", hit_ptr->get_read_id());
-        }
-
-        const bool hits_correspond_to_correct_prg = prg_id == hit_ptr->get_prg_id();
-        if (!hits_correspond_to_correct_prg) {
-            fatal_error("Minimizer hits error: hit should be on PRG id ", prg_id,
-                ", but it is on PRG id ", hit_ptr->get_prg_id());
-        }
-    }
-}
-
-// TODO: this should be a method of the Read class
-// Add the node to the vector of nodes along read
-// as well as its orientation (unless the previous node along
-// the read was the same node and orientation)
-// Store the hits on the read
-void update_read_info_with_node_and_cluster(ReadPtr& read_ptr, const NodePtr& node_ptr,
-    const MinimizerHits& cluster)
-{
-    read_ptr->add_hits(node_ptr, cluster);
-}
-
-void pangenome::Graph::add_hits_between_PRG_and_read(
-    const std::shared_ptr<LocalPRG>&
-        prg, // the prg from where this cluster of hits come
-    const uint32_t read_id, // the read id from where this cluster of reads come - TODO:
-                            // this can be derived from the cluster
-    const MinimizerHits& cluster
-)
-{
-    check_correct_hits(prg->id, read_id,
-        cluster); // assure this cluster corresponds to the given prg and read
-
-    // add and get the new read
-    add_read(read_id);
-    auto read_ptr = get_read(read_id);
-
     // add and get the new node
     add_node(prg);
     auto node_ptr = get_node(prg);
 
-    // update the info
-    update_node_info_with_this_read(node_ptr, read_ptr);
-    update_read_info_with_node_and_cluster(read_ptr, node_ptr, cluster);
+    // update the coverage
+    node_ptr->covg += 1;
+    node_ptr->kmer_prg_with_coverage.set_num_reads(node_ptr->covg);
 }
 
 // TODO: this should be a method of class Sample
@@ -152,11 +76,6 @@ void pangenome::Graph::add_hits_between_PRG_and_sample(
 // Remove the node n, and all references to it
 std::unordered_map<uint32_t, NodePtr>::iterator pangenome::Graph::remove_node(NodePtr n)
 {
-    // removes all instances of node n and references to it in reads
-    for (const auto& r : n->reads) {
-        r->remove_all_nodes_with_this_id(n->node_id);
-    }
-
     auto it = nodes.find(n->node_id);
     if (it != nodes.end()) {
         it = nodes.erase(it);
@@ -164,47 +83,7 @@ std::unordered_map<uint32_t, NodePtr>::iterator pangenome::Graph::remove_node(No
     return it;
 }
 
-// Remove read from each node which contains it
-// and from the graph
-// Remove nodes which no longer have any reads
-void pangenome::Graph::remove_read(const uint32_t read_id)
-{
-    for (const auto& n : reads[read_id]->nodes) {
-        auto nSharedPtr = n.lock();
-        nSharedPtr->covg -= 1;
-        nSharedPtr->reads.erase(reads[read_id]);
-        if (nSharedPtr->covg == 0) {
-            remove_node(nSharedPtr);
-        }
-    }
-    reads.erase(read_id);
-}
-
-// Remove a single instance of a node from a read while iterating through the nodes of
-// the read
-std::vector<WeakNodePtr>::iterator pangenome::Graph::remove_node_from_read(
-    std::vector<WeakNodePtr>::iterator node_it, ReadPtr read_ptr)
-{
-    auto node_ptr = node_it->lock();
-
-    BOOST_LOG_TRIVIAL(debug) << "remove node " << node_ptr->node_id << " from read "
-                             << read_ptr->id;
-    // remove node from read
-    node_it = read_ptr->remove_node_with_iterator(node_it);
-
-    // remove read from node
-    auto read_it = node_ptr->reads.find(read_ptr);
-    if (read_it != node_ptr->reads.end())
-        node_ptr->reads.erase(read_it);
-
-    if (node_ptr->reads.size() == 0)
-        remove_node(node_ptr);
-
-    return node_it;
-}
-
 // remove the all instances of the pattern of nodes/orienations from graph
-
 void pangenome::Graph::remove_low_covg_nodes(const uint32_t& thresh)
 {
     BOOST_LOG_TRIVIAL(debug) << "Remove nodes with covg <= " << thresh << std::endl;
@@ -218,130 +97,6 @@ void pangenome::Graph::remove_low_covg_nodes(const uint32_t& thresh)
     BOOST_LOG_TRIVIAL(debug) << "Pangraph now has " << nodes.size() << " nodes";
 }
 
-// Create a copy of the node with node_id and replace the old copy with
-// the new one in each of the reads in reads_along_tig (by looking for the context of
-// node_id)
-void pangenome::Graph::split_node_by_reads(std::unordered_set<ReadPtr>& reads_along_tig,
-    std::vector<uint_least32_t>& node_ids, const std::vector<bool>& node_orients,
-    const uint_least32_t node_id)
-{
-    if (reads_along_tig.empty()) {
-        return;
-    }
-
-    // replace the first instance of node_id which it finds on the read
-    // (in the context of node_ids) with a new node
-    while (nodes.find(next_id) != nodes.end()) {
-        next_id++;
-    }
-
-    // define new node
-    NodePtr n = std::make_shared<Node>(nodes[node_id]->prg, next_id,
-        nodes[node_id]->kmer_prg_with_coverage.get_total_number_samples());
-    n->covg -= 1;
-    nodes[next_id] = n;
-
-    // switch old node to new node in reads
-    std::unordered_multiset<ReadPtr>::iterator rit;
-    std::pair<uint32_t, uint32_t> pos;
-    for (const auto& r : reads_along_tig) {
-        // ignore if this node does not contain this read
-        rit = nodes[node_id]->reads.find(r);
-        if (rit == nodes[node_id]->reads.end()) {
-            continue;
-        }
-
-        // find iterator to the node in the read
-        pos = r->find_position(node_ids, node_orients);
-        auto it = r->find_node_by_id(node_id);
-
-        // replace the node in the read
-        if (it != r->nodes.end()) {
-            r->replace_node_with_iterator(it, n);
-            nodes[node_id]->reads.erase(rit);
-            nodes[node_id]->covg -= 1;
-            if (nodes[node_id]->covg == 0) {
-                remove_node(nodes[node_id]);
-            }
-            n->reads.insert(r);
-            n->covg += 1;
-        }
-    }
-
-    // replace node in tig
-    for (uint32_t i = 0; i < node_ids.size(); ++i) {
-        if (node_ids[i] == node_id) {
-            node_ids[i] = next_id;
-            break;
-        }
-    }
-}
-
-// For each node in pangraph, make a copy of the kmergraph and use the hits
-// stored on each read containing the node to add coverage to this graph
-void pangenome::Graph::add_hits_to_kmergraphs(const uint32_t& sample_id)
-{
-    for (const auto& node_entries : nodes) {
-        Node& pangraph_node = *node_entries.second;
-        const bool pangraph_node_has_a_valid_kmer_prg_with_coverage
-            = (pangraph_node.kmer_prg_with_coverage.kmer_prg != nullptr)
-            and (not pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes.empty());
-        if (!pangraph_node_has_a_valid_kmer_prg_with_coverage) {
-            fatal_error(
-                "Error adding hits to kmer graph: pangraph node does not have a "
-                "valid Kmer PRG with coverage");
-        }
-        uint32_t num_hits[2] = { 0, 0 };
-
-        // add hits
-        for (const auto& read_ptr : pangraph_node.reads) {
-            const Read& read = *read_ptr;
-
-            auto hits = read.get_hits_as_unordered_map();
-            for (const auto& minimizer_hit_ptr : hits.at(pangraph_node.prg_id)) {
-                const auto& minimizer_hit = *minimizer_hit_ptr;
-
-                const bool minimizer_hit_kmer_node_id_is_valid
-                    = (minimizer_hit.get_kmer_node_id()
-                          < pangraph_node.kmer_prg_with_coverage.kmer_prg->nodes.size())
-                    && (pangraph_node.kmer_prg_with_coverage.kmer_prg
-                            ->nodes[minimizer_hit.get_kmer_node_id()]
-                        != nullptr);
-                if (!minimizer_hit_kmer_node_id_is_valid) {
-                    fatal_error("Error adding hits to kmer graph: minimizer hit "
-                                "kmer node is invalid");
-                }
-
-                if (minimizer_hit.same_strands()) {
-                    pangraph_node.kmer_prg_with_coverage.increment_forward_covg(
-                        minimizer_hit.get_kmer_node_id(), sample_id);
-                } else {
-                    pangraph_node.kmer_prg_with_coverage.increment_reverse_covg(
-                        minimizer_hit.get_kmer_node_id(), sample_id);
-                }
-
-                const auto covg { minimizer_hit.same_strands()
-                        ? pangraph_node.kmer_prg_with_coverage.get_forward_covg(
-                            minimizer_hit.get_kmer_node_id(), sample_id)
-                        : pangraph_node.kmer_prg_with_coverage.get_reverse_covg(
-                            minimizer_hit.get_kmer_node_id(), sample_id) };
-                if (covg == 1000) {
-                    BOOST_LOG_TRIVIAL(debug)
-                        << "Adding hit " << minimizer_hit
-                        << " resulted in high coverage on node "
-                        << *pangraph_node.kmer_prg_with_coverage.kmer_prg
-                                ->nodes[minimizer_hit.get_kmer_node_id()];
-                }
-                num_hits[minimizer_hit.same_strands()] += 1;
-            }
-        }
-
-        BOOST_LOG_TRIVIAL(debug)
-            << "Added " << num_hits[1] << " hits in the forward direction and "
-            << num_hits[0] << " hits in the reverse";
-        pangraph_node.kmer_prg_with_coverage.set_num_reads(pangraph_node.covg);
-    }
-}
 
 // For each node in reference pangraph, copy the coverages over to sample_id in this
 // pangraph
@@ -393,7 +148,7 @@ std::vector<LocalNodePtr> pangenome::Graph::infer_node_vcf_reference_path(
     const auto& prg = *prg_ptr;
     if (vcf_refs.find(prg.name) != vcf_refs.end()) {
         const auto& vcf_reference_sequence = vcf_refs.at(prg.name);
-        const auto reference_path = prg.get_valid_vcf_reference(vcf_reference_sequence);
+        auto reference_path = prg.get_valid_vcf_reference(vcf_reference_sequence);
         if (!reference_path.empty())
             return reference_path;
     }
@@ -523,9 +278,5 @@ std::ostream& pangenome::operator<<(std::ostream& out, const pangenome::Graph& m
         out << n.second->prg_id << std::endl;
         out << *n.second << std::endl;
     }
-    for (const auto& n : m.reads) {
-        out << *(n.second) << std::endl;
-    }
-
     return out;
 }

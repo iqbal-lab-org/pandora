@@ -81,7 +81,7 @@ void Fastaq::add_entry(const std::string& name, const std::string& sequence,
 }
 
 void Fastaq::add_entry(
-    const std::string& name, const std::string& sequence, const std::string header)
+    const std::string& name, const std::string& sequence, const std::string &header)
 {
     const bool fasta_entry_has_a_name = name.length() > 0;
     if (!fasta_entry_has_a_name) {

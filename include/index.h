@@ -27,50 +27,77 @@ struct AddRecordToIndexParams {
 };
 
 class Index {
-private:
+protected:
     ///////////////////////////////////////////////////////////////////////////////////
     // attributes
-    const uint32_t w;
-    const uint32_t k;
+    uint32_t w;
+    uint32_t k;
 
-    // required to produce mapping files
+    // required to produce mapping files (SAMFile, MinimizerMatchFile, PafFile, etc)
     std::vector<std::string> prg_names;
+    std::unordered_map<std::string, uint32_t> prg_names_to_ids;
 
     // required to map to PRGs without actually loading them
-    std::vector<uint32_t> prg_min_path_lengths;
+    std::vector<uint32_t> prg_lengths;
+    std::vector<uint32_t> prg_max_path_lengths;
+    std::shared_ptr<ZipFileReader> zip_file;
 
     // populated when loading an index - just valid for index consumption commands
     // e.g. map, compare, discover, etc
+    // this is lazily loaded - PRG is just loaded when required (see load_prg())
     std::vector<std::shared_ptr<LocalPRG>> prgs;
     ///////////////////////////////////////////////////////////////////////////////////
 
-    // explicitly disallowing the index to be built from other classes/modules
-    Index(const uint32_t w, const uint32_t k) : w(w), k(k) {}
-
-    // Note: prg_names is an r-value ref because we take ownership of it when building an index
-    Index(const uint32_t w, const uint32_t k, std::vector<std::string> &&prg_names) :
-        w(w), k(k), prg_names(std::move(prg_names)) {
-        prg_min_path_lengths.reserve(get_number_of_prgs());
-        prgs.reserve(get_number_of_prgs());
-    }
+    ///////////////////////////////////////////////////////////////////////////////////
+    // constructors
+    // By making constructors private we are explicitly disallowing the index to be
+    // built from other classes/modules
+    // Note: prg_names and prg_lengths are r-value refs because we take ownership of it when building an index
+    // constructor to be used when building an index for SERIALIZING it to disk
     Index(const uint32_t w, const uint32_t k, std::vector<std::string> &&prg_names,
-        std::vector<uint32_t> &&prg_min_path_lengths) :
-        w(w), k(k), prg_names(std::move(prg_names)), prg_min_path_lengths(std::move(prg_min_path_lengths)) {
-        prgs.reserve(get_number_of_prgs());
+        std::vector<uint32_t> &&prg_lengths) :
+        w(w), k(k), prg_names(std::move(prg_names)),
+        prg_names_to_ids(this->prg_names.size()), prg_lengths(std::move(prg_lengths)),
+        prgs(this->prg_names.size(), nullptr) {
+        prg_max_path_lengths.reserve(get_number_of_prgs());
+        init_prg_names_to_ids();
     }
 
-    void load_prgs(ZipFileReader &zip_file);
+    // constructor to be used when LOADING an index from disk
+    Index(const uint32_t w, const uint32_t k, std::vector<std::string> &&prg_names,
+        std::vector<uint32_t> &&prg_lengths, std::vector<uint32_t> &&prg_max_path_lengths,
+        const std::shared_ptr<ZipFileReader> &zip_file) :
+        w(w), k(k), prg_names(std::move(prg_names)),
+        prg_names_to_ids(this->prg_names.size()), prg_lengths(std::move(prg_lengths)),
+        prg_max_path_lengths(std::move(prg_max_path_lengths)), zip_file(zip_file),
+        prgs(this->prg_names.size(), nullptr) {
+        init_prg_names_to_ids();
+    }
 
+    inline void init_prg_names_to_ids() {
+        for (uint32_t prg_id = 0; prg_id < prg_names.size(); ++prg_id) {
+            prg_names_to_ids[prg_names[prg_id]] = prg_id;
+        }
+    }
+    ///////////////////////////////////////////////////////////////////////////////////
+
+    ///////////////////////////////////////////////////////////////////////////////////
+    // indexing
     void index_prgs(ZipFileWriter &index_archive,
         LocalPRGReaderGeneratorIterator &prg_it,
-        uintmax_t estimated_index_size=ESTIMATED_INDEX_SIZE_DEFAULT,
         const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
         const uint32_t threads=1);
+    ///////////////////////////////////////////////////////////////////////////////////
 
-    std::unordered_map<std::string, uint32_t> get_prg_names_to_prg_index() const;
+    ///////////////////////////////////////////////////////////////////////////////////
+    // loading
+    const std::shared_ptr<LocalPRG>& load_prg(const std::string &prg_name);
+    void load_minhash();
+    ///////////////////////////////////////////////////////////////////////////////////
 
+    ///////////////////////////////////////////////////////////////////////////////////
+    // saving
     void save_minhash(ZipFileWriter &index_archive) const;
-    void load_minhash(ZipFileReader &zip_file);
 
     template <class Iterator>
     static void save_values(ZipFileWriter &index_archive, const std::string &zip_path,
@@ -85,14 +112,19 @@ private:
     inline void save_prg_names(ZipFileWriter &index_archive) const {
         save_values(index_archive, "_prg_names", prg_names.begin(), prg_names.end());
     }
-    inline void save_prg_min_path_lengths(ZipFileWriter &index_archive) const {
-        save_values(index_archive, "_prg_min_path_lengths",
-            prg_min_path_lengths.begin(), prg_min_path_lengths.end());
+    inline void save_prg_lengths(ZipFileWriter &index_archive) const {
+        save_values(index_archive, "_prg_lengths",
+            prg_lengths.begin(), prg_lengths.end());
+    }
+    inline void save_prg_max_path_lengths(ZipFileWriter &index_archive) const {
+        save_values(index_archive, "_prg_max_path_lengths",
+            prg_max_path_lengths.begin(), prg_max_path_lengths.end());
     }
     inline void save_metadata(ZipFileWriter &index_archive) const {
         std::vector<uint32_t> metadata{w, k};
         save_values(index_archive, "_metadata", metadata.begin(), metadata.end());
     }
+    ///////////////////////////////////////////////////////////////////////////////////
 
 public:
     ///////////////////////////////////////////////////////////////////////////////////
@@ -100,10 +132,8 @@ public:
     std::unordered_map<uint64_t, std::vector<MiniRecord>*> minhash; // TODO: move to private
     ///////////////////////////////////////////////////////////////////////////////////
 
-    virtual ~Index() {
-        clear();
-    };
-
+    ///////////////////////////////////////////////////////////////////////////////////
+    // constructors
     // moving indexes is allowed
     Index(Index&& other) = default;
     Index& operator=(Index&& other) = default;
@@ -111,6 +141,21 @@ public:
     // copying indexes is not allowed
     Index(const Index& other) = delete;
     Index& operator=(const Index& other) = delete;
+    ///////////////////////////////////////////////////////////////////////////////////
+
+    ///////////////////////////////////////////////////////////////////////////////////
+    // explicitly deleting comparison ops as they don't seem needed
+    bool operator==(const Index& other) const = delete;
+    bool operator!=(const Index& other) const = delete;
+    ///////////////////////////////////////////////////////////////////////////////////
+
+    ///////////////////////////////////////////////////////////////////////////////////
+    // clean up methods
+    virtual ~Index() {
+        clear();
+    };
+    void clear();
+    ///////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////
     // public interface to build and load indexes
@@ -119,6 +164,25 @@ public:
         const uint32_t indexing_upper_bound=INDEXING_UPPER_BOUND_DEFAULT,
         const uint32_t threads=1);
     static Index load(const fs::path& indexfile);
+    ////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////
+    // misc methods
+
+    // WARNING: CARE must be taken when using invoking this method, as we lose the
+    // benefits of the lazy loading feature!
+    void load_all_prgs() {
+        for (const std::string &prg_name : prg_names) {
+            load_prg(prg_name);
+        }
+    }
+
+    void add_record(const AddRecordToIndexParams &params) {
+        add_record(params.kmer, params.prg_id, params.path, params.knode_id,
+            params.strand);
+    }
+    void add_record(
+        const uint64_t, const uint32_t, const prg::Path&, const uint32_t, const bool);
     ////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -135,31 +199,44 @@ public:
         return prg_names.size();
     }
 
+    inline const std::vector<std::string>& get_prg_names() const {
+        return prg_names;
+    }
     inline const std::string & get_prg_name_given_id(size_t id) const {
         return prg_names[id];
     }
 
-    inline const std::shared_ptr<LocalPRG>& get_prg_given_id(size_t id) const {
-        return prgs[id];
+    inline const std::vector<uint32_t>& get_prg_lengths() const {
+        return prg_lengths;
+    }
+    inline uint32_t get_prg_length_given_id(size_t id) const {
+        return prg_lengths[id];
     }
 
-    inline const std::vector<std::shared_ptr<LocalPRG>> & get_prgs() const {
-        return prgs;
+    inline const std::vector<uint32_t> & get_prg_max_path_lengths() const {
+        return prg_max_path_lengths;
+    }
+    inline uint32_t get_prg_max_path_lengths_given_id(size_t id) const {
+        return prg_max_path_lengths[id];
+    }
+
+    inline std::vector<std::shared_ptr<LocalPRG>> get_loaded_prgs() const {
+        std::vector<std::shared_ptr<LocalPRG>> loaded_prgs;
+        loaded_prgs.reserve(prgs.size());
+        for (const auto &prg : prgs) {
+            if (prg != nullptr) {
+                loaded_prgs.push_back(prg);
+            }
+        }
+        return loaded_prgs;
+    }
+    inline const std::shared_ptr<LocalPRG>& get_prg_given_name(const std::string &prg_name) {
+        return load_prg(prg_name);
+    }
+    inline const std::shared_ptr<LocalPRG>& get_prg_given_id(size_t id) {
+        return get_prg_given_name(prg_names[id]);
     }
     ////////////////////////////////////////////////////////////////////////////////////
-
-    void clear();
-
-    void add_record(const AddRecordToIndexParams &params) {
-        add_record(params.kmer, params.prg_id, params.path, params.knode_id,
-            params.strand);
-    }
-    void add_record(
-        const uint64_t, const uint32_t, const prg::Path&, const uint32_t, const bool);
-
-    bool operator==(const Index& other) const;
-
-    bool operator!=(const Index& other) const;
 };
 
 #endif

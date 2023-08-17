@@ -55,9 +55,11 @@ private:
     const fs::path filepath;
     const fs::path tmp_filepath;
     GenericFile* tmp_sam_file;
-    const std::vector<std::shared_ptr<LocalPRG>>& prgs;
-    std::map<std::string, uint32_t> prg_name_to_length;
+    const std::vector<std::string> &prg_names;
+    const std::vector<uint32_t> &prg_lengths;
+    std::set<uint32_t> prg_ids_that_we_mapped_to;
     const uint32_t flank_size;
+    const uint32_t k;
 
     std::vector<bool> get_mapped_positions_bitset(const Seq &seq, const MinimizerHits &cluster) const;
     Cigar get_cigar(const std::vector<bool> &mapped_positions_bitset) const;
@@ -66,12 +68,11 @@ private:
     std::string get_header() const;
     void create_final_sam_file();
 public:
-    SAMFile(const fs::path &filepath,
-            // just to convert prg IDs to prg names
-            const std::vector<std::shared_ptr<LocalPRG>>& prgs,
-            const uint32_t flank_size)
+    SAMFile(const fs::path &filepath, const std::vector<std::string> &prg_names,
+            const std::vector<uint32_t> &prg_lengths, const uint32_t flank_size, const uint32_t k)
         :filepath(filepath), tmp_filepath(filepath.string() + ".tmp"),
-         tmp_sam_file(new GenericFile(tmp_filepath)), prgs(prgs), flank_size(flank_size){}
+         tmp_sam_file(new GenericFile(tmp_filepath)), prg_names(prg_names),
+         prg_lengths(prg_lengths), flank_size(flank_size), k(k) {}
     virtual ~SAMFile();
 
     // Note: these two methods could be one, e.g. write_sam_record() could generate the

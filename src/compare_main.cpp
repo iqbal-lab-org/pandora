@@ -80,19 +80,64 @@ void setup_compare_subcommand(CLI::App& app)
         ->group("Preset");
 
     compare_subcmd
-        ->add_flag(
-            "--clean", opt->clean, "Add a step to clean and detangle the pangraph")
-        ->group("Filtering");
-
-    compare_subcmd
         ->add_flag("--bin", opt->binomial,
             "Use binomial model for kmer coverages [default: negative binomial]")
+        ->group("Parameter Estimation");
+
+    compare_subcmd
+        ->add_flag("--dont-auto-update-params", opt->do_not_auto_update_params,
+            "By default, pandora automatically updates error rate and kmer coverage model parameters based "
+            "on the mapping of the previous sample. This could potentially generate "
+            "more accurate results if your samples have no sequencing issues and a "
+            "consistent protocol was followed for the sequencing of all samples. If this is "
+            "not the case, deactivate this feature by activating this flag")
         ->group("Parameter Estimation");
 
     compare_subcmd
         ->add_option("--max-covg", opt->max_covg, "Maximum coverage of reads to accept")
         ->capture_default_str()
         ->type_name("INT")
+        ->group("Filtering");
+
+    compare_subcmd
+        ->add_option(
+            "--min-abs-gene-coverage", opt->min_absolute_gene_coverage,
+            "Minimum absolute mean gene coverage to keep a gene. Given the "
+            "coverage on the kmers of the maximum likelihood path of a gene, we compute "
+            "the mean gene coverage and compare with the value in this "
+            "parameter. If the mean is lower than this parameter, "
+            "the gene is filtered out, e.g. if this parameter value is "
+            "3, then all genes with mean <3 will be filtered out.")
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Filtering");
+
+    compare_subcmd
+        ->add_option(
+            "--min-rel-gene-coverage", opt->min_relative_gene_coverage,
+            "Minimum relative mean gene coverage to keep a gene. This is a proportion, between 0.0 and 1.0. "
+            "Given the coverage on the kmers of the maximum likelihood path of a gene, we compute "
+            "the mean gene coverage and compare with the value in this "
+            "parameter and the global coverage. If the mean is lower"
+            " than the computed value, the gene is filtered out, e.g. if this parameter value is "
+            "0.05, then all genes with mean < 5% of the global coverage will be "
+            "filtered out.")
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Filtering");
+
+    compare_subcmd
+        ->add_option(
+            "--max-rel-gene-coverage", opt->max_relative_gene_coverage,
+            "Maximum relative mean gene coverage to keep a gene. "
+            "Given the coverage on the kmers of the maximum likelihood path of a gene, we compute "
+            "the mean gene coverage and compare with the value in this "
+            "parameter and the global coverage. If the mean is higher"
+            " than the computed value, the gene is filtered out, e.g. if this parameter value is "
+            "10, then all genes with mean >10 times the global coverage will be "
+            "filtered out.")
+        ->capture_default_str()
+        ->type_name("FLOAT")
         ->group("Filtering");
 
     description = "Add extra step to carefully genotype sites.";
@@ -167,6 +212,17 @@ void setup_compare_subcommand(CLI::App& app)
             "create thousands of files.")
         ->group("Debugging");
 
+    compare_subcmd
+        ->add_option(
+            "-r,--rng-seed", opt->rng_seed, "RNG seed, an int>0 to force deterministic "
+                                            "mapping when multiple optimal mappings are "
+                                            "possible. To be avoided except in "
+                                            "debugging/investigation scenarios. A value "
+                                            "of 0 will be interpreted as no seed given "
+                                            "and mapping will not be deterministic.")
+        ->capture_default_str()
+        ->group("Debugging");
+
     compare_subcmd->add_flag(
         "-v", opt->verbosity, "Verbosity of logging. Repeat for increased verbosity");
 
@@ -184,18 +240,10 @@ int pandora_compare(CompareOptions& opt)
     }
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
 
-    // =========
-    // todo: this all seems strange
-    if (opt.error_rate < 0.01) {
-        opt.illumina = true;
-    }
-    if (opt.error_rate > 0.05 and opt.illumina) {
+    if (opt.illumina) {
         opt.error_rate = 0.001;
     }
-    if (opt.illumina and opt.error_rate > 0.1) {
-        opt.error_rate = 0.001;
-    }
-    // ==========
+
     if (opt.genotype) {
         opt.output_vcf = true;
     }
@@ -237,24 +285,19 @@ int pandora_compare(CompareOptions& opt)
                                 << sample_fpath << " (this will take a while)";
         uint32_t covg = pangraph_from_read_file(sample, pangraph_sample, index,
             opt.max_diff, opt.error_rate, sample_outdir,
-            opt.min_cluster_size, opt.genome_size, opt.illumina, opt.clean,
-            opt.max_covg, opt.threads, opt.keep_extra_debugging_files);
-
-        const auto pangraph_gfa { sample_outdir / "pandora.pangraph.gfa" };
-        BOOST_LOG_TRIVIAL(info) << "Writing pangenome::Graph to file " << pangraph_gfa;
-        write_pangraph_gfa(pangraph_gfa, pangraph_sample);
+            opt.min_cluster_size, opt.genome_size, opt.max_covg, opt.threads,
+            opt.keep_extra_debugging_files, opt.rng_seed);
 
         if (pangraph_sample->nodes.empty()) {
             BOOST_LOG_TRIVIAL(warning)
                 << "Found no LocalPRGs in the reads for sample " << sample_name;
         }
 
-        BOOST_LOG_TRIVIAL(info) << "Update LocalPRGs with hits";
-        pangraph_sample->add_hits_to_kmergraphs(0);
-
         BOOST_LOG_TRIVIAL(info) << "Estimate parameters for kmer graph model";
         auto exp_depth_covg = estimate_parameters(pangraph_sample, sample_outdir,
-            index.get_kmer_size(), opt.error_rate, covg, opt.binomial, 0);
+            index.get_kmer_size(), opt.error_rate, covg, opt.binomial, 0,
+            opt.do_not_auto_update_params);
+
         genotyping_options.add_exp_depth_covg(exp_depth_covg);
 
         if (genotyping_options.get_min_kmer_covg() == 0) {
@@ -270,7 +313,9 @@ int pandora_compare(CompareOptions& opt)
             vector<KmerNodePtr> kmp;
             vector<LocalNodePtr> lmp;
             local_prg->add_consensus_path_to_fastaq(consensus_fq, c->second, kmp, lmp,
-                index.get_window_size(), opt.binomial, covg, opt.max_num_kmers_to_avg, 0);
+                index.get_window_size(), opt.binomial, covg, opt.max_num_kmers_to_avg, 0,
+                opt.min_absolute_gene_coverage, opt.min_relative_gene_coverage,
+                opt.max_relative_gene_coverage);
 
             if (kmp.empty()) {
                 c = pangraph_sample->remove_node(c->second);
@@ -294,12 +339,6 @@ int pandora_compare(CompareOptions& opt)
                 << ". Is your genome_size accurate? Genome size is assumed to be "
                 << opt.genome_size << " and can be updated with --genome_size";
         }
-
-        // Note: pangraph_sample is destroyed here and as well as all Read information
-        // (pangenome::Graph::reads) about the sample pangraph does not keep the read
-        // information This is important since this is the heaviest information to keep
-        // in compare pangraph has just coverage information and the consensus path for
-        // each sample and PRG
     }
 
     // for each pannode in graph, find a best reference

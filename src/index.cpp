@@ -10,13 +10,13 @@
 #include "index.h"
 #include "localPRG.h"
 
-std::vector<std::string> get_prg_names(
-    const fs::path &prg_filepath, uintmax_t estimated_index_size) {
+std::pair<std::vector<std::string>, std::vector<uint32_t>> get_prg_names_and_lengths(
+    const fs::path &prg_filepath) {
     std::vector<std::string> prg_names;
+    std::vector<uint32_t> prg_lengths;
 
-    // Note: we estimate the number of PRGs thinking each PRG has the size of ~1000 chars/bytes.
-    // Not the best but not the worst estimation
-    prg_names.reserve(estimated_index_size/1000);
+    prg_names.reserve(1000);
+    prg_lengths.reserve(1000);
 
     std::ifstream prg_ifstream;
     open_file_for_reading(prg_filepath.string(), prg_ifstream);
@@ -29,13 +29,16 @@ std::vector<std::string> get_prg_names(
             if (is_header) {
                 const std::string prg_name = line.substr(1);  // remove '>'
                 prg_names.push_back(prg_name);
+            } else {
+                uint32_t prg_length = line.size();
+                prg_lengths.push_back(prg_length);
             }
         }
     }
 
     prg_ifstream.close();
 
-    return prg_names;
+    return std::make_pair(prg_names, prg_lengths);
 }
 
 void Index::build_index_on_disk(const uint32_t w, const uint32_t k, const fs::path &prg_filepath,
@@ -43,25 +46,19 @@ void Index::build_index_on_disk(const uint32_t w, const uint32_t k, const fs::pa
     const uint32_t threads) {
     ZipFileWriter index_archive(out_filepath);
 
-    // Note: originally this was the sum of PRG lengths. The number of bytes in a file
-    // is a fast and good approximation
-    uintmax_t estimated_index_size = get_number_of_bytes_in_file(prg_filepath);
-    std::vector<std::string> prg_names = get_prg_names(prg_filepath, estimated_index_size);
+    // get prg names and lengths
+    std::pair<std::vector<std::string>, std::vector<uint32_t>> prg_names_and_lengths =
+        get_prg_names_and_lengths(prg_filepath);
+    std::vector<std::string> &prg_names = prg_names_and_lengths.first;
+    std::vector<uint32_t> &prg_lengths = prg_names_and_lengths.second;
 
     // load PRGs from file lazily (using generators)
     LocalPRGGeneratorAndIterator prg_generator_and_it = LocalPRGReader::read_prg_file_as_generator(prg_filepath);
 
     // index the prgs
-    Index index(w, k, std::move(prg_names));
-    index.index_prgs(index_archive, prg_generator_and_it.second,
-        estimated_index_size, indexing_upper_bound, threads);
-
-    // saves the prg file in the index to make it a self-contained index
-    std::ifstream prg_ifstream;
-    open_file_for_reading(prg_filepath.string(), prg_ifstream);
-    index_archive.prepare_new_entry("_prgs");
-    index_archive.write_from_text_stream(prg_ifstream);
-    prg_ifstream.close();
+    Index index(w, k, std::move(prg_names), std::move(prg_lengths));
+    index.index_prgs(index_archive, prg_generator_and_it.second, indexing_upper_bound,
+        threads);
 }
 
 /**
@@ -128,14 +125,14 @@ void Index::save_minhash(ZipFileWriter &index_archive) const
     BOOST_LOG_TRIVIAL(debug) << "Saving minhash - done!";
 }
 
-void Index::load_minhash(ZipFileReader &zip_file) {
+void Index::load_minhash() {
     uint64_t key;
     size_t size;
     int c;
     MiniRecord mr;
     bool first = true;
 
-    ZipIfstream zip_in(zip_file.archive, "_minhash");
+    ZipIfstream zip_in(zip_file->archive, "_minhash");
 
     while (zip_in.good()) {
         c = zip_in.peek();
@@ -149,13 +146,8 @@ void Index::load_minhash(ZipFileReader &zip_file) {
             zip_in.ignore(1, '\t');
             zip_in >> size;
             auto* vmr = new std::vector<MiniRecord>;
-            if (minhash.find(key) != minhash.end()) {
-                vmr = minhash[key];
-                vmr->reserve(vmr->size() + size);
-            } else {
-                vmr->reserve(size);
-                minhash[key] = vmr;
-            }
+            vmr->reserve(size);
+            minhash[key] = vmr;
             zip_in.ignore(1, '\t');
         } else if (c == EOF) {
             break;
@@ -176,135 +168,63 @@ void Index::load_minhash(ZipFileReader &zip_file) {
     }
 }
 
-void Index::load_prgs(ZipFileReader &zip_file) {
-    fs::path prg_file = zip_file.extract_prgs();
-    uint32_t id = 0;
-    FastaqHandler fh(prg_file.string());
-    while (!fh.eof()) {
-        try {
-            fh.get_next();
-        } catch (std::out_of_range& err) {
-            break;
-        }
-        if (fh.name.empty() or fh.read.empty())
-            continue;
-        auto s = std::make_shared<LocalPRG>(LocalPRG(id, fh.name,
-            fh.read)); // build a node in the graph, which will represent a LocalPRG
-                       // (the graph is a list of nodes, each representing a LocalPRG)
-        if (s != nullptr) {
-            prgs.push_back(s);
-            id++;
-        } else {
-            fatal_error("Failed to make LocalPRG for ", fh.name);
-        }
+const std::shared_ptr<LocalPRG>& Index::load_prg(const std::string &prg_name) {
+    const uint32_t id = prg_names_to_ids[prg_name];
+    const bool prg_already_loaded = prgs[id] != nullptr;
+    if (not prg_already_loaded) {
+        BOOST_LOG_TRIVIAL(info) << "Lazy loading PRG " << prg_name << "...";
+        const std::string prg_fasta_zip_path = prg_name + ".fa";
+        const std::string prg_fasta = zip_file->read_full_text_file_as_single_string(prg_fasta_zip_path);
+        auto local_prg = std::make_shared<LocalPRG>(LocalPRG(id, prg_name, prg_fasta));
+
+        const std::string prg_gfa_zip_path = prg_name + ".gfa";
+        const std::string prg_gfa = zip_file->read_full_text_file_as_single_string(prg_gfa_zip_path);
+        local_prg->kmer_prg.load(prg_gfa);
+
+        prgs[id] = local_prg;
     }
-    fs::remove(prg_file);
+    return prgs[id];
 }
 
 Index Index::load(const fs::path& indexfile)
 {
     BOOST_LOG_TRIVIAL(debug) << "File is " << indexfile;
 
-    ZipFileReader zip_file(indexfile);
+    auto zip_file = std::make_shared<ZipFileReader>(indexfile);
 
     BOOST_LOG_TRIVIAL(debug) << "Loading metadata";
-    auto w_and_k = zip_file.read_w_and_k();
+    auto w_and_k = zip_file->read_w_and_k();
 
     BOOST_LOG_TRIVIAL(debug) << "Loading prg names";
-    auto prg_names = zip_file.read_prg_names();
+    auto prg_names = zip_file->read_prg_names();
 
-    BOOST_LOG_TRIVIAL(debug) << "Loading prg min path lengths";
-    auto prg_min_path_lengths = zip_file.read_prg_min_path_lengths();
-    Index index(w_and_k.first, w_and_k.second, std::move(prg_names),
-        std::move(prg_min_path_lengths));
+    BOOST_LOG_TRIVIAL(debug) << "Loading prg lengths";
+    auto prg_lengths = zip_file->read_prg_lengths();
+
+    BOOST_LOG_TRIVIAL(debug) << "Loading prg max path lengths";
+    auto prg_max_path_lengths = zip_file->read_prg_max_path_lengths();
+
+    Index index(w_and_k.first, w_and_k.second, std::move(prg_names), std::move(prg_lengths),
+        std::move(prg_max_path_lengths), zip_file);
 
     BOOST_LOG_TRIVIAL(debug) << "Loading minhash";
-    index.load_minhash(zip_file);
-
-    BOOST_LOG_TRIVIAL(debug) << "Loading prgs";
-    index.load_prgs(zip_file);
-
-    BOOST_LOG_TRIVIAL(debug) << "Loading kmer prgs";
-    for (const auto& prg : index.prgs) {
-        const auto filename { prg->name + ".gfa" };
-        std::string gfa_as_str = zip_file.read_full_text_file_as_single_string(filename);
-        std::stringstream gfa_ss;
-        gfa_ss << gfa_as_str;
-        prg->kmer_prg.load(gfa_ss);
-    }
+    index.load_minhash();
 
     return index;
 }
 
-bool Index::operator==(const Index& other) const
-{
-    if (this->w != other.w) {
-        return false;
-    }
-
-    if (this->k != other.k) {
-        return false;
-    }
-
-    // TODO: check prg_names and prg_min_path_lengths?
-
-    if (this->minhash.size() != other.minhash.size()) {
-        return false;
-    }
-
-    for (const auto& kmer : this->minhash) {
-        const auto it = other.minhash.find(kmer.first);
-        if (it == other.minhash.end()) {
-            return false;
-        }
-        const auto& qvecp = it->second;
-        for (const auto& record : *this->minhash.at(kmer.first)) {
-            if (std::find(qvecp->begin(), qvecp->end(), record) == qvecp->end()) {
-                return false;
-            }
-        }
-    }
-
-    for (const auto& kmer : other.minhash) {
-        const auto it = this->minhash.find(kmer.first);
-        if (it == this->minhash.end()) {
-            return false;
-        }
-        const auto& qvecp = it->second;
-        for (const auto& record : *other.minhash.at(kmer.first)) {
-            if (std::find(qvecp->begin(), qvecp->end(), record) == qvecp->end()) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-bool Index::operator!=(const Index& other) const { return !(*this == other); }
-
-std::unordered_map<std::string, uint32_t> Index::get_prg_names_to_prg_index() const {
-    std::unordered_map<std::string, uint32_t> prg_names_to_prg_index;
-    prg_names_to_prg_index.reserve(prg_names.size() * 2);
-    for (uint32_t prg_index=0; prg_index < prg_names.size(); prg_index++) {
-        prg_names_to_prg_index[prg_names[prg_index]] = prg_index;
-    }
-    return prg_names_to_prg_index;
-}
-
 void Index::index_prgs(ZipFileWriter &index_archive,
-    LocalPRGReaderGeneratorIterator &prg_it, uintmax_t estimated_index_size,
-    const uint32_t indexing_upper_bound, const uint32_t threads)
+    LocalPRGReaderGeneratorIterator &prg_it, const uint32_t indexing_upper_bound,
+    const uint32_t threads)
 {
     BOOST_LOG_TRIVIAL(debug) << "Index PRGs";
 
     // minhash init
+    uint32_t estimated_index_size = std::accumulate(prg_lengths.begin(), prg_lengths.end(), 0);
     this->minhash.reserve(estimated_index_size);
 
-    // builds prg_names_to_prg_index to be used in the main loop
-    const std::unordered_map<std::string, uint32_t> prg_names_to_prg_index = get_prg_names_to_prg_index();
-
-    // fill prg_min_path_lengths with 0-ed values that will be set in the main loop
-    prg_min_path_lengths.resize(prg_names.size());
+    // fill prg_max_path_lengths with 0-ed values that will be set in the main loop
+    prg_max_path_lengths.resize(prg_names.size());
 
     // now fill index
 #pragma omp parallel num_threads(threads)
@@ -327,23 +247,24 @@ void Index::index_prgs(ZipFileWriter &index_archive,
             local_prg->minimizer_sketch(this, w, k, indexing_upper_bound, -1);
 
             // zip file variables
-            std::string prg_as_gfa = local_prg->kmer_prg.to_gfa();
-            std::string zip_path = local_prg->name + ".gfa";
-
-            // prg_min_path_lengths variables
-            uint32_t prg_index = prg_names_to_prg_index.at(local_prg->name);
-            uint32_t min_path_length = local_prg->kmer_prg.min_path_length();
-
+            const std::string gfa_zip_path = local_prg->name + ".gfa";
+            const std::string prg_as_gfa = local_prg->kmer_prg.to_gfa();
+            const std::string fa_zip_path = local_prg->name + ".fa";
+            const std::string& prg_seq = local_prg->seq;
 #pragma omp critical(Index__index_prgs__write_gfa_to_zip)
             {
-                index_archive.prepare_new_entry(zip_path);
+                index_archive.prepare_new_entry(fa_zip_path);
+                index_archive.write_data(prg_seq);
+                index_archive.prepare_new_entry(gfa_zip_path);
                 index_archive.write_data(prg_as_gfa);
-
             }
 
-#pragma omp critical(Index__index_prgs__prg_min_path_lengths)
+            // prg_max_path_lengths variables
+            uint32_t prg_index = prg_names_to_ids.at(local_prg->name);
+            uint32_t max_path_length = local_prg->kmer_prg.max_path_length();
+#pragma omp critical(Index__index_prgs__prg_max_path_lengths)
             {
-                prg_min_path_lengths[prg_index] = min_path_length;
+                prg_max_path_lengths[prg_index] = max_path_length;
             }
         } catch (const IndexingLimitReached &error) {
             BOOST_LOG_TRIVIAL(warning) << error.what();
@@ -354,6 +275,7 @@ void Index::index_prgs(ZipFileWriter &index_archive,
     // save remaining data
     this->save_minhash(index_archive);
     this->save_prg_names(index_archive);
-    this->save_prg_min_path_lengths(index_archive);
+    this->save_prg_lengths(index_archive);
+    this->save_prg_max_path_lengths(index_archive);
     this->save_metadata(index_archive);
 }

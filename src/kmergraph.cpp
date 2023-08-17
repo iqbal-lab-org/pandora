@@ -13,14 +13,12 @@ using namespace prg;
 
 KmerGraph::KmerGraph()
 {
-    shortest_path_length = 0;
     k = 0; // nb the kmer size is determined by the first non-null node added
 }
 
 // copy constructor
 KmerGraph::KmerGraph(const KmerGraph& other)
 {
-    shortest_path_length = other.shortest_path_length;
     k = other.k;
     KmerNodePtr n;
 
@@ -55,7 +53,6 @@ KmerGraph& KmerGraph::operator=(const KmerGraph& other)
     nodes.reserve(other.nodes.size());
 
     // shallow copy no pointers
-    shortest_path_length = other.shortest_path_length;
     k = other.k;
     KmerNodePtr n;
 
@@ -80,7 +77,6 @@ void KmerGraph::clear()
 {
     nodes.clear();
     sorted_nodes.clear();
-    shortest_path_length = 0;
     k = 0;
 }
 
@@ -284,7 +280,7 @@ std::string KmerGraph::to_gfa(const std::shared_ptr<LocalPRG> localprg) const
     return ss.str();
 }
 
-void KmerGraph::load(std::stringstream &stream)
+void KmerGraph::load(std::stringstream &gfa_stream)
 {
     clear();
 
@@ -295,7 +291,7 @@ void KmerGraph::load(std::stringstream &stream)
     prg::Path p;
     uint32_t num_nodes = 0;
 
-    while (getline(stream, line).good()) {
+    while (getline(gfa_stream, line).good()) {
         if (line[0] == 'S') {
             split_line = split(line, "\t");
 
@@ -308,13 +304,13 @@ void KmerGraph::load(std::stringstream &stream)
             num_nodes = std::max(num_nodes, id);
         }
     }
-    stream.clear();
-    stream.seekg(0, stream.beg);
+    gfa_stream.clear();
+    gfa_stream.seekg(0, gfa_stream.beg);
     nodes.reserve(num_nodes);
     std::vector<uint16_t> outnode_counts(num_nodes + 1, 0),
         innode_counts(num_nodes + 1, 0);
 
-    while (getline(stream, line).good()) {
+    while (getline(gfa_stream, line).good()) {
         if (line[0] == 'S') {
             split_line = split(line, "\t");
 
@@ -399,10 +395,10 @@ void KmerGraph::load(std::stringstream &stream)
         n->in_nodes.reserve(innode_counts[n->id]);
     }
 
-    stream.clear();
-    stream.seekg(0, stream.beg);
+    gfa_stream.clear();
+    gfa_stream.seekg(0, gfa_stream.beg);
 
-    while (getline(stream, line).good()) {
+    while (getline(gfa_stream, line).good()) {
         if (line[0] == 'L') {
             split_line = split(line, "\t");
 
@@ -424,27 +420,24 @@ void KmerGraph::load(std::stringstream &stream)
     }
 }
 
-uint32_t KmerGraph::min_path_length()
+uint32_t KmerGraph::max_path_length() const
 {
-    // TODO: FIX THIS INNEFICIENCY I INTRODUCED
     std::vector<KmerNodePtr> sorted_nodes(
         this->sorted_nodes.begin(), this->sorted_nodes.end());
 
-    if (shortest_path_length > 0) {
-        return shortest_path_length;
-    }
-
-    std::vector<uint32_t> len(
-        sorted_nodes.size(), 0); // length of shortest path from node i to end of graph
+    std::vector<uint32_t> id_to_max_len(sorted_nodes.size(), 0);
     for (uint32_t j = sorted_nodes.size() - 1; j != 0; --j) {
-        for (uint32_t i = 0; i != sorted_nodes[j - 1]->out_nodes.size(); ++i) {
-            if (len[sorted_nodes[j - 1]->out_nodes[i].lock()->id] + 1 > len[j - 1]) {
-                len[j - 1] = len[sorted_nodes[j - 1]->out_nodes[i].lock()->id] + 1;
-            }
+        auto& current_node = sorted_nodes[j-1];
+        auto& current_node_len = id_to_max_len[current_node->id];
+        for (auto& weak_out_node : current_node->out_nodes) {
+            auto out_node = weak_out_node.lock();
+            const auto out_node_len = id_to_max_len[out_node->id];
+            current_node_len = std::max(current_node_len, out_node_len + 1);
         }
     }
-    shortest_path_length = len[0];
-    return len[0];
+
+    uint32_t max_path_length = id_to_max_len[0];
+    return max_path_length;
 }
 
 bool KmerGraph::operator==(const KmerGraph& other_graph) const

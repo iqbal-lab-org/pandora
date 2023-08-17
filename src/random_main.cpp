@@ -1,5 +1,6 @@
 #include "random_main.h"
 #include "cli_helpers.h"
+#include <random>
 
 void setup_random_subcommand(CLI::App& app)
 {
@@ -41,15 +42,18 @@ int pandora_random_path(RandomOptions const& opt)
 
     BOOST_LOG_TRIVIAL(info) << "Loading Index...";
     Index index = Index::load(opt.index_file.string());
+    index.load_all_prgs();
     BOOST_LOG_TRIVIAL(info) << "Index loaded successfully!";
 
     Fastaq fa(opt.compress, false);
+    std::random_device random_dev;
+    std::mt19937 rng(random_dev());
 
-    for (const auto& prg_ptr : index.get_prgs()) {
+    for (const auto& prg_ptr : index.get_loaded_prgs()) {
         std::unordered_set<std::string> random_paths;
         auto skip = 0;
         while (random_paths.size() < opt.num_paths and skip < 10) {
-            auto spath = prg_ptr->random_path();
+            auto spath = prg_ptr->random_path(rng);
             if (random_paths.find(spath) != random_paths.end()) {
                 skip += 1;
             } else {
