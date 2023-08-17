@@ -36,7 +36,7 @@ reference pangenome collections, with a few million PRGs. This new index breaks 
 `seq2path`;   
 - Removed `merge_index` subcommand;
 - Removed gene-DBG and noise-filtering modules;
-- 
+
 ### Fixed
 - Fixed a major bug on finding the longest path through PRGs;
 - Several refactorings to the `pandora` index implementation;
