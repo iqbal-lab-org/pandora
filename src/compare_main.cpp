@@ -151,6 +151,13 @@ void setup_compare_subcommand(CLI::App& app)
         ->group("Filtering");
 
     compare_subcmd
+        ->add_flag(
+            "--no-gene-coverage-filtering", opt->no_gene_coverage_filtering,
+            "Do not filter genes based on their coverage, effectively ignoring the three"
+            "previous params. This is useful if you are not using read datasets.")
+        ->group("Filtering");
+
+    compare_subcmd
         ->add_option(
             "--min-gene-coverage-proportion", opt->min_gene_coverage_proportion,
             "Minimum gene coverage proportion to keep a gene. "
@@ -348,6 +355,7 @@ int pandora_compare(CompareOptions& opt)
                 index.get_window_size(), opt.binomial, covg, opt.max_num_kmers_to_avg, 0,
                 opt.min_absolute_gene_coverage, opt.min_relative_gene_coverage,
                 opt.max_relative_gene_coverage, opt.min_gene_coverage_proportion);
+                opt.max_relative_gene_coverage, opt.no_gene_coverage_filtering);
 
             if (kmp.empty()) {
                 c = pangraph_sample->remove_node(c->second);

@@ -36,6 +36,7 @@ struct DiscoverOptions {
     float min_relative_gene_coverage { 0.05 };
     float max_relative_gene_coverage { 100 };
     float min_gene_coverage_proportion { 0.8 };
+    bool no_gene_coverage_filtering { false };
     uint32_t min_cluster_size { 10 };
     uint32_t max_num_kmers_to_avg { 100 };
     bool keep_extra_debugging_files { false };

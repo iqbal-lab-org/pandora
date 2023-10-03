@@ -1700,6 +1700,7 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
     const uint32_t& max_num_kmers_to_average, const uint32_t& sample_id,
     float min_absolute_gene_coverage, float min_relative_gene_coverage,
     float max_relative_gene_coverage, float min_gene_coverage_proportion) const
+    float max_relative_gene_coverage, bool no_gene_coverage_filtering) const
 {
     if (pnode->covg == 0) {
         BOOST_LOG_TRIVIAL(warning) << "Node " << pnode->get_name() << " has no reads";
@@ -1743,6 +1744,10 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
     if (mean_covg < min_absolute_gene_coverage) {
         BOOST_LOG_TRIVIAL(warning)
             << "Filtering out gene " << name << " due to "
+    if (!no_gene_coverage_filtering) {
+        if (mean_covg < min_absolute_gene_coverage) {
+            BOOST_LOG_TRIVIAL(warning)
+                << "Filtering out gene " << name << " due to "
             << "mean coverage (" << mean_covg << ") "
             << "being too low, less than the --min-abs-gene-coverage parameter (" << min_absolute_gene_coverage << ")";
         kmp.clear();
@@ -1773,8 +1778,9 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
             << max_relative_gene_coverage * global_covg << "). "
             << "Is global coverage very different from the expected (too low/high)? "
             << "Try setting a better genome length (see --genome-size param).";
-        kmp.clear();
-        return;
+            kmp.clear();
+            return;
+        }
     }
 
     std::string fq_name = pnode->get_name();
