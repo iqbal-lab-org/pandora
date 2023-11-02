@@ -164,6 +164,18 @@ void setup_map_subcommand(CLI::App& app)
         ->type_name("FLOAT")
         ->group("Filtering");
 
+    map_subcmd
+        ->add_option(
+            "--min-gene-coverage-proportion", opt->min_gene_coverage_proportion,
+            "Minimum gene coverage proportion to keep a gene. "
+            "Given the coverage on the kmers of the maximum likelihood path of a gene, we compute "
+            "the number of bases that have at least one read covering it. "
+            "If the proportion of such bases is larger than the value in this "
+            "parameter, the gene is kept. Otherwise, the gene is filtered out.")
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Filtering");
+
     description = "Add extra step to carefully genotype sites.";
     auto* gt_opt = map_subcmd->add_flag("--genotype", opt->genotype, description)
                        ->group("Consensus/Variant Calling");
@@ -377,7 +389,7 @@ int pandora_map(MapOptions& opt)
         prg->add_consensus_path_to_fastaq(consensus_fq, pangraph_node, kmp, lmp,
             index.get_window_size(), opt.binomial, covg, opt.max_num_kmers_to_avg, 0,
             opt.min_absolute_gene_coverage, opt.min_relative_gene_coverage,
-            opt.max_relative_gene_coverage);
+            opt.max_relative_gene_coverage, opt.min_gene_coverage_proportion);
 
         if (kmp.empty()) {
 #pragma omp critical(nodes_to_remove)
