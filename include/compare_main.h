@@ -45,6 +45,7 @@ struct CompareOptions {
     float min_absolute_gene_coverage { 3.0 };
     float min_relative_gene_coverage { 0.05 };
     float max_relative_gene_coverage { 100 };
+    float min_gene_coverage_proportion { 0.8 };
     bool binomial { false };
     bool do_not_auto_update_params { false };
     uint32_t max_covg { 300 };
