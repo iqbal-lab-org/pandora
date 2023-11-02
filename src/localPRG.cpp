@@ -1699,7 +1699,7 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
     const bool bin, const uint32_t global_covg,
     const uint32_t& max_num_kmers_to_average, const uint32_t& sample_id,
     float min_absolute_gene_coverage, float min_relative_gene_coverage,
-    float max_relative_gene_coverage) const
+    float max_relative_gene_coverage, float min_gene_coverage_proportion) const
 {
     if (pnode->covg == 0) {
         BOOST_LOG_TRIVIAL(warning) << "Node " << pnode->get_name() << " has no reads";
@@ -1719,10 +1719,29 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
 
     std::vector<uint32_t> covgs
         = get_covgs_along_localnode_path(pnode, lmp, kmp, sample_id);
+
     auto mean_covg = Maths::mean(covgs.begin(), covgs.end());
     BOOST_LOG_TRIVIAL(debug) << "Found global coverage " << global_covg
                              << " and path  mean " << mean_covg;
 
+    // apply the coverage proportion filter
+    uint32_t amount_of_bases_with_coverage = std::count_if(covgs.begin(), covgs.end(),
+                                                    [](uint32_t covg){return covg > 0;});
+    float coverage_proportion = ((float)amount_of_bases_with_coverage) / covgs.size();
+    BOOST_LOG_TRIVIAL(info)
+        << "Gene " << name << " has coverage proportion of " << coverage_proportion;
+    const bool coverage_proportion_is_too_low = coverage_proportion < min_gene_coverage_proportion;
+    if (coverage_proportion_is_too_low) {
+        BOOST_LOG_TRIVIAL(warning)
+            << "Filtering out gene " << name << " due to "
+            << "coverage proportion (" << coverage_proportion << ") "
+            << "being too low, less than the --min-gene-coverage-proportion parameter ("
+            << min_gene_coverage_proportion << ")";
+        kmp.clear();
+        return;
+    }
+
+    // apply the min/max coverage filters
     if (mean_covg < min_absolute_gene_coverage) {
         BOOST_LOG_TRIVIAL(warning)
             << "Filtering out gene " << name << " due to "
