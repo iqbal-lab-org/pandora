@@ -3,9 +3,9 @@ set -eu
 
 ########################################################################################################################
 # configs
-pandora_version="0.10.0-alpha.1"
-pandora_URL="https://github.com/rmcolq/pandora/releases/download/${pandora_version}/pandora_${pandora_version}"
-make_prg_version="0.4.0"
+pandora_version="0.11.0-alpha.0"
+pandora_URL="https://github.com/rmcolq/pandora/releases/download/${pandora_version}/pandora-linux-precompiled-v${pandora_version}"
+make_prg_version="0.5.0"
 make_prg_URL="https://github.com/iqbal-lab-org/make_prg/releases/download/${make_prg_version}/make_prg_${make_prg_version}"
 ########################################################################################################################
 
@@ -55,20 +55,20 @@ ${make_prg_executable} from_msa --threads 1 --input msas/ --output-prefix out/pr
 echo "Running ${pandora_executable} index"
 "${pandora_executable}" index --threads 1 out/prgs/pangenome.prg.fa
 echo "Running ${pandora_executable} map"
-"${pandora_executable}" map --threads 1 --genotype -o out/map_toy_sample_1 out/prgs/pangenome.prg.fa.panidx.zip reads/toy_sample_1/toy_sample_1.100x.random.illumina.fastq
+"${pandora_executable}" map --threads 1 --genotype -o out/map_toy_sample_1 --genome-size 700 --min-abs-gene-coverage 0 --min-rel-gene-coverage 0 --max-rel-gene-coverage 1000 out/prgs/pangenome.prg.fa.panidx.zip reads/toy_sample_1/toy_sample_1.100x.random.illumina.fastq
 echo "Running ${pandora_executable} compare"
-"${pandora_executable}" compare --threads 1 --genotype -o out/output_toy_example_no_denovo out/prgs/pangenome.prg.fa.panidx.zip reads/read_index.tsv
+"${pandora_executable}" compare --threads 1 --genotype -o out/output_toy_example_no_denovo --genome-size 700 --min-abs-gene-coverage 0 --min-rel-gene-coverage 0 --max-rel-gene-coverage 1000 out/prgs/pangenome.prg.fa.panidx.zip reads/read_index.tsv
 echo "Running pandora without denovo - done!"
 
 echo "Running pandora with denovo..."
 echo "Running ${pandora_executable} discover"
-"${pandora_executable}" discover --threads 1 --outdir out/pandora_discover_out out/prgs/pangenome.prg.fa.panidx.zip reads/read_index.tsv
+"${pandora_executable}" discover --threads 1 --outdir out/pandora_discover_out --genome-size 700 --min-abs-gene-coverage 0 --min-rel-gene-coverage 0 --max-rel-gene-coverage 1000 out/prgs/pangenome.prg.fa.panidx.zip reads/read_index.tsv
 echo "Running ${make_prg_executable} update"
 ${make_prg_executable} update --threads 1 --update-DS out/prgs/pangenome.update_DS.zip --denovo-paths out/pandora_discover_out/denovo_paths.txt --output-prefix out/updated_prgs/pangenome_updated
 echo "Running ${pandora_executable} index on updated PRGs"
 "${pandora_executable}" index --threads 1 out/updated_prgs/pangenome_updated.prg.fa
 echo "Running ${pandora_executable} compare"
-"${pandora_executable}" compare --threads 1 --genotype -o out/output_toy_example_with_denovo out/updated_prgs/pangenome_updated.prg.fa.panidx.zip reads/read_index.tsv
+"${pandora_executable}" compare --threads 1 --genotype -o out/output_toy_example_with_denovo --genome-size 700 --min-abs-gene-coverage 0 --min-rel-gene-coverage 0 --max-rel-gene-coverage 1000 out/updated_prgs/pangenome_updated.prg.fa.panidx.zip reads/read_index.tsv
 echo "Running pandora with denovo - done!"
 
 # first compare non-zip files
