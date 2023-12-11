@@ -70,8 +70,8 @@ void define_clusters(
     const std::string &sample_name,
     const Seq &seq,
     MinimizerHitClusters& clusters_of_hits,
-    const std::vector<uint32_t> &prg_min_path_lengths,
-    const std::vector<std::string> &prg_names,
+    const std::vector<uint32_t> &prg_max_path_lengths,
+    std::vector<std::string> &prg_names,
     std::shared_ptr<MinimizerHits> &minimizer_hits, const int max_diff,
     const float& fraction_kmers_required_for_cluster, const uint32_t min_cluster_size,
     const uint32_t expected_number_kmers_in_read_sketch,
@@ -83,6 +83,8 @@ MinimizerHitClusters filter_clusters(
     const MinimizerHitClusters& clusters_of_hits,
     const std::vector<std::string> &prg_names,
     ClusterFilterFile& cluster_filter_file,
+    const float overlap_threshold,
+    const float conflicting_clusters_minimiser_tolerance,
     const uint32_t rng_seed = 0
 );
 
@@ -94,7 +96,7 @@ void add_clusters_to_pangraph(
 MinimizerHitClusters get_minimizer_hit_clusters(
     const std::string &sample_name,
     const Seq &seq,
-    const std::vector<uint32_t> &prg_min_path_lengths,
+    std::vector<uint32_t> &prg_max_path_lengths,
     const std::vector<std::string> &prg_names,
     std::shared_ptr<MinimizerHits> &minimizer_hits,
     const int max_diff,
@@ -110,6 +112,8 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
     const int max_diff, const float& e_rate,
     const fs::path& sample_outdir, const uint32_t min_cluster_size = 10,
     const uint32_t genome_size = 5000000, const uint32_t max_covg = 300,
+    const float conflicting_clusters_overlap_threshold=0.8,
+    const float conflicting_clusters_minimiser_tolerance=0.05,
     uint32_t threads = 1, const bool keep_extra_debugging_files = false,
     const uint32_t rng_seed = 0);
 

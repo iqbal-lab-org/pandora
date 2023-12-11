@@ -21,7 +21,11 @@ private:
 public:
     ClusterFilterFile(const fs::path &filepath, bool is_fake_file = false)
         : GenericFile(filepath, is_fake_file){
-        (*this) << "read\tprg\tcluster_size\tstatus\n";
+        (*this) << "read\tprg\tnb_of_unique_minimisers\ttarget_cov\tread_start\t"
+                   "read_end\toverlap\tstatus\tfavoured_cluster_prg\t"
+                   "favoured_cluster_nb_of_unique_minimisers\t"
+                   "favoured_cluster_target_cov\tfavoured_cluster_read_start\t"
+                   "favoured_cluster_read_end\n";
     }
 };
 

@@ -68,6 +68,25 @@ void setup_map_subcommand(CLI::App& app)
         ->type_name("INT")
         ->group("Mapping");
 
+    description
+        = "When two clusters of hits are conflicting, the one with highest number of unique minimisers "
+          "will be kept. However, if the difference between the number of unique minimisers is too small, "
+          "less than this parameter, then we will prefer the cluster that has higher target coverage.";
+    map_subcmd
+        ->add_option("--cluster-mini-tolerance", opt->conflicting_clusters_minimiser_tolerance, description)
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Mapping");
+
+    description
+        = "Minimum proportion of overlap between two clusters of hits to consider "
+          "them conflicting. Only one of the conflicting clusters will be kept.";
+    map_subcmd
+        ->add_option("--min-cluster-overlap", opt->conflicting_clusters_overlap_threshold, description)
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Mapping");
+
     map_subcmd
         ->add_flag("--kg", opt->output_kg,
             "Save kmer graphs with forward and reverse coverage annotations for found "
@@ -282,7 +301,8 @@ int pandora_map(MapOptions& opt)
     uint32_t covg
         = pangraph_from_read_file(sample, pangraph, index, opt.max_diff, opt.error_rate,
             opt.outdir, opt.min_cluster_size, opt.genome_size, opt.max_covg,
-        opt.threads, opt.keep_extra_debugging_files, opt.rng_seed);
+            opt.conflicting_clusters_overlap_threshold, opt.conflicting_clusters_minimiser_tolerance,
+            opt.threads, opt.keep_extra_debugging_files, opt.rng_seed);
 
     if (pangraph->nodes.empty()) {
         BOOST_LOG_TRIVIAL(info) << "Found none of the LocalPRGs in the reads.";

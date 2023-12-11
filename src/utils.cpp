@@ -157,24 +157,22 @@ void add_read_hits(const Seq& sequence,
 void decide_if_add_cluster_or_not(
     const Seq &seq,
     MinimizerHitClusters& clusters_of_hits, // Note: clusters_of_hits here is in insertion mode
-    const std::vector<uint32_t> &prg_min_path_lengths,
+    std::vector<uint32_t> &prg_max_path_lengths,
     const std::vector<std::string> &prg_names,
     const std::set<MinimizerHitPtr, pComp>::iterator &mh_previous,
     const uint32_t expected_number_kmers_in_read_sketch,
     const float fraction_kmers_required_for_cluster,
     const uint32_t min_cluster_size,
     const MinimizerHits &current_cluster,
-    const uint32_t number_of_equal_read_minimizers,
     const std::vector<uint32_t> &distances_between_hits,
     ClusterDefFile& cluster_def_file) {
     // keep clusters which cover at least 1/2 the expected number of minihits
     const uint32_t length_based_threshold =
-        std::min(prg_min_path_lengths[(*mh_previous)->get_prg_id()], expected_number_kmers_in_read_sketch)
+        std::min(prg_max_path_lengths[(*mh_previous)->get_prg_id()], expected_number_kmers_in_read_sketch)
                                       * fraction_kmers_required_for_cluster;
 
-    const uint32_t number_of_unique_mini_in_cluster = current_cluster.size() - number_of_equal_read_minimizers;
     const uint32_t cluster_size_threshold = std::max(length_based_threshold, min_cluster_size);
-    const bool cluster_should_be_accepted = number_of_unique_mini_in_cluster >= cluster_size_threshold;
+    const bool cluster_should_be_accepted = current_cluster.get_number_of_unique_mini_in_cluster() >= cluster_size_threshold;
 
     if (cluster_should_be_accepted) {
         clusters_of_hits.insert(current_cluster);
@@ -193,8 +191,8 @@ void decide_if_add_cluster_or_not(
                 cluster_def_file << "rejected\t";
             }
             cluster_def_file << current_cluster.size() << "\t"
-                             << number_of_equal_read_minimizers << "\t"
-                             << number_of_unique_mini_in_cluster << "\t"
+                             << current_cluster.get_number_of_equal_read_minimizers() << "\t"
+                             << current_cluster.get_number_of_unique_mini_in_cluster() << "\t"
                              << length_based_threshold << "\t"
                              << min_cluster_size << "\t";
 
@@ -217,7 +215,7 @@ void define_clusters(
     const std::string &sample_name,
     const Seq &seq,
     MinimizerHitClusters& clusters_of_hits, // Note: clusters_of_hits here is in insertion mode
-    const std::vector<uint32_t> &prg_min_path_lengths,
+    std::vector<uint32_t> &prg_max_path_lengths,
     const std::vector<std::string> &prg_names,
     std::shared_ptr<MinimizerHits> &minimizer_hits, const int max_diff,
     const float& fraction_kmers_required_for_cluster, const uint32_t min_cluster_size,
@@ -236,15 +234,16 @@ void define_clusters(
     // A cluster of hits should match same localPRG, each hit not more than max_diff
     // read bases from the last hit (this last bit is to handle repeat genes).
     auto mh_previous = minimizer_hits->begin();
-    MinimizerHits current_cluster;
+    MinimizerHits current_cluster(&prg_max_path_lengths);
     current_cluster.insert(*mh_previous);
-    uint32_t number_of_equal_read_minimizers = 0;
+
     std::vector<uint32_t> distances_between_hits;
     for (auto mh_current = ++minimizer_hits->begin();
          mh_current != minimizer_hits->end(); ++mh_current) {
         const bool read_minimizer_is_the_same =
             (*mh_current)->get_read_start_position() == (*mh_previous)->get_read_start_position();
-        number_of_equal_read_minimizers += (int)read_minimizer_is_the_same;
+        if (read_minimizer_is_the_same)
+            current_cluster.increment_number_of_equal_read_minimizers();
 
         const bool switched_reads = (*mh_current)->get_read_id() != (*mh_previous)->get_read_id();
         const bool switched_prgs = (*mh_current)->get_prg_id() != (*mh_previous)->get_prg_id();
@@ -258,14 +257,13 @@ void define_clusters(
         const bool switched_clusters = switched_reads or switched_prgs or
             hits_too_distant or unconsistent_strands;
         if (switched_clusters) {
-            decide_if_add_cluster_or_not(seq, clusters_of_hits, prg_min_path_lengths, prg_names,
+            decide_if_add_cluster_or_not(seq, clusters_of_hits, prg_max_path_lengths, prg_names,
                 mh_previous, expected_number_kmers_in_read_sketch,
                 fraction_kmers_required_for_cluster, min_cluster_size, current_cluster,
-                number_of_equal_read_minimizers, distances_between_hits,cluster_def_file);
+                distances_between_hits,cluster_def_file);
 
             // prepare next cluster
             current_cluster.clear();
-            number_of_equal_read_minimizers=0;
             distances_between_hits.clear();
 
         } else {
@@ -276,9 +274,9 @@ void define_clusters(
         current_cluster.insert(*mh_current);
         mh_previous = mh_current;
     }
-    decide_if_add_cluster_or_not(seq, clusters_of_hits, prg_min_path_lengths, prg_names, mh_previous,
+    decide_if_add_cluster_or_not(seq, clusters_of_hits, prg_max_path_lengths, prg_names, mh_previous,
                                  expected_number_kmers_in_read_sketch, fraction_kmers_required_for_cluster,
-                                 min_cluster_size, current_cluster, number_of_equal_read_minimizers,
+                                 min_cluster_size, current_cluster,
                                  distances_between_hits, cluster_def_file);
 }
 
@@ -288,6 +286,8 @@ MinimizerHitClusters filter_clusters(
     const MinimizerHitClusters& clusters_of_hits,
     const std::vector<std::string> &prg_names,
     ClusterFilterFile& cluster_filter_file,
+    const float overlap_threshold,
+    const float conflicting_clusters_minimiser_tolerance,
     const uint32_t rng_seed)
 {
     const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(seq.id) + "]: ";
@@ -307,21 +307,19 @@ MinimizerHitClusters filter_clusters(
     auto c_previous = clusters_of_hits.begin();
     for (auto c_current = ++clusters_of_hits.begin();
          c_current != clusters_of_hits.end(); ++c_current) {
-        const bool both_clusters_from_same_read =
-            ((*(*c_current).begin())->get_read_id() == (*(*c_previous).begin())->get_read_id());
-        const bool same_prg = (*(*c_current).begin())->get_prg_id() == (*(*c_previous).begin())->get_prg_id();
-        const bool unconsistent_strands = (*(*c_current).begin())->same_strands() != (*(*c_previous).begin())->same_strands();
-        const bool current_cluster_is_contained_in_previous =
-            (*--(*c_current).end())->get_read_start_position() <=
-            (*--(*c_previous).end())->get_read_start_position();
+        const bool both_clusters_from_same_read = c_current->front()->get_read_id() == c_previous->front()->get_read_id();
+        const bool same_prg = c_current->front()->get_prg_id() == c_previous->front()->get_prg_id();
+        const bool unconsistent_strands = c_current->front()->same_strands() != c_previous->front()->same_strands();
+        const double overlap = c_current->overlap_amount(*c_previous);
+        const bool clusters_overlap = overlap >= overlap_threshold;
         const bool one_of_the_clusters_should_be_filtered_out =
             both_clusters_from_same_read && ((same_prg && unconsistent_strands) or
-                current_cluster_is_contained_in_previous);
+                clusters_overlap);
         if (one_of_the_clusters_should_be_filtered_out)
         // NB we expect noise in the k-1 kmers overlapping the boundary of two clusters,
         // but could also impose no more than 2k hits in overlap
         {
-            const bool should_remove_current_cluster = c_previous->size() >= c_current->size();
+            const bool should_remove_current_cluster = c_previous->is_preferred_to(*c_current, conflicting_clusters_minimiser_tolerance);
 
             // Note: this is a slow critical region and could be optimised, but there is no need
             // to, as this is just run when debugging files should be created, and is expected
@@ -332,15 +330,33 @@ MinimizerHitClusters filter_clusters(
                     if (should_remove_current_cluster) {
                         cluster_filter_file
                             << seq.name << "\t"
-                            << prg_names[(*c_current->begin())->get_prg_id()] << "\t"
-                            << c_current->size() << "\t"
-                            << "filtered_out\n";
+                            << prg_names[c_current->front()->get_prg_id()] << "\t"
+                            << c_current->get_number_of_unique_mini_in_cluster() << "\t"
+                            << c_current->target_coverage() << "\t"
+                            << c_current->front()->get_read_start_position() << "\t"
+                            << c_current->back()->get_read_start_position() << "\t"
+                            << overlap << "\t"
+                            << "filtered_out\t"
+                            << prg_names[c_previous->front()->get_prg_id()] << "\t"
+                            << c_previous->get_number_of_unique_mini_in_cluster() << "\t"
+                            << c_previous->target_coverage() << "\t"
+                            << c_previous->front()->get_read_start_position() << "\t"
+                            << c_previous->back()->get_read_start_position() << "\n";
                     } else {
                         cluster_filter_file
                             << seq.name << "\t"
-                            << prg_names[(*c_previous->begin())->get_prg_id()] << "\t"
-                            << c_previous->size() << "\t"
-                            << "filtered_out\n";
+                            << prg_names[c_previous->front()->get_prg_id()] << "\t"
+                            << c_previous->get_number_of_unique_mini_in_cluster() << "\t"
+                            << c_previous->target_coverage() << "\t"
+                            << c_previous->front()->get_read_start_position() << "\t"
+                            << c_previous->back()->get_read_start_position() << "\t"
+                            << overlap << "\t"
+                            << "filtered_out\t"
+                            << prg_names[c_current->front()->get_prg_id()] << "\t"
+                            << c_current->get_number_of_unique_mini_in_cluster() << "\t"
+                            << c_current->target_coverage() << "\t"
+                            << c_current->front()->get_read_start_position() << "\t"
+                            << c_current->back()->get_read_start_position() << "\n";
                     }
                 }
             }
@@ -380,8 +396,12 @@ MinimizerHitClusters filter_clusters(
         {
             for (const auto& cluster : filtered_clusters_of_hits) {
                 cluster_filter_file << seq.name << "\t"
-                                    << prg_names[(*cluster.begin())->get_prg_id()]
-                                    << "\t" << cluster.size() << "\t"
+                                    << prg_names[cluster.front()->get_prg_id()] << "\t"
+                                    << cluster.get_number_of_unique_mini_in_cluster() << "\t"
+                                    << cluster.target_coverage() << "\t"
+                                    << cluster.front()->get_read_start_position() << "\t"
+                                    << cluster.back()->get_read_start_position() << "\t"
+                                    << "NA\t"
                                     << "kept\n";
             }
         }
@@ -478,7 +498,7 @@ void add_clusters_to_pangraph(
 MinimizerHitClusters get_minimizer_hit_clusters(
     const std::string &sample_name,
     const Seq &seq,
-    const std::vector<uint32_t> &prg_min_path_lengths,
+    std::vector<uint32_t> &prg_max_path_lengths,
     const std::vector<std::string> &prg_names,
     std::shared_ptr<MinimizerHits> &minimizer_hits,
     const int max_diff,
@@ -487,6 +507,8 @@ MinimizerHitClusters get_minimizer_hit_clusters(
     ClusterFilterFile &cluster_filter_file,
     const uint32_t min_cluster_size,
     const uint32_t expected_number_kmers_in_read_sketch,
+    const float conflicting_clusters_overlap_threshold,
+    const float conflicting_clusters_minimiser_tolerance,
     const uint32_t rng_seed)
 {
     const std::string tag = "[Sample: " + sample_name + ", read index: " + to_string(seq.id) + "]: ";
@@ -498,14 +520,16 @@ MinimizerHitClusters get_minimizer_hit_clusters(
         return minimizer_hit_clusters;
     }
 
-    define_clusters(sample_name, seq, minimizer_hit_clusters, prg_min_path_lengths,
+    define_clusters(sample_name, seq, minimizer_hit_clusters, prg_max_path_lengths,
         prg_names, minimizer_hits, max_diff, fraction_kmers_required_for_cluster,
         min_cluster_size, expected_number_kmers_in_read_sketch, cluster_def_file);
 
     minimizer_hit_clusters.finalise_insertions();
     BOOST_LOG_TRIVIAL(trace) << tag << "Found " << minimizer_hit_clusters.size() << " clusters of hits";
 
-    MinimizerHitClusters filtered_clusters_of_hits = filter_clusters(sample_name, seq, minimizer_hit_clusters, prg_names, cluster_filter_file);
+    MinimizerHitClusters filtered_clusters_of_hits = filter_clusters(sample_name, seq,
+        minimizer_hit_clusters, prg_names, cluster_filter_file,
+        conflicting_clusters_overlap_threshold, conflicting_clusters_minimiser_tolerance);
     // filter_clusters2(clusters_of_hits, genome_size);
 
     return filtered_clusters_of_hits;
@@ -516,7 +540,10 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
     std::shared_ptr<pangenome::Graph> &pangraph, Index &index,
     const int max_diff, const float& e_rate,
     const fs::path& sample_outdir, const uint32_t min_cluster_size,
-    const uint32_t genome_size, const uint32_t max_covg, uint32_t threads,
+    const uint32_t genome_size, const uint32_t max_covg,
+    const float conflicting_clusters_overlap_threshold,
+    const float conflicting_clusters_minimiser_tolerance,
+    uint32_t threads,
     const bool keep_extra_debugging_files, const uint32_t rng_seed)
 {
     // constant variables
@@ -621,7 +648,7 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
                     / (w + 1) };
 
                 // get the minimizer hits
-                auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits());
+                auto minimizer_hits = std::make_shared<MinimizerHits>(MinimizerHits(&index.get_prg_max_path_lengths()));
                 add_read_hits(sequence, minimizer_hits, index);
 
                 // write unfiltered minimizer hits
@@ -639,7 +666,10 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
                         minimizer_hits, max_diff,
                         fraction_kmers_required_for_cluster, cluster_def_file,
                         cluster_filter_file, min_cluster_size,
-                        expected_number_kmers_in_read_sketch, rng_seed);
+                        expected_number_kmers_in_read_sketch,
+                        conflicting_clusters_overlap_threshold,
+                        conflicting_clusters_minimiser_tolerance,
+                        rng_seed);
 
                 const std::string sam_record = filtered_mappings.get_sam_record_from_hit_cluster(
                     sequence, clusters_of_hits);
