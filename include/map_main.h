@@ -49,6 +49,7 @@ struct MapOptions {
     float min_absolute_gene_coverage { 3.0 };
     float min_relative_gene_coverage { 0.05 };
     float max_relative_gene_coverage { 100 };
+    float min_gene_coverage_proportion { 0.8 };
     bool genotype { false };
     bool local_genotype { false };
     bool snps_only { false };

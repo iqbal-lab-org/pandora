@@ -158,6 +158,18 @@ void setup_discover_subcommand(CLI::App& app)
         ->type_name("FLOAT")
         ->group("Filtering");
 
+    discover_subcmd
+        ->add_option(
+            "--min-gene-coverage-proportion", opt->min_gene_coverage_proportion,
+            "Minimum gene coverage proportion to keep a gene. "
+            "Given the coverage on the kmers of the maximum likelihood path of a gene, we compute "
+            "the number of bases that have at least one read covering it. "
+            "If the proportion of such bases is larger than the value in this "
+            "parameter, the gene is kept. Otherwise, the gene is filtered out.")
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Filtering");
+
     description
         = "Minimum size of a cluster of hits between a read and a loci to consider "
           "the loci present";
@@ -293,7 +305,7 @@ void pandora_discover_core(const SampleData& sample, Index &index, DiscoverOptio
              pangraph_node, kmp, lmp, index.get_window_size(), opt.binomial, covg,
              opt.max_num_kmers_to_avg, 0,
              opt.min_absolute_gene_coverage, opt.min_relative_gene_coverage,
-             opt.max_relative_gene_coverage);
+             opt.max_relative_gene_coverage, opt.min_gene_coverage_proportion);
 
         if (kmp.empty()) {
             // mark the node as to remove
