@@ -167,7 +167,7 @@ void setup_map_subcommand(CLI::App& app)
     map_subcmd
         ->add_flag(
             "--no-gene-coverage-filtering", opt->no_gene_coverage_filtering,
-            "Do not filter genes based on their coverage, effectively ignoring the three"
+            "Do not filter genes based on their coverage, effectively ignoring the three "
             "previous params. This is useful if you are not using read datasets.")
         ->group("Filtering");
 
