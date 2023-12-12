@@ -1728,8 +1728,6 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
     uint32_t amount_of_bases_with_coverage = std::count_if(covgs.begin(), covgs.end(),
                                                     [](uint32_t covg){return covg > 0;});
     float coverage_proportion = ((float)amount_of_bases_with_coverage) / covgs.size();
-    BOOST_LOG_TRIVIAL(info)
-        << "Gene " << name << " has coverage proportion of " << coverage_proportion;
     const bool coverage_proportion_is_too_low = coverage_proportion < min_gene_coverage_proportion;
     if (coverage_proportion_is_too_low) {
         BOOST_LOG_TRIVIAL(warning)
