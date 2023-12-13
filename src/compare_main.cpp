@@ -198,6 +198,17 @@ void setup_compare_subcommand(CLI::App& app)
         ->type_name("FLOAT")
         ->group("Mapping");
 
+    description
+        = "Allows for partial matching between reads and a PRG. If this value is for e.g. 0.5, it means that "
+          "pandora will match a read to a PRG if the cluster of hits has size at least 0.5 * expected cluster size "
+          "for the given error rate and kmer value. Lower values allow for more hits, but possibly for false positive "
+          "matches.";
+    compare_subcmd
+        ->add_option("--partial-matching-lower-bound", opt->partial_matching_lower_bound, description)
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Mapping");
+
     description = "Maximum number of kmers to average over when selecting the maximum "
                   "likelihood path";
     compare_subcmd->add_option("--kmer-avg", opt->max_num_kmers_to_avg, description)
@@ -326,7 +337,8 @@ int pandora_compare(CompareOptions& opt)
             opt.max_diff, opt.error_rate, sample_outdir,
             opt.min_cluster_size, opt.genome_size, opt.max_covg,
             opt.conflicting_clusters_overlap_threshold, opt.conflicting_clusters_minimiser_tolerance,
-            opt.threads, opt.keep_extra_debugging_files, opt.rng_seed);
+            opt.threads, opt.keep_extra_debugging_files, opt.rng_seed,
+            opt.partial_matching_lower_bound);
 
         if (pangraph_sample->nodes.empty()) {
             BOOST_LOG_TRIVIAL(warning)

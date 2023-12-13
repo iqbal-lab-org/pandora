@@ -115,7 +115,7 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
     const float conflicting_clusters_overlap_threshold=0.8,
     const float conflicting_clusters_minimiser_tolerance=0.05,
     uint32_t threads = 1, const bool keep_extra_debugging_files = false,
-    const uint32_t rng_seed = 0);
+    const uint32_t rng_seed = 0, const float partial_matching_lower_bound=0.5);
 
 void infer_most_likely_prg_path_for_pannode(
     const std::vector<std::shared_ptr<LocalPRG>>&, PanNode*, uint32_t, float);

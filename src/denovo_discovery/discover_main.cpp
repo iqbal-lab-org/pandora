@@ -76,6 +76,17 @@ void setup_discover_subcommand(CLI::App& app)
         ->group("Mapping");
 
     description
+        = "Allows for partial matching between reads and a PRG. If this value is for e.g. 0.5, it means that "
+          "pandora will match a read to a PRG if the cluster of hits has size at least 0.5 * expected cluster size "
+          "for the given error rate and kmer value. Lower values allow for more hits, but possibly for false positive "
+          "matches.";
+    discover_subcmd
+        ->add_option("--partial-matching-lower-bound", opt->partial_matching_lower_bound, description)
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Mapping");
+
+    description
         = "When two clusters of hits are conflicting, the one with highest number of unique minimisers "
           "will be kept. However, if the difference between the number of unique minimisers is too small, "
           "less than this parameter, then we will prefer the cluster that has higher target coverage.";
@@ -241,7 +252,8 @@ void pandora_discover_core(const SampleData& sample, Index &index, DiscoverOptio
         = pangraph_from_read_file(sample, pangraph, index, opt.max_diff, opt.error_rate, sample_outdir,
         opt.min_cluster_size, opt.genome_size, opt.max_covg,
         opt.conflicting_clusters_overlap_threshold, opt.conflicting_clusters_minimiser_tolerance,
-        opt.threads, opt.keep_extra_debugging_files, opt.rng_seed);
+        opt.threads, opt.keep_extra_debugging_files, opt.rng_seed,
+        opt.partial_matching_lower_bound);
 
     if (pangraph->nodes.empty()) {
         BOOST_LOG_TRIVIAL(warning)

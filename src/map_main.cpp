@@ -87,6 +87,17 @@ void setup_map_subcommand(CLI::App& app)
         ->type_name("FLOAT")
         ->group("Mapping");
 
+    description
+        = "Allows for partial matching between reads and a PRG. If this value is for e.g. 0.5, it means that "
+          "pandora will match a read to a PRG if the cluster of hits has size at least 0.5 * expected cluster size "
+          "for the given error rate and kmer value. Lower values allow for more hits, but possibly for false positive "
+          "matches.";
+    map_subcmd
+        ->add_option("--partial-matching-lower-bound", opt->partial_matching_lower_bound, description)
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Mapping");
+
     map_subcmd
         ->add_flag("--kg", opt->output_kg,
             "Save kmer graphs with forward and reverse coverage annotations for found "
@@ -322,7 +333,8 @@ int pandora_map(MapOptions& opt)
         = pangraph_from_read_file(sample, pangraph, index, opt.max_diff, opt.error_rate,
             opt.outdir, opt.min_cluster_size, opt.genome_size, opt.max_covg,
             opt.conflicting_clusters_overlap_threshold, opt.conflicting_clusters_minimiser_tolerance,
-            opt.threads, opt.keep_extra_debugging_files, opt.rng_seed);
+            opt.threads, opt.keep_extra_debugging_files, opt.rng_seed,
+            opt.partial_matching_lower_bound);
 
     if (pangraph->nodes.empty()) {
         BOOST_LOG_TRIVIAL(info) << "Found none of the LocalPRGs in the reads.";
