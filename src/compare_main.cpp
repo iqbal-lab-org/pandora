@@ -162,6 +162,14 @@ void setup_compare_subcommand(CLI::App& app)
         ->type_name("FLOAT")
         ->group("Filtering");
 
+    compare_subcmd
+        ->add_flag(
+            "--no-gene-coverage-filtering", opt->no_gene_coverage_filtering,
+            "Do not filter genes based on their coverage, effectively ignoring params "
+            "--min-abs-gene-coverage, --min-rel-gene-coverage, --max-rel-gene-coverage and --min-gene-coverage-proportion. "
+            "This is useful if you are not using read datasets.")
+        ->group("Filtering");
+
     description = "Add extra step to carefully genotype sites.";
     auto* gt_opt = compare_subcmd->add_flag("--genotype", opt->genotype, description)
                        ->group("Consensus/Variant Calling");
@@ -347,7 +355,8 @@ int pandora_compare(CompareOptions& opt)
             local_prg->add_consensus_path_to_fastaq(consensus_fq, c->second, kmp, lmp,
                 index.get_window_size(), opt.binomial, covg, opt.max_num_kmers_to_avg, 0,
                 opt.min_absolute_gene_coverage, opt.min_relative_gene_coverage,
-                opt.max_relative_gene_coverage, opt.min_gene_coverage_proportion);
+                opt.max_relative_gene_coverage, opt.min_gene_coverage_proportion,
+                opt.no_gene_coverage_filtering);
 
             if (kmp.empty()) {
                 c = pangraph_sample->remove_node(c->second);
