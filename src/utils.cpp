@@ -544,7 +544,8 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
     const float conflicting_clusters_overlap_threshold,
     const float conflicting_clusters_minimiser_tolerance,
     uint32_t threads,
-    const bool keep_extra_debugging_files, const uint32_t rng_seed)
+    const bool keep_extra_debugging_files, const uint32_t rng_seed,
+    const float partial_matching_lower_bound)
 {
     // constant variables
     const SampleIdText sample_name = sample.first;
@@ -552,7 +553,7 @@ uint32_t pangraph_from_read_file(const SampleData& sample,
     const std::string tag = "[Sample " + sample_name + "]: ";
     const uint32_t w = index.get_window_size();
     const uint32_t k = index.get_kmer_size();
-    const double fraction_kmers_required_for_cluster = 0.1 / exp(e_rate * k);
+    const double fraction_kmers_required_for_cluster = partial_matching_lower_bound / exp(e_rate * k);
     const uint32_t nb_reads_to_map_in_a_batch = 1000;
 
     BOOST_LOG_TRIVIAL(trace) << tag << "e_rate: " << e_rate;

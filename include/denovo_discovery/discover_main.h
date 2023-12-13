@@ -39,6 +39,7 @@ struct DiscoverOptions {
     bool no_gene_coverage_filtering { false };
     uint32_t min_cluster_size { 10 };
     uint32_t max_num_kmers_to_avg { 100 };
+    float partial_matching_lower_bound { 0.5 };
     bool keep_extra_debugging_files { false };
 };
 

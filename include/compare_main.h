@@ -60,6 +60,7 @@ struct CompareOptions {
     float min_allele_fraction_covg_gt { 0 };
     float genotyping_error_rate { 0.01 };
     uint16_t confidence_threshold { 1 };
+    float partial_matching_lower_bound { 0.5 };
     bool keep_extra_debugging_files { false };
 };
 
