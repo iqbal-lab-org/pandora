@@ -1699,8 +1699,8 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
     const bool bin, const uint32_t global_covg,
     const uint32_t& max_num_kmers_to_average, const uint32_t& sample_id,
     float min_absolute_gene_coverage, float min_relative_gene_coverage,
-    float max_relative_gene_coverage, float min_gene_coverage_proportion) const
-    float max_relative_gene_coverage, bool no_gene_coverage_filtering) const
+    float max_relative_gene_coverage, float min_gene_coverage_proportion,
+    bool no_gene_coverage_filtering) const
 {
     if (pnode->covg == 0) {
         BOOST_LOG_TRIVIAL(warning) << "Node " << pnode->get_name() << " has no reads";
@@ -1725,61 +1725,58 @@ void LocalPRG::add_consensus_path_to_fastaq(Fastaq& output_fq, pangenome::NodePt
     BOOST_LOG_TRIVIAL(debug) << "Found global coverage " << global_covg
                              << " and path  mean " << mean_covg;
 
-    // apply the coverage proportion filter
-    uint32_t amount_of_bases_with_coverage = std::count_if(covgs.begin(), covgs.end(),
-                                                    [](uint32_t covg){return covg > 0;});
-    float coverage_proportion = ((float)amount_of_bases_with_coverage) / covgs.size();
-    const bool coverage_proportion_is_too_low = coverage_proportion < min_gene_coverage_proportion;
-    if (coverage_proportion_is_too_low) {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Filtering out gene " << name << " due to "
-            << "coverage proportion (" << coverage_proportion << ") "
-            << "being too low, less than the --min-gene-coverage-proportion parameter ("
-            << min_gene_coverage_proportion << ")";
-        kmp.clear();
-        return;
-    }
-
-    // apply the min/max coverage filters
-    if (mean_covg < min_absolute_gene_coverage) {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Filtering out gene " << name << " due to "
     if (!no_gene_coverage_filtering) {
+        // apply the coverage proportion filter
+        uint32_t amount_of_bases_with_coverage = std::count_if(covgs.begin(), covgs.end(),
+                                                        [](uint32_t covg){return covg > 0;});
+        float coverage_proportion = ((float)amount_of_bases_with_coverage) / covgs.size();
+        const bool coverage_proportion_is_too_low = coverage_proportion < min_gene_coverage_proportion;
+        if (coverage_proportion_is_too_low) {
+            BOOST_LOG_TRIVIAL(warning)
+                << "Filtering out gene " << name << " due to "
+                << "coverage proportion (" << coverage_proportion << ") "
+                << "being too low, less than the --min-gene-coverage-proportion parameter ("
+                << min_gene_coverage_proportion << ")";
+            kmp.clear();
+            return;
+        }
+
+        // apply the min/max coverage filters
         if (mean_covg < min_absolute_gene_coverage) {
             BOOST_LOG_TRIVIAL(warning)
                 << "Filtering out gene " << name << " due to "
-            << "mean coverage (" << mean_covg << ") "
-            << "being too low, less than the --min-abs-gene-coverage parameter (" << min_absolute_gene_coverage << ")";
-        kmp.clear();
-        return;
-    }
-
-    if (mean_covg < min_relative_gene_coverage*global_covg) {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Filtering out gene " << name << " due to "
-            << "mean coverage (" << mean_covg << ") "
-            << "being too low, less than the "
-            << "--min-rel-gene-coverage * global coverage ("
-            << min_relative_gene_coverage << " * " << global_covg << " = "
-            << min_relative_gene_coverage * global_covg << "). "
-            << "Is global coverage very different from the expected (too low/high)? "
-            << "Try setting a better genome length (see --genome-size param).";
-        kmp.clear();
-        return;
-    }
-
-    if (mean_covg > max_relative_gene_coverage*global_covg) {
-        BOOST_LOG_TRIVIAL(warning)
-            << "Filtering out gene " << name << " due to "
-            << "mean coverage (" << mean_covg << ") "
-            << "being too high, larger than the "
-            << "--max-rel-gene-coverage * global coverage ("
-            << max_relative_gene_coverage << " * " << global_covg << " = "
-            << max_relative_gene_coverage * global_covg << "). "
-            << "Is global coverage very different from the expected (too low/high)? "
-            << "Try setting a better genome length (see --genome-size param).";
+                << "mean coverage (" << mean_covg << ") "
+                << "being too low, less than the --min-abs-gene-coverage parameter (" << min_absolute_gene_coverage << ")";
             kmp.clear();
             return;
+        }
+
+        if (mean_covg < min_relative_gene_coverage*global_covg) {
+            BOOST_LOG_TRIVIAL(warning)
+                << "Filtering out gene " << name << " due to "
+                << "mean coverage (" << mean_covg << ") "
+                << "being too low, less than the "
+                << "--min-rel-gene-coverage * global coverage ("
+                << min_relative_gene_coverage << " * " << global_covg << " = "
+                << min_relative_gene_coverage * global_covg << "). "
+                << "Is global coverage very different from the expected (too low/high)? "
+                << "Try setting a better genome length (see --genome-size param).";
+            kmp.clear();
+            return;
+        }
+
+        if (mean_covg > max_relative_gene_coverage*global_covg) {
+            BOOST_LOG_TRIVIAL(warning)
+                << "Filtering out gene " << name << " due to "
+                << "mean coverage (" << mean_covg << ") "
+                << "being too high, larger than the "
+                << "--max-rel-gene-coverage * global coverage ("
+                << max_relative_gene_coverage << " * " << global_covg << " = "
+                << max_relative_gene_coverage * global_covg << "). "
+                << "Is global coverage very different from the expected (too low/high)? "
+                << "Try setting a better genome length (see --genome-size param).";
+                kmp.clear();
+                return;
         }
     }
 
