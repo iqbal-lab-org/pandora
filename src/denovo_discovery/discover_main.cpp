@@ -66,6 +66,36 @@ void setup_discover_subcommand(CLI::App& app)
         ->type_name("INT")
         ->group("Mapping");
 
+    description
+        = "Minimum proportion of overlap between two clusters of hits to consider "
+          "them conflicting. Only one of the conflicting clusters will be kept.";
+    discover_subcmd
+        ->add_option("--min-cluster-overlap", opt->conflicting_clusters_overlap_threshold, description)
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Mapping");
+
+    description
+        = "Allows for partial matching between reads and a PRG. If this value is for e.g. 0.5, it means that "
+          "pandora will match a read to a PRG if the cluster of hits has size at least 0.5 * expected cluster size "
+          "for the given error rate and kmer value. Lower values allow for more hits, but possibly for false positive "
+          "matches.";
+    discover_subcmd
+        ->add_option("--partial-matching-lower-bound", opt->partial_matching_lower_bound, description)
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Mapping");
+
+    description
+        = "When two clusters of hits are conflicting, the one with highest number of unique minimisers "
+          "will be kept. However, if the difference between the number of unique minimisers is too small, "
+          "less than this parameter, then we will prefer the cluster that has higher target coverage.";
+    discover_subcmd
+        ->add_option("--cluster-mini-tolerance", opt->conflicting_clusters_minimiser_tolerance, description)
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Mapping");
+
     discover_subcmd
         ->add_flag("--kg", opt->output_kg,
             "Save kmer graphs with forward and reverse coverage annotations for found "
@@ -139,6 +169,26 @@ void setup_discover_subcommand(CLI::App& app)
         ->type_name("FLOAT")
         ->group("Filtering");
 
+    discover_subcmd
+        ->add_option(
+            "--min-gene-coverage-proportion", opt->min_gene_coverage_proportion,
+            "Minimum gene coverage proportion to keep a gene. "
+            "Given the coverage on the kmers of the maximum likelihood path of a gene, we compute "
+            "the number of bases that have at least one read covering it. "
+            "If the proportion of such bases is larger than the value in this "
+            "parameter, the gene is kept. Otherwise, the gene is filtered out.")
+        ->capture_default_str()
+        ->type_name("FLOAT")
+        ->group("Filtering");
+
+    discover_subcmd
+        ->add_flag(
+            "--no-gene-coverage-filtering", opt->no_gene_coverage_filtering,
+            "Do not filter genes based on their coverage, effectively ignoring params "
+            "--min-abs-gene-coverage, --min-rel-gene-coverage, --max-rel-gene-coverage and --min-gene-coverage-proportion. "
+            "This is useful if you are not using read datasets.")
+        ->group("Filtering");
+
     description
         = "Minimum size of a cluster of hits between a read and a loci to consider "
           "the loci present";
@@ -201,7 +251,9 @@ void pandora_discover_core(const SampleData& sample, Index &index, DiscoverOptio
     uint32_t covg
         = pangraph_from_read_file(sample, pangraph, index, opt.max_diff, opt.error_rate, sample_outdir,
         opt.min_cluster_size, opt.genome_size, opt.max_covg,
-        opt.threads, opt.keep_extra_debugging_files, opt.rng_seed);
+        opt.conflicting_clusters_overlap_threshold, opt.conflicting_clusters_minimiser_tolerance,
+        opt.threads, opt.keep_extra_debugging_files, opt.rng_seed,
+        opt.partial_matching_lower_bound);
 
     if (pangraph->nodes.empty()) {
         BOOST_LOG_TRIVIAL(warning)
@@ -273,7 +325,8 @@ void pandora_discover_core(const SampleData& sample, Index &index, DiscoverOptio
              pangraph_node, kmp, lmp, index.get_window_size(), opt.binomial, covg,
              opt.max_num_kmers_to_avg, 0,
              opt.min_absolute_gene_coverage, opt.min_relative_gene_coverage,
-             opt.max_relative_gene_coverage);
+             opt.max_relative_gene_coverage, opt.min_gene_coverage_proportion,
+             opt.no_gene_coverage_filtering);
 
         if (kmp.empty()) {
             // mark the node as to remove

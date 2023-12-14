@@ -25,6 +25,8 @@ struct DiscoverOptions {
     uint32_t rng_seed { 0 };
     uint32_t genome_size { 5000000 };
     uint32_t max_diff { 250 };
+    float conflicting_clusters_overlap_threshold { 0.8 };
+    float conflicting_clusters_minimiser_tolerance { 0.05 };
     bool output_kg { false };
     bool illumina { false };
     bool binomial { false };
@@ -32,9 +34,12 @@ struct DiscoverOptions {
     uint32_t max_covg { 600 };
     float min_absolute_gene_coverage { 3.0 };
     float min_relative_gene_coverage { 0.05 };
-    float max_relative_gene_coverage { 10 };
+    float max_relative_gene_coverage { 100 };
+    float min_gene_coverage_proportion { 0.8 };
+    bool no_gene_coverage_filtering { false };
     uint32_t min_cluster_size { 10 };
     uint32_t max_num_kmers_to_avg { 100 };
+    float partial_matching_lower_bound { 0.5 };
     bool keep_extra_debugging_files { false };
 };
 

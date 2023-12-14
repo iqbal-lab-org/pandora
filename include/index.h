@@ -213,7 +213,7 @@ public:
         return prg_lengths[id];
     }
 
-    inline const std::vector<uint32_t> & get_prg_max_path_lengths() const {
+    inline std::vector<uint32_t> & get_prg_max_path_lengths() {
         return prg_max_path_lengths;
     }
     inline uint32_t get_prg_max_path_lengths_given_id(size_t id) const {

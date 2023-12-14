@@ -38,6 +38,8 @@ struct MapOptions {
     uint32_t rng_seed { 0 };
     uint32_t genome_size { 5000000 };
     uint32_t max_diff { 250 };
+    float conflicting_clusters_overlap_threshold { 0.8 };
+    float conflicting_clusters_minimiser_tolerance { 0.05 };
     bool output_kg { false };
     bool output_vcf { false };
     bool illumina { false };
@@ -47,6 +49,8 @@ struct MapOptions {
     float min_absolute_gene_coverage { 3.0 };
     float min_relative_gene_coverage { 0.05 };
     float max_relative_gene_coverage { 100 };
+    float min_gene_coverage_proportion { 0.8 };
+    bool no_gene_coverage_filtering { false };
     bool genotype { false };
     bool local_genotype { false };
     bool snps_only { false };
@@ -58,6 +62,7 @@ struct MapOptions {
     float min_allele_fraction_covg_gt { 0 };
     float genotyping_error_rate { 0.01 };
     uint16_t confidence_threshold { 1 };
+    float partial_matching_lower_bound { 0.5 };
     bool keep_extra_debugging_files { false };
 };
 

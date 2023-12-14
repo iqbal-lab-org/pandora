@@ -115,3 +115,41 @@ std::pair<uint32_t, uint32_t> MinimizerHits::get_strand_counts() const {
     uint32_t minus_strand_count = strands.size() - plus_strand_count;
     return std::make_pair(plus_strand_count, minus_strand_count);
 }
+
+uint32_t MinimizerHits::read_span_size() const
+{
+    return back()->get_read_start_position() - front()->get_read_start_position();
+}
+
+double MinimizerHits::overlap_amount(const MinimizerHits& cluster) const {
+    const uint32_t start = std::max(this->front()->get_read_start_position(),
+                                    cluster.front()->get_read_start_position());
+    const uint32_t end = std::min(this->back()->get_read_start_position(),
+                                  cluster.back()->get_read_start_position());
+
+    const bool no_overlap = start > end;
+    if (no_overlap) {
+        return false;
+    }
+
+    const uint32_t overlap = end - start;
+    const uint32_t shortest_read_span = std::min(this->read_span_size(), cluster.read_span_size());
+
+    return (double)overlap / shortest_read_span;
+}
+
+double MinimizerHits::target_coverage() const {
+    return (double)get_number_of_unique_mini_in_cluster() / (double)prg_max_path_lengths->at(front()->get_prg_id());
+}
+
+bool MinimizerHits::is_preferred_to(const MinimizerHits& cluster, double minimisers_tolerance) const {
+    double margin = minimisers_tolerance *
+        std::max(this->get_number_of_unique_mini_in_cluster(), cluster.get_number_of_unique_mini_in_cluster());
+    double difference = std::abs((double)(this->get_number_of_unique_mini_in_cluster() - cluster.get_number_of_unique_mini_in_cluster()));
+
+    if (difference > margin) {
+        return this->get_number_of_unique_mini_in_cluster() > cluster.get_number_of_unique_mini_in_cluster();
+    }
+
+    return this->target_coverage() > cluster.target_coverage();
+}
