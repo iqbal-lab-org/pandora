@@ -3,7 +3,7 @@ set -eu
 
 ########################################################################################################################
 # configs
-pandora_version="0.11.0-alpha.0"
+pandora_version="0.12.0-alpha.0"
 pandora_URL="https://github.com/rmcolq/pandora/releases/download/${pandora_version}/pandora-linux-precompiled-v${pandora_version}"
 make_prg_version="0.5.0"
 make_prg_URL="https://github.com/iqbal-lab-org/make_prg/releases/download/${make_prg_version}/make_prg_${make_prg_version}"
