@@ -7,6 +7,18 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.12.0-alpha.0]
+
+### Fixed
+
+- `pandora` mapping has been improved by doing a better detection of conflicting clusters and selection [[#344][344]];
+
+### Added
+
+- Parameter `--min-gene-coverage-proportion` to `pandora` `map`, `compare` and `discover` subcommands [[#351][351]];
+- Parameter `--no-gene-coverage-filtering` to `pandora` `map`, `compare` and `discover` subcommands [[#352][352]];
+- Parameter `--partial-matching-lower-bound` to `pandora` `map`, `compare` and `discover` subcommands [[#353][353]];
+
 ## [0.11.0-alpha.0]
 
 This version is a major release that breaks backwards compatibility with previous versions of `pandora`.
@@ -186,7 +198,8 @@ their changes meticulously documented here.
 
 - k-mer coverage underflow bug in `LocalPRG` [[#183][183]]
 
-[Unreleased]: https://github.com/rmcolq/pandora/compare/0.11.0-alpha.0...HEAD
+[Unreleased]: https://github.com/rmcolq/pandora/compare/0.12.0-alpha.0...HEAD
+[0.12.0-alpha.0]: https://github.com/rmcolq/pandora/compare/0.12.0-alpha.0...0.11.0-alpha.0
 [0.11.0-alpha.0]: https://github.com/rmcolq/pandora/compare/0.11.0-alpha.0...0.10.0-alpha.0
 [0.10.0-alpha.0]: https://github.com/rmcolq/pandora/compare/0.10.0-alpha.0...0.9.2
 [0.9.2]: https://github.com/rmcolq/pandora/compare/0.9.2...0.9.1
