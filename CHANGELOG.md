@@ -218,6 +218,10 @@ their changes meticulously documented here.
 [265]: https://github.com/rmcolq/pandora/pull/265
 [294]: https://github.com/rmcolq/pandora/issues/294
 [320]: https://github.com/rmcolq/pandora/issues/320
+[344]: https://github.com/rmcolq/pandora/pull/344
+[351]: https://github.com/rmcolq/pandora/pull/351
+[352]: https://github.com/rmcolq/pandora/pull/352
+[353]: https://github.com/rmcolq/pandora/pull/353
 [v0.7.0]: https://github.com/rmcolq/pandora/releases/tag/v0.7.0
 [Racon]: https://github.com/lbcb-sci/racon
 [SAM]: https://samtools.github.io/hts-specs/SAMv1.pdf
