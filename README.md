@@ -109,7 +109,7 @@ Pandora is hosted on Quay through Biocontainers and images
 can be downloaded and run with the command **(warning: this will install version `0.9.2`)**:
 
 ```
-URI="quay.io/biocontainers/pandora"
+URI="quay.io/biocontainers/pandora:0.9.2--h4ac6f70_0"
 docker run -it "$URI" pandora --help
 ```
 
