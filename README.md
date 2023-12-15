@@ -88,31 +88,36 @@ chmod +x pandora-linux-precompiled-v0.12.0-alpha.0
 * **Notes**:
   * We provide precompiled binaries for Linux OS only;
 
+### Other installation methods
+
+We have several other installation methods but please not that **the methods below are just available for releases,
+and not for pre-releases.**
+There are several improvements and changes in recent pre-releases versions that we could still not 
+unit test properly, and therefore are still marked as pre-releases.
+
 ### Conda
 
-To install `pandora` through `conda`, run:
+To install `pandora` through `conda`, run (warning this will install version `0.9.2`):
 ```
 conda install -c bioconda pandora
 ```
 
 ### Containers
 
-[![Docker Repository on Quay](https://quay.io/repository/rmcolq/pandora/status "Docker Repository on Quay")](https://quay.io/repository/rmcolq/pandora)
-
 You can also download a containerized image of Pandora.
-Pandora is hosted on Quay and images can be downloaded with the
-command:
+Pandora is hosted on Quay through Biocontainers and images
+can be downloaded and run with the command (warning this will install version `0.9.2`):
 
 ```
-URI="quay.io/rmcolq/pandora"
-docker pull "$URI"
+URI="quay.io/biocontainers/pandora"
 docker run -it "$URI" pandora --help
 ```
 
-Alternatively, using singularity:
+Alternatively, you can also download and run singularity images through the galaxy project depot
+(warning this will install version `0.9.2`):
 
 ```
-URI="docker://quay.io/rmcolq/pandora"
+URI="https://depot.galaxyproject.org/singularity/pandora%3A0.9.2--h4ac6f70_0"
 singularity exec "$URI" pandora --help
 ```
 
